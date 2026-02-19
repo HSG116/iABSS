@@ -16,7 +16,8 @@ export default defineConfig(({ mode }) => {
   const SUPABASE_KEY = env.EXPO_PUBLIC_SUPABASE_KEY || process.env.EXPO_PUBLIC_SUPABASE_KEY || '';
 
   return {
-    base: './',
+    // Dynamic Base Path: Vercel usually serves from root (/), GitHub Pages from project folder (./)
+    base: process.env.VERCEL ? '/' : './',
     server: {
       port: 3000,
       host: '0.0.0.0',
