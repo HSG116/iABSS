@@ -45,6 +45,10 @@ import { OBSLinksModal } from './components/OBSLinksModal';
 import { SponsorsWidget } from './components/SponsorsWidget';
 import TecshIcon from './components/TecsIcon';
 
+const ICON_MAP: Record<string, any> = {
+  Sparkles, Armchair, TecshIcon, ImageIcon, Zap, Gift, Flag, Users2, Keyboard, Swords, Coffee, PaintBucket, AlertTriangle, Video, Sword, Globe, Brain, Vote, Bomb, Type, Footprints, Flame, Smile
+};
+
 // Premium Avatar Component with Auto-Fix for Kick Images
 const ProAvatar = ({ url, username, size = "w-14 h-14" }: { url?: string, username: string, size?: string }) => {
   const [src, setSrc] = React.useState(url);
@@ -292,46 +296,70 @@ const App: React.FC = () => {
 
   const handleGoHome = () => setCurrentView('HOME');
 
-  const PremiumGameButton = ({ title, icon: Icon, onClick, isPrimary = false, isComingSoon = false, comingSoonText = "قريباً", hasOBS = false }: any) => (
-    <button
-      onClick={isComingSoon ? undefined : onClick}
-      disabled={isComingSoon}
-      className={`group relative flex items-center justify-center gap-4 md:gap-6 overflow-hidden border-2 border-white/10 transition-all duration-300 active:scale-95 text-white font-black italic
-        ${isComingSoon ? "bg-zinc-900 cursor-not-allowed grayscale pointer-events-none" : "bg-iabs-red shadow-[0_15px_40px_rgba(255,0,0,0.3)]"}
-        ${isPrimary
-          ? "px-10 py-5 text-2xl md:text-3xl rounded-[2.5rem] hover:scale-105 w-full lg:max-w-md shadow-[0_20px_50px_rgba(255,0,0,0.4)]"
-          : "px-4 py-4 text-lg md:text-xl rounded-[2rem] hover:scale-110 w-full"
-        } `}
-    >
-      <div className="absolute inset-0 bg-white/30 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 skew-x-[-35deg] pointer-events-none z-20"></div>
-      <div className="absolute top-0 left-0 w-full h-[45%] bg-gradient-to-b from-white/30 to-transparent pointer-events-none z-10"></div>
+  const PremiumGameButton = ({ title, icon: Icon, onClick, isPrimary = false, isComingSoon = false, comingSoonText = "قريباً", hasOBS = false, index, total, onMoveUp, onMoveDown, isEditMode }: any) => {
+    // Dynamic size scaling based on position (smaller towards the end)
+    const scale = isEditMode ? 1 : Math.max(0.85, 1 - (index / (total * 2)));
 
-      {hasOBS && (
-        <div className="absolute top-0 left-0 z-50 flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-2 py-1 rounded-br-2xl border-b border-r border-white/20 shadow-lg group-hover:bg-red-600/80 transition-colors">
-          <Video size={10} className="text-white drop-shadow-sm" />
-          <span className="text-[9px] font-black text-white uppercase tracking-tighter">OBS</span>
-        </div>
-      )}
+    return (
+      <div className="relative group/btn-container" style={{ transform: `scale(${scale})` }}>
+        <button
+          onClick={isComingSoon ? undefined : onClick}
+          disabled={isComingSoon || isEditMode}
+          className={`group relative flex items-center justify-center gap-4 md:gap-6 overflow-hidden border-2 border-white/10 transition-all duration-300 active:scale-95 text-white font-black italic
+            ${isComingSoon ? "bg-zinc-900 cursor-not-allowed grayscale pointer-events-none" : "bg-iabs-red shadow-[0_15px_40px_rgba(255,0,0,0.3)]"}
+            ${isPrimary
+              ? "px-10 py-5 text-2xl md:text-3xl rounded-[2.5rem] hover:scale-105 w-full lg:max-w-md shadow-[0_20px_50px_rgba(255,0,0,0.4)]"
+              : "px-4 py-4 text-lg md:text-xl rounded-[2rem] hover:scale-110 w-full"
+            } `}
+        >
+          <div className="absolute inset-0 bg-white/30 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 skew-x-[-35deg] pointer-events-none z-20"></div>
+          <div className="absolute top-0 left-0 w-full h-[45%] bg-gradient-to-b from-white/30 to-transparent pointer-events-none z-10"></div>
 
-      <div className="relative z-30 flex-shrink-0 transition-all duration-500 transform group-hover:scale-110 group-hover:rotate-6 flex items-center justify-center">
-        <div className={`relative ${isPrimary ? 'w-12 h-12' : 'w-10 h-10'} flex items-center justify-center ${isComingSoon ? 'opacity-30' : ''}`}>
-          <Icon size={isPrimary ? 40 : 26} color="#FFFFFF" strokeWidth={2.5} className="drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
-        </div>
-      </div>
+          {hasOBS && (
+            <div className="absolute top-0 left-0 z-50 flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-2 py-1 rounded-br-2xl border-b border-r border-white/20 shadow-lg group-hover:bg-red-600/80 transition-colors">
+              <Video size={10} className="text-white drop-shadow-sm" />
+              <span className="text-[9px] font-black text-white uppercase tracking-tighter">OBS</span>
+            </div>
+          )}
 
-      <span className={`relative z-30 text-white font-black italic tracking-tighter uppercase leading-none bg-transparent ${isComingSoon ? 'opacity-30' : ''}`}>
-        {title}
-      </span>
-
-      {isComingSoon && (
-        <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-[2px]">
-          <div className="bg-yellow-500 text-black px-6 py-1 rounded-full font-black text-sm -rotate-12 shadow-[0_0_20px_rgba(234,179,8,0.5)] animate-pulse">
-            {comingSoonText}
+          <div className="relative z-30 flex-shrink-0 transition-all duration-500 transform group-hover:scale-110 group-hover:rotate-6 flex items-center justify-center">
+            <div className={`relative ${isPrimary ? 'w-12 h-12' : 'w-10 h-10'} flex items-center justify-center ${isComingSoon ? 'opacity-30' : ''}`}>
+              <Icon size={isPrimary ? 40 : 26} color="#FFFFFF" strokeWidth={2.5} className="drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
+            </div>
           </div>
-        </div>
-      )}
-    </button>
-  );
+
+          <span className={`relative z-30 text-white font-black italic tracking-tighter uppercase leading-none bg-transparent ${isComingSoon ? 'opacity-30' : ''}`}>
+            {title}
+          </span>
+
+          {isComingSoon && (
+            <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-[2px]">
+              <div className="bg-yellow-500 text-black px-6 py-1 rounded-full font-black text-sm -rotate-12 shadow-[0_0_20px_rgba(234,179,8,0.5)] animate-pulse">
+                {comingSoonText}
+              </div>
+            </div>
+          )}
+        </button>
+
+        {isEditMode && (
+          <div className="absolute -top-4 -right-4 flex flex-col gap-1 z-[60]">
+            <button
+              onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
+              className="bg-zinc-800 hover:bg-zinc-700 p-2 rounded-full border border-white/20 text-white"
+            >
+              <ArrowUp size={16} />
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); onMoveDown(); }}
+              className="bg-zinc-800 hover:bg-zinc-700 p-2 rounded-full border border-white/20 text-white"
+            >
+              <ArrowDown size={16} />
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const WelcomeGate = () => (
     <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/98 backdrop-blur-3xl p-6 animate-in fade-in duration-1000">
@@ -596,16 +624,59 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            <div className="w-full flex flex-col items-center mb-24 space-y-6 px-6">
-              {/* Row 1: Primary Game - Centered and compact */}
-              <div className="w-full flex justify-center max-w-4xl">
-                <PremiumGameButton title="ابدأ الفوازير" icon={Sparkles} isPrimary onClick={() => setCurrentView('FAWAZIR_SELECT')} />
-              </div>
+            <div className="w-full h-20 flex justify-center items-center gap-6 mb-8">
+              {userRole === 'admin' && (
+                !isEditMode ? (
+                  <button
+                    onClick={() => setIsEditMode(true)}
+                    className="flex items-center gap-3 px-8 py-3 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 text-white font-bold transition-all"
+                  >
+                    <Edit2 size={20} /> تعديل ترتيب الألعاب
+                  </button>
+                ) : (
+                  <button
+                    onClick={saveGamesOrder}
+                    disabled={isSavingGames}
+                    className="flex items-center gap-3 px-8 py-3 bg-green-600 hover:bg-green-500 rounded-2xl border border-white/10 text-white font-bold transition-all shadow-[0_0_20px_rgba(22,163,74,0.4)]"
+                  >
+                    {isSavingGames ? <Loader2 size={20} className="animate-spin" /> : <Save size={20} />} حفظ الترتيب الجديد
+                  </button>
+                )
+              )}
+            </div>
 
-              {/* Row 2: Two Columns - More compact */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
-                <PremiumGameButton title="الكراسي الموسيقية" icon={Armchair} isPrimary onClick={() => setCurrentView('MUSICAL_CHAIRS')} />
-                <PremiumGameButton title="صائد الماوس باد" icon={TecshIcon} isPrimary onClick={() => setCurrentView('GRID_HUNT')} />
+            <div className="w-full flex flex-col items-center mb-24 space-y-6 px-6">
+              {/* Row 1 & 2: Primary Games */}
+              <div className="w-full flex flex-col items-center gap-6 max-w-4xl">
+                {games.filter(g => g.is_primary).map((game, idx) => (
+                  <div key={game.id} className={`${idx === 0 ? 'w-full flex justify-center' : 'grid grid-cols-1 md:grid-cols-2 gap-6 w-full'}`}>
+                    {idx === 0 ? (
+                      <PremiumGameButton
+                        title={game.title}
+                        icon={ICON_MAP[game.icon_name] || Sparkles}
+                        isPrimary
+                        onClick={() => setCurrentView(game.view_id)}
+                        index={idx}
+                        total={games.length}
+                        isEditMode={isEditMode}
+                        onMoveUp={() => moveGame(games.indexOf(game), 'up')}
+                        onMoveDown={() => moveGame(games.indexOf(game), 'down')}
+                      />
+                    ) : (
+                      <PremiumGameButton
+                        title={game.title}
+                        icon={ICON_MAP[game.icon_name] || Sparkles}
+                        isPrimary
+                        onClick={() => setCurrentView(game.view_id)}
+                        index={idx}
+                        total={games.length}
+                        isEditMode={isEditMode}
+                        onMoveUp={() => moveGame(games.indexOf(game), 'up')}
+                        onMoveDown={() => moveGame(games.indexOf(game), 'down')}
+                      />
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -617,27 +688,22 @@ const App: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 px-6">
-                <PremiumGameButton title="تخمين الصورة" icon={ImageIcon} onClick={() => setCurrentView('BLUR_GUESS')} />
-                <PremiumGameButton title="عجلة الحظ" icon={Zap} onClick={() => setCurrentView('SPIN_WHEEL')} />
-                <PremiumGameButton title="سحب الجوائز" icon={Gift} onClick={() => setCurrentView('RAFFLE')} />
-                <PremiumGameButton title="تحدي الأعلام" icon={Flag} onClick={() => setCurrentView('FLAG_QUIZ')} />
-                <PremiumGameButton title="حرب الفرق" icon={Users2} onClick={() => setCurrentView('TEAM_BATTLE')} />
-                <PremiumGameButton title="سباق الكتابة" icon={Keyboard} onClick={() => setCurrentView('TYPING_RACE')} />
-                <PremiumGameButton title="حرب المصاقيل" icon={Swords} onClick={() => setCurrentView('MASAQIL_WAR')} />
-                <PremiumGameButton title="تحدي الأكواب" icon={Coffee} onClick={() => setCurrentView('CUP_SHUFFLE')} />
-                <PremiumGameButton title="حرب الألوان" icon={PaintBucket} onClick={() => setCurrentView('TERRITORY_WAR')} />
-                <PremiumGameButton title="صادق أم كذاب" icon={AlertTriangle} isComingSoon={false} onClick={() => setCurrentView('TRUTH_OR_LIE')} hasOBS />
-
-                <PremiumGameButton title="تحدي الرسم" icon={PaintBucket} onClick={() => setCurrentView('DRAWING_CHALLENGE')} hasOBS />
-                <PremiumGameButton title="حرب الفواكه" icon={Sword} onClick={() => setCurrentView('FRUIT_WAR')} />
-                <PremiumGameButton title="جولة الشعارات" icon={Globe} onClick={() => setCurrentView('LOGO_ROUND')} />
-                <PremiumGameButton title="تخمين الكلمات" icon={Brain} onClick={() => setCurrentView('FORBIDDEN_WORDS')} hasOBS />
-                <PremiumGameButton title="لعبة التصويت" icon={Vote} onClick={() => setCurrentView('VOTING_GAME')} hasOBS />
-                <PremiumGameButton title="القنبلة الموقوتة" icon={Bomb} onClick={() => setCurrentView('TIME_BOMB')} />
-                <PremiumGameButton title="السكرابل السريع" icon={Type} isComingSoon={true} comingSoonText="تحت التطوير" />
-                <PremiumGameButton title="جسر الزجاج" icon={Footprints} onClick={() => setCurrentView('GLASS_BRIDGE_V2')} />
-                <PremiumGameButton title="أرضية الحمم" icon={Flame} onClick={() => setCurrentView('FLOOR_IS_LAVA')} />
-                <PremiumGameButton title="فك الشفرة" icon={Smile} onClick={() => setCurrentView('EMOJI_CODE')} />
+                {games.filter(g => !g.is_primary).map((game, idx) => (
+                  <PremiumGameButton
+                    key={game.id}
+                    title={game.title}
+                    icon={ICON_MAP[game.icon_name] || Sparkles}
+                    onClick={() => setCurrentView(game.view_id)}
+                    isComingSoon={game.is_coming_soon}
+                    comingSoonText={game.coming_soon_text}
+                    hasOBS={game.has_obs}
+                    index={idx + games.filter(g => g.is_primary).length}
+                    total={games.length}
+                    isEditMode={isEditMode}
+                    onMoveUp={() => moveGame(games.indexOf(game), 'up')}
+                    onMoveDown={() => moveGame(games.indexOf(game), 'down')}
+                  />
+                ))}
               </div>
             </div>
 
