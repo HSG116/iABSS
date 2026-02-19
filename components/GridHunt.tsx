@@ -8,6 +8,8 @@ import {
    Activity, BarChart3, Eye, EyeOff
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+// @ts-ignore
+import tecshLogo from '../photo/image.png';
 
 interface GridHuntProps {
    channelConnected: boolean;
@@ -178,7 +180,7 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                {/* Compact Header */}
                <div className="bg-zinc-900/60 p-8 rounded-[2.5rem] border border-white/5 text-center space-y-3">
                   <div className="w-24 h-24 bg-white/5 rounded-2xl flex items-center justify-center shadow-lg mx-auto mb-2 border border-white/10 group overflow-hidden">
-                     <img src="photo/image.png" className="w-20 h-20 object-contain group-hover:scale-110 transition-transform duration-500" alt="TECSH Logo" />
+                     <img src={tecshLogo} className="w-20 h-20 object-contain group-hover:scale-110 transition-transform duration-500" alt="TECSH Logo" />
                   </div>
                   <h2 className="text-4xl font-black italic text-white red-neon-text tracking-tighter">صائد الماوس باد</h2>
                   <p className="text-[10px] text-white/30 font-bold uppercase tracking-[0.2em] italic">TECSH • ONE WINNER • ONE TARGET</p>
@@ -352,7 +354,7 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                                           {cell.type === 'TREASURE' && (
                                              <div className="w-10/12 h-6/12 bg-white/10 border border-white/20 rounded-sm shadow-inner relative overflow-hidden flex items-center justify-center">
                                                 <div className="absolute inset-0 bg-blue-500/20"></div>
-                                                <img src="photo/image.png" className="w-4 h-4 object-contain opacity-50" />
+                                                <img src={tecshLogo} className="w-4 h-4 object-contain opacity-50" />
                                              </div>
                                           )}
                                           {cell.type === 'BOMB' && <Skull size={20} className="text-white opacity-50" />}
@@ -384,7 +386,7 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                   <div className="relative mb-6">
                      <div className="absolute -inset-20 bg-blue-600/10 blur-[100px] animate-pulse rounded-full" />
                      <div className="relative z-10 p-6 bg-white/5 rounded-[3rem] border-2 border-white/10 shadow-2xl backdrop-blur-md">
-                        <img src="photo/image.png" className="w-32 h-32 md:w-48 md:h-48 object-contain drop-shadow-[0_0_30px_rgba(255,255,255,0.3)] animate-pulse" alt="TECSH Logo" />
+                        <img src={tecshLogo} className="w-32 h-32 md:w-48 md:h-48 object-contain drop-shadow-[0_0_30px_rgba(255,255,255,0.3)] animate-pulse" alt="TECSH Logo" />
                      </div>
                   </div>
 
