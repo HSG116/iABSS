@@ -53,6 +53,18 @@ export const GlobalPasswordPage: React.FC<GlobalPasswordPageProps> = ({
 
     useEffect(() => {
         const initAuth = async () => {
+            // Failsafe timeout to prevent black screen if Supabase hangs
+            const timeoutId = setTimeout(() => {
+                if (step === 'LOADING') {
+                    console.warn("Auth initialization timed out, falling back to local...");
+                    const fallback = "123456";
+                    setTargetPin(fallback);
+                    setPin(new Array(fallback.length).fill(''));
+                    setUserType('NEW');
+                    setStep('PASSWORD');
+                }
+            }, 3500);
+
             // 1. Check LocalStorage for existing access
             const storedSession = localStorage.getItem(storageKey);
             let storedToken: string | null = null;
@@ -66,16 +78,8 @@ export const GlobalPasswordPage: React.FC<GlobalPasswordPageProps> = ({
                         if (parsed.role) setRole(parsed.role as 'admin' | 'user');
                         hasStoredSession = true;
                     }
-                } else {
-                    // Check for legacy format (though we prefer to invalidate it)
-                    // If we want to support legacy 'true' string temporarily:
-                    // if (storedSession === 'true') hasStoredSession = true;
-                    // BUT: user wants to logout everyone. So we ignore legacy.
                 }
-            } catch (e) {
-                // If parse fails, it might be the old 'true' string.
-                // We treat it as invalid to force logout/upgrade.
-            }
+            } catch (e) { }
 
             // 2. Fetch Password Config (needed for new users OR verification)
             try {
@@ -85,21 +89,18 @@ export const GlobalPasswordPage: React.FC<GlobalPasswordPageProps> = ({
                     .eq('key', configKey)
                     .single();
 
+                clearTimeout(timeoutId);
+
                 if (data && data.value) {
                     setTargetPin(data.value);
                     setPin(new Array(data.value.length).fill(''));
                     inputs.current = inputs.current.slice(0, data.value.length);
 
-                    // Check if stored token matches current password
                     if (hasStoredSession && storedToken === data.value) {
                         setUserType('RETURNING');
                         setStep('FINGERPRINT');
                     } else {
-                        // Invalid token or no token -> New User
-                        if (hasStoredSession) {
-                            // If we had a session but it's invalid (password changed), clear it
-                            localStorage.removeItem(storageKey);
-                        }
+                        if (hasStoredSession) localStorage.removeItem(storageKey);
                         setUserType('NEW');
                         setStep('PASSWORD');
                     }
@@ -111,6 +112,7 @@ export const GlobalPasswordPage: React.FC<GlobalPasswordPageProps> = ({
                     setStep('PASSWORD');
                 }
             } catch (e) {
+                clearTimeout(timeoutId);
                 console.error("Auth init error:", e);
                 const fallback = "123456";
                 setTargetPin(fallback);
