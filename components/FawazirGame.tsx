@@ -33,16 +33,32 @@ interface GameSettings {
   winnerDuration: number;
 }
 
+interface PlayerStats {
+  user: string;
+  avatar: string;
+  winCount: number;
+  totalTime: number; // in milliseconds
+  averageTime: number;
+}
+
+interface RoundWinnerInfo {
+  user: string;
+  avatar: string;
+  responseTime: number;
+  winCountBefore: number;
+}
+
 export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, onHome, isOBS }) => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [timer, setTimer] = useState(20);
   const [gameState, setGameState] = useState<'PRE_START' | 'PLAYING' | 'ROUND_WIN' | 'SUMMARY'>('PRE_START');
-  const [roundWinner, setRoundWinner] = useState<{ user: string, avatar: string } | null>(null);
-  const [roundWinners, setRoundWinners] = useState<{ user: string, avatar: string }[]>([]);
-  const [winnersList, setWinnersList] = useState<{ user: string, count: number, avatar: string }[]>([]);
+  const [roundWinner, setRoundWinner] = useState<RoundWinnerInfo | null>(null);
+  const [roundWinners, setRoundWinners] = useState<RoundWinnerInfo[]>([]);
+  const [winnersList, setWinnersList] = useState<PlayerStats[]>([]);
   const [backgroundImage, setBackgroundImage] = useState<string>('');
   const [avatarCache, setAvatarCache] = useState<Record<string, string>>({});
+  const [roundStartTime, setRoundStartTime] = useState<number>(0);
 
   const [settings, setSettings] = useState<GameSettings>({
     winMode: 'SPEED',
@@ -60,13 +76,17 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
   const gameStateRef = useRef(gameState);
   const settingsRef = useRef(settings);
   const userAttemptsRef = useRef<Set<string>>(new Set());
+  const roundStartTimeRef = useRef<number>(0);
+  const winnersListRef = useRef<PlayerStats[]>([]);
 
   useEffect(() => {
     questionsRef.current = questions;
     currentIndexRef.current = currentIndex;
     gameStateRef.current = gameState;
     settingsRef.current = settings;
-  }, [questions, currentIndex, gameState, settings]);
+    roundStartTimeRef.current = roundStartTime;
+    winnersListRef.current = winnersList;
+  }, [questions, currentIndex, gameState, settings, roundStartTime, winnersList]);
 
   useEffect(() => {
     const filtered = QUESTIONS_DB.filter(q => q.category === category);
@@ -123,6 +143,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
     userAttemptsRef.current.clear();
     setQuestions(gameQuestions);
     setTimer(settings.timerDuration);
+    setRoundStartTime(Date.now());
     setGameState('PLAYING');
   };
 
@@ -135,6 +156,11 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
     }
     return () => clearInterval(interval);
   }, [gameState, timer]);
+
+  const playSound = (type: 'correct' | 'wrong' | 'timer' | 'win') => {
+    if (!settings.soundEnabled) return;
+    // Sound implementation placeholder - could use Audio objects if assets were provided
+  };
 
   const normalizeArabic = (text: string) => {
     if (!text) return "";
@@ -170,14 +196,24 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
       const isTextMatch = isExactMatch || isPartialMatch;
 
       if (isTextMatch) {
+        const responseTime = (Date.now() - roundStartTimeRef.current) / 1000;
+        const previousStats = winnersListRef.current.find(w => w.user === username);
+        const winCountBefore = previousStats ? previousStats.winCount : 0;
+
         let avatarUrl = msg.user.avatar || avatarCache[username.toLowerCase()] || '';
-        const winnerObj = { user: username, avatar: avatarUrl };
+        const winnerObj: RoundWinnerInfo = {
+          user: username,
+          avatar: avatarUrl,
+          responseTime,
+          winCountBefore
+        };
 
         if (!avatarUrl) {
           chatService.fetchKickAvatar(username).then(av => {
             if (av) {
               const uLower = username.toLowerCase();
               setRoundWinner(prev => (prev && prev.user.toLowerCase() === uLower) ? { ...prev, avatar: av } : prev);
+              setRoundWinners(prev => prev.map(w => w.user.toLowerCase() === uLower ? { ...w, avatar: av } : w));
               setWinnersList(prev => prev.map(w => w.user.toLowerCase() === uLower ? { ...w, avatar: av } : w));
             }
           });
@@ -193,7 +229,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
     return () => unsubscribe();
   }, []);
 
-  const handleRoundEnd = async (singleWinner: { user: string, avatar: string } | null) => {
+  const handleRoundEnd = async (singleWinner: RoundWinnerInfo | null) => {
     if (gameStateRef.current !== 'PLAYING') return;
     const winners = settingsRef.current.winMode === 'SPEED' ? (singleWinner ? [singleWinner] : []) : roundWinners;
 
@@ -210,67 +246,170 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
         let newList = [...prev];
         winners.forEach(w => {
           const idx = newList.findIndex(u => u.user === w.user);
-          if (idx !== -1) newList[idx] = { ...newList[idx], count: newList[idx].count + 1 };
-          else newList.push({ user: w.user, avatar: w.avatar, count: 1 });
+          if (idx !== -1) {
+            const newCount = newList[idx].winCount + 1;
+            const newTotalTime = newList[idx].totalTime + w.responseTime;
+            newList[idx] = {
+              ...newList[idx],
+              winCount: newCount,
+              totalTime: newTotalTime,
+              averageTime: newTotalTime / newCount
+            };
+          } else {
+            newList.push({
+              user: w.user,
+              avatar: w.avatar,
+              winCount: 1,
+              totalTime: w.responseTime,
+              averageTime: w.responseTime
+            });
+          }
         });
-        return newList.sort((a, b) => b.count - a.count);
+        // Sort by winCount (desc) and then by averageTime (asc)
+        return newList.sort((a, b) => {
+          if (b.winCount !== a.winCount) return b.winCount - a.winCount;
+          return a.averageTime - b.averageTime;
+        });
       });
     }
 
-    const waitTime = settingsRef.current.autoNext ? (settingsRef.current.winnerDuration * 1000) : 3500;
+    // Auto transition disabled or controlled by winnerDuration if autoNext is true
+    if (settingsRef.current.autoNext) {
+      setTimeout(nextRound, settingsRef.current.winnerDuration * 1000);
+    }
+  };
 
-    setTimeout(() => {
-      userAttemptsRef.current.clear();
-      setRoundWinners([]);
+  const nextRound = () => {
+    userAttemptsRef.current.clear();
+    setRoundWinners([]);
+    setRoundWinner(null);
 
-      if (settingsRef.current.gameOverOnMiss && winners.length === 0) {
+    const winners = settingsRef.current.winMode === 'SPEED' ? (roundWinner ? [roundWinner] : []) : roundWinners;
+    if (settingsRef.current.gameOverOnMiss && winners.length === 0) {
+      setGameState('SUMMARY');
+      return;
+    }
+
+    setCurrentIndex(prev => {
+      const nextIdx = prev + 1;
+      if (nextIdx < questionsRef.current.length) {
+        setTimer(settingsRef.current.timerDuration);
+        setRoundStartTime(Date.now());
+        setGameState('PLAYING');
+        return nextIdx;
+      } else {
         setGameState('SUMMARY');
-        return;
+        return prev;
       }
-
-      setCurrentIndex(prev => {
-        const nextIdx = prev + 1;
-        if (nextIdx < questionsRef.current.length) {
-          setTimer(settingsRef.current.timerDuration);
-          setGameState('PLAYING');
-          return nextIdx;
-        } else {
-          setGameState('SUMMARY');
-          return prev;
-        }
-      });
-    }, waitTime);
+    });
   };
 
   if (gameState === 'SUMMARY') {
-    const topWinner = winnersList[0];
+    const top3 = winnersList.slice(0, 3);
     return (
-      <div className="flex-1 w-full flex flex-col items-center justify-center animate-in zoom-in duration-500 p-6 text-center bg-black/80 backdrop-blur-md">
-        <div className="glass-card w-full max-w-2xl rounded-[4rem] border-2 border-red-600/30 p-12 relative overflow-hidden shadow-[0_0_150px_rgba(255,0,0,0.2)]">
-          <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent via-red-600 to-transparent"></div>
-          <Trophy size={140} className="text-[#FFD700] mx-auto mb-8 animate-bounce drop-shadow-[0_0_40px_rgba(255,215,0,0.5)]" fill="currentColor" />
-          <h1 className="text-6xl font-black text-white italic tracking-tighter uppercase mb-2">النتائج النهائية</h1>
-          <p className="text-red-500 font-black tracking-[0.5em] text-xs uppercase mb-12">Game Session Concluded</p>
+      <div className="flex-1 w-full flex flex-col items-center justify-center animate-in zoom-in duration-700 p-4 md:p-8 bg-black/90 backdrop-blur-3xl overflow-y-auto">
+        <div className="w-full max-w-6xl relative">
+          {/* Header */}
+          <div className="text-center mb-16 relative">
+            <div className="absolute -top-20 left-1/2 -translate-x-1/2 opacity-20 blur-3xl w-96 h-96 bg-red-600 rounded-full"></div>
+            <Trophy size={100} className="text-[#FFD700] mx-auto mb-6 drop-shadow-[0_0_50px_rgba(255,215,0,0.6)] animate-pulse" fill="currentColor" />
+            <h1 className="text-7xl md:text-8xl font-black text-white italic tracking-tighter uppercase mb-2 red-neon-text">أساطير الميدان</h1>
+            <p className="text-red-500 font-black tracking-[1em] text-sm md:text-base uppercase">Final Hall of Fame</p>
+          </div>
 
-          {topWinner ? (
-            <div className="bg-white/5 p-8 rounded-[3rem] border border-white/10 mb-12">
-              <div className="w-32 h-32 rounded-full border-4 border-[#FFD700] mx-auto mb-6 overflow-hidden shadow-2xl relative">
-                {topWinner.avatar ? <img src={topWinner.avatar} className="w-full h-full object-cover" /> : <User size={48} className="text-white/20 mt-8 mx-auto" />}
-                <div className="absolute bottom-0 w-full bg-[#FFD700] text-black font-black text-[10px] py-1">ULTIMATE</div>
-              </div>
-              <h2 className="text-5xl font-black text-white italic mb-2 tracking-tighter">{topWinner.user}</h2>
-              <span className="text-xl font-bold text-kick-green font-mono">{topWinner.count} إجابة صحيحة</span>
+          {!top3.length ? (
+            <div className="text-center py-20 bg-white/5 rounded-[4rem] border border-white/10 backdrop-blur-md">
+              <Skull size={100} className="text-gray-600 mx-auto mb-8 opacity-50" />
+              <h2 className="text-4xl font-black text-white/40 italic">لا يوجد أبطال في هذه المعركة</h2>
             </div>
           ) : (
-            <div className="text-3xl text-gray-500 font-bold mb-12">لا يوجد فائزون في هذه الجولة</div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 items-end">
+              {/* Silver - 2nd Place */}
+              {top3[1] && (
+                <div className="order-2 md:order-1 group cursor-default">
+                  <div className="bg-[#1A1A1A]/80 backdrop-blur-xl rounded-[3rem] border-2 border-slate-400/30 p-8 pt-16 relative shadow-2xl hover:scale-[1.02] transition-all duration-500">
+                    <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-28 h-28 rounded-full border-4 border-slate-400 overflow-hidden shadow-2xl bg-black">
+                      {top3[1].avatar ? <img src={top3[1].avatar} className="w-full h-full object-cover" /> : <User size={40} className="text-slate-400 mt-6 mx-auto" />}
+                    </div>
+                    <div className="absolute top-10 left-1/2 -translate-x-1/2 bg-slate-400 text-black px-4 py-1 rounded-full font-black text-xs">2ND PLACE</div>
+                    <div className="text-center">
+                      <h3 className="text-3xl font-black text-white truncate mb-4">{top3[1].user}</h3>
+                      <div className="flex flex-col gap-3">
+                        <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                          <span className="block text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">الإجابات</span>
+                          <span className="text-2xl font-black text-white italic">{top3[1].winCount}</span>
+                        </div>
+                        <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                          <span className="block text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">متوسط السرعة</span>
+                          <span className="text-2xl font-black text-white italic">{top3[1].averageTime.toFixed(3)}s</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Gold - 1st Place */}
+              {top3[0] && (
+                <div className="order-1 md:order-2 group z-10 scale-110 md:scale-125 md:-translate-y-8">
+                  <div className="bg-gradient-to-b from-yellow-500/10 to-[#0A0A0A] backdrop-blur-3xl rounded-[4rem] border-4 border-[#FFD700] p-10 pt-20 relative shadow-[0_0_100px_rgba(255,215,0,0.2)]">
+                    <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-36 h-36 rounded-full border-[6px] border-[#FFD700] overflow-hidden shadow-[0_0_50px_rgba(255,215,0,0.4)] bg-black">
+                      {top3[0].avatar ? <img src={top3[0].avatar} className="w-full h-full object-cover animate-pulse" /> : <User size={50} className="text-[#FFD700] mt-8 mx-auto" />}
+                    </div>
+                    <div className="absolute top-14 left-1/2 -translate-x-1/2 bg-[#FFD700] text-black px-6 py-1.5 rounded-full font-black text-sm shadow-xl flex items-center gap-2">
+                      <Star size={16} fill="black" /> CHAMPION
+                    </div>
+                    <div className="text-center">
+                      <h3 className="text-4xl font-black text-white truncate mb-6 gold-glow-text">{top3[0].user}</h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-[#FFD700]/10 p-4 rounded-3xl border border-[#FFD700]/20">
+                          <span className="block text-[10px] text-[#FFD700] font-black uppercase tracking-widest mb-1">الإجابات</span>
+                          <span className="text-3xl font-black text-white italic">{top3[0].winCount}</span>
+                        </div>
+                        <div className="bg-[#FFD700]/10 p-4 rounded-3xl border border-[#FFD700]/20">
+                          <span className="block text-[10px] text-[#FFD700] font-black uppercase tracking-widest mb-1">السرعة</span>
+                          <span className="text-2xl font-black text-white italic">{top3[0].averageTime.toFixed(3)}s</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Bronze - 3rd Place */}
+              {top3[2] && (
+                <div className="order-3 group cursor-default">
+                  <div className="bg-[#1A1A1A]/80 backdrop-blur-xl rounded-[3rem] border-2 border-orange-700/30 p-8 pt-16 relative shadow-2xl hover:scale-[1.02] transition-all duration-500">
+                    <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-28 h-28 rounded-full border-4 border-orange-700 overflow-hidden shadow-2xl bg-black">
+                      {top3[2].avatar ? <img src={top3[2].avatar} className="w-full h-full object-cover" /> : <User size={40} className="text-orange-700 mt-6 mx-auto" />}
+                    </div>
+                    <div className="absolute top-10 left-1/2 -translate-x-1/2 bg-orange-700 text-black px-4 py-1 rounded-full font-black text-xs">3RD PLACE</div>
+                    <div className="text-center">
+                      <h3 className="text-3xl font-black text-white truncate mb-4">{top3[2].user}</h3>
+                      <div className="flex flex-col gap-3">
+                        <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                          <span className="block text-[10px] text-orange-700 font-black uppercase tracking-widest mb-1">الإجابات</span>
+                          <span className="text-2xl font-black text-white italic">{top3[2].winCount}</span>
+                        </div>
+                        <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                          <span className="block text-[10px] text-orange-700 font-black uppercase tracking-widest mb-1">متوسط السرعة</span>
+                          <span className="text-2xl font-black text-white italic">{top3[2].averageTime.toFixed(3)}s</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
 
-          <div className="flex flex-col gap-4 w-full">
-            <button onClick={startGame} className="group w-full bg-white text-black font-black py-6 rounded-[2rem] text-2xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-4 italic shadow-2xl">
-              إعادة اللعبة <RotateCcw size={28} className="group-hover:rotate-180 transition-transform duration-700" />
+          {/* Controls */}
+          <div className="flex flex-col md:flex-row gap-6 w-full max-w-4xl mx-auto items-center justify-center">
+            <button onClick={startGame} className="group w-full md:w-auto px-16 bg-white text-black font-black py-6 rounded-[2.5rem] text-2xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-4 italic shadow-[0_20px_60px_rgba(255,255,255,0.2)]">
+              إعادة المعركة <RotateCcw size={28} className="group-hover:rotate-180 transition-transform duration-700" />
             </button>
-            <button onClick={onHome} className="w-full bg-white/5 border border-white/10 text-white font-black py-6 rounded-[2rem] text-2xl hover:bg-white/10 transition-all flex items-center justify-center gap-4 italic uppercase">
-              <Home size={28} /> العودة للقائمة الرئيسية
+            <button onClick={onHome} className="w-full md:w-auto px-16 bg-white/5 border-2 border-white/10 text-white font-black py-6 rounded-[2.5rem] text-2xl hover:bg-white/10 transition-all flex items-center justify-center gap-4 italic">
+              <Home size={28} /> العودة للرئيسية
             </button>
           </div>
         </div>
@@ -380,75 +519,60 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
         ) : (
           <div className="flex-1 w-full flex flex-col items-center justify-center mb-24 relative">
             {gameState === 'ROUND_WIN' && (
-              <div className="absolute inset-0 z-[100] flex items-center justify-center animate-in fade-in zoom-in duration-700 pointer-events-none">
-                <div className="text-center relative max-w-5xl w-full mx-6">
+              <div className="absolute inset-x-0 -inset-y-32 z-[100] flex items-center justify-center animate-in fade-in zoom-in duration-700 bg-black/60 backdrop-blur-sm">
+                <div className="text-center relative max-w-6xl w-full mx-6 p-8 rounded-[4rem] border-2 border-white/10 bg-[#0A0A0A]/95 shadow-[0_0_100px_rgba(0,0,0,0.8)] overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-transparent via-green-500 to-transparent"></div>
+
                   {roundWinners.length > 0 ? (
                     <div className="flex flex-col items-center">
-                      <div className="mb-8 animate-bounce relative">
-                        <Trophy size={110} className="text-yellow-500 drop-shadow-[0_0_40px_rgba(234,179,8,0.9)] relative z-10" fill="currentColor" />
-                        <div className="absolute -top-12 left-1/2 -translate-x-1/2 text-white font-black text-3xl uppercase tracking-[0.6em] italic drop-shadow-2xl gold-glow-text">WINNER</div>
+                      <div className="mb-10 animate-bounce relative">
+                        <Trophy size={90} className="text-yellow-500 drop-shadow-[0_0_40px_rgba(234,179,8,0.9)] relative z-10" fill="currentColor" />
+                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 text-white font-black text-2xl uppercase tracking-[0.4em] italic drop-shadow-2xl gold-glow-text">ROUND COMPLETED</div>
                       </div>
 
-                      {settings.winMode === 'SPEED' ? (
-                        <div className="animate-in slide-in-from-bottom-20 duration-1000 flex flex-col items-center">
-                          <div className="relative group perspective-1000">
-                            {/* Cinematic Glow Rays */}
-                            <div className="absolute inset-0 bg-green-500/20 blur-[100px] rounded-full animate-pulse"></div>
-
-                            <div className="w-48 h-48 md:w-64 md:h-64 rounded-[3rem] md:rounded-[4rem] border-[6px] md:border-[8px] border-green-500 mx-auto mb-8 md:mb-10 overflow-hidden shadow-[0_0_80px_rgba(34,197,94,0.6)] relative bg-black transition-all duration-1000 transform-gpu hover:scale-105">
-                              {roundWinners[0].avatar ? (
-                                <img src={roundWinners[0].avatar} className="w-full h-full object-cover animate-in fade-in duration-500" />
-                              ) : (
-                                <div className="w-full h-full bg-zinc-900 flex items-center justify-center text-white/10 font-black text-7xl md:text-8xl">
-                                  {roundWinners[0].user.charAt(0)}
+                      <div className="w-full">
+                        <h3 className="text-green-500 font-black tracking-[0.4em] text-xl uppercase mb-8 italic">قـائمـة الـفـائزيـن في الجولة</h3>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
+                          {roundWinners.map((w, idx) => (
+                            <div key={idx} className="bg-white/5 rounded-[2.5rem] p-6 border border-white/10 relative group hover:bg-white/10 transition-all hover:scale-105">
+                              <div className="w-20 h-20 rounded-full border-4 border-green-500 mx-auto mb-4 overflow-hidden bg-black shadow-lg">
+                                {w.avatar ? <img src={w.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-white/20 font-black text-3xl">{w.user.charAt(0)}</div>}
+                              </div>
+                              <div className="text-center">
+                                <h4 className="text-xl font-black text-white truncate mb-2">{w.user}</h4>
+                                <div className="space-y-1">
+                                  <div className="bg-green-500/20 rounded-full px-3 py-1 flex items-center justify-between">
+                                    <span className="text-[10px] font-black text-green-400 uppercase">Speed</span>
+                                    <span className="text-sm font-black text-green-400 font-mono">{w.responseTime.toFixed(3)}s</span>
+                                  </div>
+                                  <div className="bg-blue-500/20 rounded-full px-3 py-1 flex items-center justify-between">
+                                    <span className="text-[10px] font-black text-blue-400 uppercase">Previous Wins</span>
+                                    <span className="text-sm font-black text-blue-400">{w.winCountBefore}</span>
+                                  </div>
                                 </div>
-                              )}
-                              <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
-                              <div className="absolute bottom-4 left-0 right-0 text-center z-20">
-                                <div className="bg-green-500 text-black px-4 py-1 md:px-6 md:py-2 rounded-full font-black text-[10px] md:text-xs uppercase italic shadow-[0_5px_15px_rgba(0,0,0,0.4)] inline-block">CHAMPION</div>
                               </div>
                             </div>
-                          </div>
-
-                          <div className="text-6xl md:text-8xl font-black text-white italic tracking-tighter uppercase leading-none drop-shadow-[0_10px_30px_rgba(0,0,0,1)] green-neon-text mb-6">
-                            {roundWinners[0].user}
-                          </div>
-
-                          <div className="bg-white/5 backdrop-blur-2xl border-2 border-green-500/40 px-16 py-4 rounded-[2rem] text-white font-black text-4xl shadow-2xl relative overflow-hidden group">
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                            🎉 فـاز المـبـدع بـنـقـاط الجـولة
-                          </div>
+                          ))}
                         </div>
-                      ) : (
-                        <div className="w-full">
-                          <h3 className="text-green-500 font-black tracking-[0.6em] text-xl uppercase mb-12 italic drop-shadow-[0_0_10px_rgba(34,197,94,0.5)]">قـائمـة الـفـائزيـن</h3>
-                          <div className="flex flex-wrap justify-center gap-8 mb-12">
-                            {roundWinners.slice(0, 10).map((w, idx) => (
-                              <div key={idx} className="flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-500" style={{ animationDelay: `${idx * 100}ms` }}>
-                                <div className="w-28 h-28 rounded-[2.5rem] border-4 border-green-500 overflow-hidden shadow-[0_0_30px_rgba(34,197,94,0.3)] bg-black relative">
-                                  {w.avatar ? <img src={w.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-white/20 font-black text-4xl">{w.user.charAt(0)}</div>}
-                                  <div className="absolute -bottom-2 -right-2 bg-green-500 text-black w-8 h-8 rounded-full flex items-center justify-center font-black border-2 border-black">✓</div>
-                                </div>
-                                <span className="text-white font-black text-lg italic drop-shadow-md">{w.user}</span>
-                              </div>
-                            ))}
-                            {roundWinners.length > 10 && (
-                              <div className="w-28 h-28 rounded-[2.5rem] bg-green-500/20 border-4 border-green-500/40 flex items-center justify-center text-green-400 font-black text-3xl backdrop-blur-md">
-                                +{roundWinners.length - 10}
-                              </div>
-                            )}
-                          </div>
-                          <div className="text-5xl font-black text-white italic drop-shadow-lg"><span className="text-green-500">{roundWinners.length}</span> لاعب حـصدوا النقاط</div>
-                        </div>
-                      )}
+                      </div>
+
+                      <div className="flex gap-4 w-full justify-center">
+                        <button onClick={nextRound} className="group px-20 bg-green-600 hover:bg-green-500 text-white font-black py-6 rounded-[2.5rem] text-3xl shadow-[0_20px_50px_rgba(34,197,94,0.3)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-4 italic">
+                          الجولة التالية <ArrowRight size={32} className="group-hover:translate-x-2 transition-transform" />
+                        </button>
+                      </div>
                     </div>
                   ) : (
-                    <div className="py-20 animate-in zoom-in duration-500">
-                      <div className="w-40 h-40 rounded-full border-4 border-red-600 flex items-center justify-center mx-auto mb-10 bg-red-600/10 animate-pulse shadow-[0_0_50px_rgba(220,38,38,0.4)]">
+                    <div className="py-20 flex flex-col items-center">
+                      <div className="w-40 h-40 rounded-full border-4 border-red-600 flex items-center justify-center mb-10 bg-red-600/10 animate-pulse shadow-[0_0_50px_rgba(220,38,38,0.4)]">
                         <Skull size={80} className="text-red-600" />
                       </div>
-                      <div className="text-8xl font-black text-red-500 italic uppercase tracking-tighter drop-shadow-[0_10px_20px_black]">انتهى الوقت!</div>
-                      <p className="text-white/40 font-black mt-4 uppercase tracking-[0.5em]">No Winners This Round</p>
+                      <div className="text-7xl font-black text-red-500 italic uppercase tracking-tighter mb-4">انتهى الوقت!</div>
+                      <p className="text-white/40 font-black uppercase tracking-[0.5em] mb-12">No Strategic Winners</p>
+
+                      <button onClick={nextRound} className="px-16 bg-white/10 border-2 border-white/10 hover:bg-white/20 text-white font-black py-5 rounded-[2rem] text-2xl transition-all flex items-center gap-4">
+                        الاستمرار للجولة القادمة <ArrowRight />
+                      </button>
                     </div>
                   )}
                 </div>
@@ -488,7 +612,8 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                 </div>
 
                 {/* Question Section */}
-                <div className="text-center mb-12 mt-4 px-6 relative z-10">
+                <div className="text-center mb-12 mt-4 px-6 relative z-10 animate-in slide-in-from-top-10 duration-700">
+                  <div className="inline-block bg-red-600/10 border border-red-600/20 px-4 py-1 rounded-full text-red-500 font-bold text-xs uppercase tracking-widest mb-4">Tactical Question</div>
                   <h2 className="text-5xl md:text-7xl font-black text-white leading-tight italic tracking-tighter drop-shadow-[0_10px_30px_rgba(0,0,0,1)]">
                     {questions[currentIndex]?.text}
                   </h2>
@@ -497,8 +622,14 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                 {/* Options Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full relative z-10">
                   {questions[currentIndex]?.options.map((opt, idx) => (
-                    <div key={idx} className="group relative p-6 md:p-8 rounded-[2.5rem] border-2 border-white/5 bg-black/20 backdrop-blur-sm flex items-center justify-center transition-all hover:border-red-600/50 hover:bg-black/40 hover:scale-[1.03]">
-                      <span className="text-2xl md:text-3xl font-black text-white/90 group-hover:text-white transition-colors italic text-center relative z-10">{opt}</span>
+                    <div key={idx} className="group relative p-8 rounded-[3rem] border-2 border-white/5 bg-black/40 backdrop-blur-md flex items-center justify-center transition-all hover:border-red-600 hover:bg-red-600/10 hover:scale-[1.02] shadow-xl overflow-hidden">
+                      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                      <div className="absolute left-6 w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/30 font-black text-lg group-hover:bg-red-600 group-hover:text-white transition-all">
+                        {String.fromCharCode(65 + idx)}
+                      </div>
+                      <span className="text-2xl md:text-4xl font-black text-white group-hover:text-red-500 transition-colors italic text-center relative z-10 px-8">
+                        {opt}
+                      </span>
                     </div>
                   ))}
                 </div>
