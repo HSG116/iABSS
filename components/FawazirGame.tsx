@@ -655,20 +655,26 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                   </h2>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full relative z-10">
-                  {questions[currentIndex]?.options.map((opt, idx) => {
-                    const isCorrect = idx === questions[currentIndex]?.correctIndex;
-                    const showResult = gameState === 'ROUND_WIN';
-                    return (
-                      <div key={idx} className={`group relative p-8 rounded-[3rem] border-2 flex items-center justify-center transition-all shadow-xl overflow-hidden ${showResult && isCorrect ? 'border-green-500 bg-green-500/20 scale-105 shadow-[0_0_30px_rgba(34,197,94,0.3)]' : showResult && !isCorrect ? 'border-white/5 bg-black/40 opacity-50 grayscale' : 'border-white/5 bg-black/40 backdrop-blur-md hover:border-red-600 hover:bg-red-600/10 hover:scale-[1.02]'}`}>
-                        <div className={`absolute left-6 w-10 h-10 rounded-full flex items-center justify-center font-black text-lg transition-all ${showResult && isCorrect ? 'bg-green-500 text-black' : 'bg-white/5 text-white/30 group-hover:bg-red-600 group-hover:text-white'}`}>
-                          {String.fromCharCode(65 + idx)}
+                {gameState === 'ROUND_WIN' ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full relative z-10 animate-in slide-in-from-bottom-10 duration-700">
+                    {questions[currentIndex]?.options.map((opt, idx) => {
+                      const isCorrect = idx === questions[currentIndex]?.correctIndex;
+                      return (
+                        <div key={idx} className={`group relative p-8 rounded-[3rem] border-2 flex items-center justify-center transition-all shadow-xl overflow-hidden ${isCorrect ? 'border-green-500 bg-green-500/20 scale-105 shadow-[0_0_30px_rgba(34,197,94,0.3)]' : 'border-white/5 bg-black/40 opacity-50 grayscale'}`}>
+                          <span className={`text-2xl md:text-4xl font-black italic text-center relative z-10 px-8 transition-colors ${isCorrect ? 'text-green-500' : 'text-white'}`}>{opt}</span>
                         </div>
-                        <span className={`text-2xl md:text-4xl font-black italic text-center relative z-10 px-8 transition-colors ${showResult && isCorrect ? 'text-green-500' : 'text-white group-hover:text-red-500'}`}>{opt}</span>
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-20 animate-pulse">
+                    <div className="bg-red-600/10 border-2 border-dashed border-red-600/30 rounded-[3rem] px-20 py-12 backdrop-blur-md">
+                      <p className="text-4xl md:text-5xl font-black text-white italic text-center drop-shadow-lg">
+                        اكتب الإجابة في الشات للفوز! ⌨️
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {!isOBS && (
                   <div className="mt-12 flex flex-col items-center gap-6 relative z-50">
