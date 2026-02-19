@@ -52,7 +52,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [timer, setTimer] = useState(20);
-  const [gameState, setGameState] = useState<'PRE_START' | 'PLAYING' | 'RESULTS_PENDING' | 'ROUND_WIN' | 'SUMMARY'>('PRE_START');
+  const [gameState, setGameState] = useState<'PRE_START' | 'PLAYING' | 'ROUND_WIN' | 'SUMMARY'>('PRE_START');
   const [roundWinner, setRoundWinner] = useState<RoundWinnerInfo | null>(null);
   const [roundWinners, setRoundWinners] = useState<RoundWinnerInfo[]>([]);
   const [winnersList, setWinnersList] = useState<PlayerStats[]>([]);
@@ -152,7 +152,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
     if (gameState === 'PLAYING' && timer > 0) {
       interval = window.setInterval(() => setTimer(prev => prev - 1), 1000);
     } else if (timer === 0 && gameState === 'PLAYING') {
-      setGameState('RESULTS_PENDING');
+      handleRoundEnd(null);
     }
     return () => clearInterval(interval);
   }, [gameState, timer]);
@@ -221,9 +221,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
         }
 
         if (settingsRef.current.winMode === 'SPEED') {
-          setRoundWinner(winnerObj);
-          setRoundWinners([winnerObj]);
-          setGameState('RESULTS_PENDING');
+          handleRoundEnd(winnerObj);
         } else {
           setRoundWinners(prev => [...prev, winnerObj]);
         }
@@ -232,11 +230,12 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
     return () => unsubscribe();
   }, []);
 
-  const handleRoundEnd = async () => {
-    if (gameStateRef.current !== 'PLAYING' && gameStateRef.current !== 'RESULTS_PENDING') return;
-    const winners = roundWinners;
+  const handleRoundEnd = async (singleWinner: RoundWinnerInfo | null) => {
+    if (gameStateRef.current !== 'PLAYING') return;
+    const winners = settingsRef.current.winMode === 'SPEED' ? (singleWinner ? [singleWinner] : []) : roundWinners;
 
     setGameState('ROUND_WIN');
+    setRoundWinners(winners);
     setRoundWinner(winners.length > 0 ? winners[0] : null);
 
     if (winners.length > 0) {
@@ -520,39 +519,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
           </div>
         ) : (
           <div className="flex-1 w-full flex flex-col items-center justify-center mb-24 relative">
-            {gameState === 'RESULTS_PENDING' && (
-              <div className="absolute inset-0 z-[110] flex items-center justify-center animate-in fade-in zoom-in duration-700 bg-black/90 backdrop-blur-3xl">
-                <div className="text-center relative max-w-4xl w-full mx-6 p-16 rounded-[5rem] border-2 border-white/10 bg-zinc-950 shadow-[0_0_150px_rgba(0,0,0,1)] overflow-hidden">
-                  {/* Decorative Background Effects */}
-                  <div className="absolute -top-24 -left-24 w-64 h-64 bg-yellow-500/10 blur-[100px] rounded-full animate-pulse"></div>
-                  <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-green-500/10 blur-[100px] rounded-full animate-pulse delay-1000"></div>
 
-                  <div className="relative z-10 flex flex-col items-center">
-                    <div className="w-40 h-40 rounded-full border-4 border-yellow-500/30 flex items-center justify-center mb-10 bg-yellow-500/5 animate-bounce shadow-[0_0_40px_rgba(234,179,8,0.2)]">
-                      <Clock size={80} className="text-yellow-500 translate-y-[-2px]" />
-                    </div>
-
-                    <h2 className="text-6xl font-black text-white italic uppercase tracking-tighter mb-4 animate-pulse">تم انتهاء الجولة!</h2>
-                    <p className="text-white/40 font-black uppercase tracking-[0.5em] mb-16 text-sm">Waiting for Streamer to Reveal Results</p>
-
-                    <button
-                      onClick={handleRoundEnd}
-                      className="group relative px-20 py-8 bg-yellow-500 hover:bg-yellow-400 text-black font-black rounded-[3rem] text-4xl shadow-[0_20px_80px_rgba(234,179,8,0.4)] hover:scale-105 active:scale-95 transition-all flex items-center gap-6 italic overflow-hidden"
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                      <Eye size={44} />
-                      الاطلاع على الفائزين
-                    </button>
-
-                    <div className="mt-12 flex items-center gap-3 text-white/20 font-bold uppercase tracking-widest text-xs">
-                      <span className="w-20 h-[1px] bg-white/10"></span>
-                      Standby Mode
-                      <span className="w-20 h-[1px] bg-white/10"></span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {gameState === 'ROUND_WIN' && (
               <div className="absolute inset-0 z-[100] flex items-center justify-center animate-in fade-in zoom-in duration-1000 bg-black/90 backdrop-blur-2xl">
