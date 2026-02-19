@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS games (
     icon_name TEXT, -- The name of the icon component or lucide icon name
     view_id TEXT NOT NULL UNIQUE, -- The ViewState string (e.g., 'FAWAZIR_SELECT')
     is_primary BOOLEAN DEFAULT false,
+    is_visible BOOLEAN DEFAULT true, -- خيار إخفاء اللعبة
     has_obs BOOLEAN DEFAULT false,
     is_coming_soon BOOLEAN DEFAULT false,
     coming_soon_text TEXT DEFAULT 'قريباً',
@@ -25,8 +26,9 @@ ALTER TABLE games ENABLE ROW LEVEL SECURITY;
 -- Anyone can view the games
 CREATE POLICY "Allow public read games" ON games FOR SELECT USING (true);
 
--- Only admins can modify games (simplified check since we use a global password for admin)
-CREATE POLICY "Allow all for service role" ON games USING (true) WITH CHECK (true);
+-- Explicitly allow ALL for everyone (Simplified for public dashboard)
+-- In production, you would check for admin role/session
+CREATE POLICY "Allow all actions for games" ON games FOR ALL USING (true) WITH CHECK (true);
 
 -- 4. Initial Seed Data
 INSERT INTO games (title, icon_name, view_id, is_primary, has_obs, is_coming_soon, position)

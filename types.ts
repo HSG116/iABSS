@@ -82,6 +82,7 @@ export interface Game {
   icon_name: string;
   view_id: ViewState;
   is_primary: boolean;
+  is_visible: boolean;
   has_obs: boolean;
   is_coming_soon: boolean;
   coming_soon_text: string;

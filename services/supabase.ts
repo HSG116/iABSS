@@ -264,7 +264,7 @@ export const gamesService = {
       .update({ position })
       .eq('id', id);
   },
-  async updateAllPositions(games: { id: string, position: number }[]) {
+  async updateAllPositions(games: any[]) {
     if (!isConfigured) return { error: null };
     // We'll use a transaction style or multiple updates
     // Supabase JS doesn't have a built-in batch update for different values easily without RPC

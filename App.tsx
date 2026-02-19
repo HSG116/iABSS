@@ -37,7 +37,7 @@ import {
   Maximize2, MonitorOff, CheckCircle2, AlertTriangle,
   Crown, Medal, Loader2, RefreshCw, ChevronRight, Video,
   Sword, Globe, Brain, Vote, Bomb, Type, Footprints, Flame, Smile,
-  ArrowUp, ArrowDown, Edit2, Save
+  ArrowUp, ArrowDown, Edit2, Save, Eye, EyeOff, Maximize, Minimize
 } from 'lucide-react';
 import { chatService } from './services/chatService';
 import { supabase, leaderboardService, gamesService } from './services/supabase';
@@ -170,13 +170,42 @@ const App: React.FC = () => {
 
   const saveGamesOrder = async () => {
     setIsSavingGames(true);
-    const { error } = await gamesService.updateAllPositions(
-      games.map(g => ({ id: g.id, position: g.position }))
-    );
+    const gamesToSave = games.map(g => ({
+      id: g.id,
+      position: g.position,
+      is_primary: !!g.is_primary,
+      is_visible: g.is_visible !== false
+    }));
+
+    if (gamesToSave.some(g => !g.id)) {
+      console.error("Missing ID in some games:", gamesToSave);
+      alert("خطأ: بعض الألعاب تفتقد للمعرف (ID). يرجى تحديث الصفحة.");
+      setIsSavingGames(false);
+      return;
+    }
+
+    const { error } = await gamesService.updateAllPositions(gamesToSave);
     if (!error) {
+      console.log("Save successful!");
+      await loadGames();
       setIsEditMode(false);
+    } else {
+      console.error("Save error:", error);
+      alert("حدث خطأ أثناء الحفظ: " + (error as any).message);
     }
     setIsSavingGames(false);
+  };
+
+  const toggleGameVisibility = (id: string) => {
+    setGames(prev => prev.map(g =>
+      g.id === id ? { ...g, is_visible: !g.is_visible } : g
+    ));
+  };
+
+  const toggleGameSize = (id: string) => {
+    setGames(prev => prev.map(g =>
+      g.id === id ? { ...g, is_primary: !g.is_primary } : g
+    ));
   };
 
 
@@ -296,36 +325,41 @@ const App: React.FC = () => {
 
   const handleGoHome = () => setCurrentView('HOME');
 
-  const PremiumGameButton = ({ title, icon: Icon, onClick, isPrimary = false, isComingSoon = false, comingSoonText = "قريباً", hasOBS = false, index, total, onMoveUp, onMoveDown, isEditMode }: any) => {
+  const PremiumGameButton = ({
+    title, icon: Icon, onClick, isPrimary = false, isComingSoon = false,
+    comingSoonText = "قريباً", hasOBS = false, index, total,
+    onMoveUp, onMoveDown, isEditMode, isVisible = true, onToggleVisibility, onToggleSize
+  }: any) => {
     // Dynamic size scaling based on position (smaller towards the end)
     const scale = isEditMode ? 1 : Math.max(0.85, 1 - (index / (total * 2)));
 
     return (
-      <div className="relative group/btn-container" style={{ transform: `scale(${scale})` }}>
+      <div className={`relative group/btn-container transition-all duration-500 ${!isVisible && !isEditMode ? 'hidden' : ''}`} style={{ transform: `scale(${scale})` }}>
         <button
           onClick={isComingSoon ? undefined : onClick}
           disabled={isComingSoon || isEditMode}
-          className={`group relative flex items-center justify-center gap-4 md:gap-6 overflow-hidden border-2 transition-all duration-300 active:scale-95 text-white font-black italic
+          className={`group relative flex items-center justify-center gap-3 md:gap-4 overflow-hidden border-2 transition-all duration-300 active:scale-95 text-white font-black italic
             ${isEditMode ? "border-white/40 ring-4 ring-white/10 scale-95 opacity-80" : "border-white/10"}
+            ${!isVisible && isEditMode ? "opacity-40 grayscale" : ""}
             ${isComingSoon ? "bg-zinc-900 cursor-not-allowed grayscale pointer-events-none" : "bg-iabs-red shadow-[0_15px_40px_rgba(255,0,0,0.3)]"}
             ${isPrimary
-              ? "px-10 py-5 text-2xl md:text-3xl rounded-[2.5rem] hover:scale-105 w-full lg:max-w-md shadow-[0_20px_50px_rgba(255,0,0,0.4)]"
-              : "px-4 py-4 text-lg md:text-xl rounded-[2rem] hover:scale-110 w-full"
+              ? "px-6 py-4 text-xl md:text-2xl rounded-[2rem] hover:scale-105 w-full lg:max-w-lg shadow-[0_20px_50px_rgba(255,0,0,0.4)]"
+              : "px-3 py-3 text-sm md:text-base rounded-[1.5rem] hover:scale-105 w-full"
             } `}
         >
           <div className="absolute inset-0 bg-white/30 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 skew-x-[-35deg] pointer-events-none z-20"></div>
           <div className="absolute top-0 left-0 w-full h-[45%] bg-gradient-to-b from-white/30 to-transparent pointer-events-none z-10"></div>
 
           {hasOBS && (
-            <div className="absolute top-0 left-0 z-50 flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-2 py-1 rounded-br-2xl border-b border-r border-white/20 shadow-lg group-hover:bg-red-600/80 transition-colors">
+            <div className="absolute top-0 left-0 z-50 flex items-center gap-1 bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded-br-xl border-b border-r border-white/20 shadow-lg group-hover:bg-red-600/80 transition-colors">
               <Video size={10} className="text-white drop-shadow-sm" />
-              <span className="text-[9px] font-black text-white uppercase tracking-tighter">OBS</span>
+              <span className="text-[8px] font-black text-white uppercase tracking-tighter">OBS</span>
             </div>
           )}
 
           <div className="relative z-30 flex-shrink-0 transition-all duration-500 transform group-hover:scale-110 group-hover:rotate-6 flex items-center justify-center">
-            <div className={`relative ${isPrimary ? 'w-12 h-12' : 'w-10 h-10'} flex items-center justify-center ${isComingSoon ? 'opacity-30' : ''}`}>
-              <Icon size={isPrimary ? 40 : 26} color="#FFFFFF" strokeWidth={2.5} className="drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
+            <div className={`relative ${isPrimary ? 'w-10 h-10' : 'w-8 h-8'} flex items-center justify-center ${isComingSoon ? 'opacity-30' : ''}`}>
+              <Icon size={isPrimary ? 32 : 20} color="#FFFFFF" strokeWidth={2.5} className="drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
             </div>
           </div>
 
@@ -335,28 +369,55 @@ const App: React.FC = () => {
 
           {isComingSoon && (
             <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-[2px]">
-              <div className="bg-yellow-500 text-black px-6 py-1 rounded-full font-black text-sm -rotate-12 shadow-[0_0_20px_rgba(234,179,8,0.5)] animate-pulse">
+              <div className="bg-yellow-500 text-black px-4 py-0.5 rounded-full font-black text-xs -rotate-12 shadow-[0_0_20px_rgba(234,179,8,0.5)] animate-pulse">
                 {comingSoonText}
               </div>
+            </div>
+          )}
+
+          {!isVisible && isEditMode && (
+            <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 border-2 border-dashed border-white/20 rounded-inherit">
+              <EyeOff size={24} className="text-white/50" />
             </div>
           )}
         </button>
 
         {isEditMode && (
-          <div className="absolute -top-4 -right-4 flex flex-col gap-1 z-[60]">
-            <button
-              onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
-              className="bg-zinc-800 hover:bg-zinc-700 p-2 rounded-full border border-white/20 text-white"
-            >
-              <ArrowUp size={16} />
-            </button>
-            <button
-              onClick={(e) => { e.stopPropagation(); onMoveDown(); }}
-              className="bg-zinc-800 hover:bg-zinc-700 p-2 rounded-full border border-white/20 text-white"
-            >
-              <ArrowDown size={16} />
-            </button>
-          </div>
+          <>
+            <div className="absolute -top-3 -right-3 flex flex-col gap-1 z-[60]">
+              <button
+                onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
+                className="bg-zinc-800 hover:bg-zinc-700 p-1.5 rounded-full border border-white/20 text-white shadow-lg"
+                title="نقل لأعلى"
+              >
+                <ArrowUp size={14} />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); onMoveDown(); }}
+                className="bg-zinc-800 hover:bg-zinc-700 p-1.5 rounded-full border border-white/20 text-white shadow-lg"
+                title="نقل لأسفل"
+              >
+                <ArrowDown size={14} />
+              </button>
+            </div>
+
+            <div className="absolute -top-3 -left-3 flex flex-col gap-1 z-[60]">
+              <button
+                onClick={(e) => { e.stopPropagation(); onToggleVisibility(); }}
+                className={`${isVisible ? 'bg-blue-600 hover:bg-blue-500' : 'bg-zinc-600 hover:bg-zinc-500'} p-1.5 rounded-full border border-white/20 text-white shadow-lg transition-colors`}
+                title={isVisible ? "إخفاء اللعبة" : "إظهار اللعبة"}
+              >
+                {isVisible ? <Eye size={14} /> : <EyeOff size={14} />}
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); onToggleSize(); }}
+                className="bg-zinc-800 hover:bg-zinc-700 p-1.5 rounded-full border border-white/20 text-white shadow-lg"
+                title={isPrimary ? "تحويل لزر صغير" : "تحويل لزر كبير"}
+              >
+                {isPrimary ? <Minimize size={14} /> : <Maximize size={14} />}
+              </button>
+            </div>
+          </>
         )}
       </div>
     );
@@ -550,25 +611,25 @@ const App: React.FC = () => {
       default:
         return (
           <div className="flex-1 flex flex-col items-center w-full max-w-7xl px-4 py-4 animate-in fade-in slide-in-from-bottom-12 duration-1000">
-            <div className="mb-14 relative flex flex-col items-center">
-              <div className="absolute inset-0 bg-iabs-red/10 blur-[200px] rounded-full scale-150 animate-pulse"></div>
-              <img src="https://i.ibb.co/pvCN1NQP/95505180312.png" className="h-44 mb-6 animate-float drop-shadow-[0_0_50px_rgba(255,0,0,0.5)]" alt="iABS Logo" />
+            <div className="mb-8 relative flex flex-col items-center">
+              <div className="absolute inset-0 bg-iabs-red/10 blur-[150px] rounded-full scale-125 animate-pulse"></div>
+              <img src="https://i.ibb.co/pvCN1NQP/95505180312.png" className="h-32 mb-4 animate-float drop-shadow-[0_0_50px_rgba(255,0,0,0.5)]" alt="iABS Logo" />
               <div className="relative text-center">
-                <h1 className="text-7xl md:text-[10rem] font-black red-neon-text leading-none italic tracking-tighter select-none drop-shadow-[0_20px_60px_rgba(255,0,0,0.6)]">
+                <h1 className="text-6xl md:text-8xl font-black red-neon-text leading-none italic tracking-tighter select-none drop-shadow-[0_10px_30px_rgba(255,0,0,0.6)]">
                   iABS ARENA
                 </h1>
-                <div className="mt-10 flex flex-col items-center gap-8 animate-in slide-in-from-bottom duration-1000 delay-300">
+                <div className="mt-6 flex flex-col items-center gap-4 animate-in slide-in-from-bottom duration-1000 delay-300">
                   <div className="h-[1px] w-full max-w-lg bg-gradient-to-r from-transparent via-red-500/50 to-transparent"></div>
 
-                  <h2 className="text-2xl md:text-4xl font-black text-white px-4 text-center leading-relaxed drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] tracking-wide">
+                  <h2 className="text-xl md:text-3xl font-black text-white px-4 text-center leading-relaxed drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] tracking-wide">
                     اكبر منصة ألعاب تفاعلية للبثوث المباشرة <br />
                     <span className="text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.6)]">بالعاب اكثر من 23 لعبة</span>
                   </h2>
 
-                  <div className="relative bg-zinc-900/80 px-12 py-5 rounded-full border-2 border-white/10 hover:border-violet-500/50 transition-all hover:scale-110 group backdrop-blur-xl shadow-2xl">
-                    <div className="flex items-center gap-6 text-3xl md:text-5xl font-black text-white italic">
+                  <div className="relative bg-zinc-900/80 px-8 py-3 rounded-full border-2 border-white/10 hover:border-violet-500/50 transition-all hover:scale-105 group backdrop-blur-xl shadow-xl">
+                    <div className="flex items-center gap-4 text-xl md:text-3xl font-black text-white italic">
                       <span className="opacity-80">أكبر من منصة</span>
-                      <span className="text-violet-500 relative px-6 inline-block drop-shadow-[0_0_25px_rgba(139,92,246,0.6)] animate-pulse">
+                      <span className="text-violet-500 relative px-4 inline-block drop-shadow-[0_0_25px_rgba(139,92,246,0.6)] animate-pulse">
                         جولة
                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
                           <span className="text-red-600 text-[1.8em] font-black drop-shadow-[0_0_20px_rgba(220,38,38,1)]" style={{ transform: 'rotate(-15deg) translateY(-5%)' }}>X</span>
@@ -582,7 +643,7 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            <div className="w-full h-20 flex justify-center items-center gap-6 mb-12 z-[100]">
+            <div className="w-full h-16 flex justify-center items-center gap-6 mb-8 z-[100]">
               {userRole === 'admin' && (
                 !isEditMode ? (
                   <button
@@ -590,27 +651,27 @@ const App: React.FC = () => {
                       setIsEditMode(true);
                       console.log("Edit Mode Active");
                     }}
-                    className="flex items-center gap-4 px-10 py-4 bg-white/5 hover:bg-white/10 rounded-3xl border-2 border-white/10 text-white font-black italic tracking-tighter transition-all shadow-2xl hover:scale-105 active:scale-95 group"
+                    className="flex items-center gap-4 px-8 py-3 bg-white/5 hover:bg-white/10 rounded-3xl border-2 border-white/10 text-white font-black italic tracking-tighter transition-all shadow-xl hover:scale-105 active:scale-95 group"
                   >
-                    <Edit2 size={24} className="text-red-500 group-hover:rotate-12 transition-transform" />
+                    <Edit2 size={20} className="text-red-500 group-hover:rotate-12 transition-transform" />
                     <span>تعديل ترتيب الألعاب</span>
                   </button>
                 ) : (
                   <button
                     onClick={saveGamesOrder}
                     disabled={isSavingGames}
-                    className="flex items-center gap-4 px-10 py-4 bg-green-600 hover:bg-green-500 rounded-3xl border-2 border-white/20 text-white font-black italic tracking-tighter transition-all shadow-[0_0_40px_rgba(22,163,74,0.4)] animate-in zoom-in duration-300"
+                    className="flex items-center gap-4 px-8 py-3 bg-green-600 hover:bg-green-500 rounded-3xl border-2 border-white/20 text-white font-black italic tracking-tighter transition-all shadow-[0_0_40px_rgba(22,163,74,0.4)] animate-in zoom-in duration-300"
                   >
-                    {isSavingGames ? <Loader2 size={24} className="animate-spin" /> : <Save size={24} />}
+                    {isSavingGames ? <Loader2 size={20} className="animate-spin" /> : <Save size={20} />}
                     <span>حفظ الترتيب الجديد</span>
                   </button>
                 )
               )}
             </div>
 
-            <div className="w-full flex flex-col items-center mb-24 space-y-12 px-6">
+            <div className="w-full flex flex-col items-center mb-16 space-y-8 px-4">
               {/* Row 1: First Primary Game - Centered */}
-              <div className="w-full flex justify-center max-w-4xl">
+              <div className="w-full flex justify-center max-w-2xl">
                 {games.filter(g => g.is_primary).slice(0, 1).map((game) => (
                   <div key={game.id} className="w-full flex justify-center">
                     <PremiumGameButton
@@ -621,15 +682,18 @@ const App: React.FC = () => {
                       index={0}
                       total={games.length}
                       isEditMode={isEditMode}
+                      isVisible={game.is_visible !== false}
                       onMoveUp={() => moveGame(games.indexOf(game), 'up')}
                       onMoveDown={() => moveGame(games.indexOf(game), 'down')}
+                      onToggleVisibility={() => toggleGameVisibility(game.id)}
+                      onToggleSize={() => toggleGameSize(game.id)}
                     />
                   </div>
                 ))}
               </div>
 
               {/* Row 2: Next Primary Games - Side by Side (Fixed Layout) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-10 w-full max-w-5xl">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-3xl">
                 {games.filter(g => g.is_primary).slice(1, 3).map((game, idx) => (
                   <div key={game.id} className="w-full">
                     <PremiumGameButton
@@ -640,15 +704,18 @@ const App: React.FC = () => {
                       index={idx + 1}
                       total={games.length}
                       isEditMode={isEditMode}
+                      isVisible={game.is_visible !== false}
                       onMoveUp={() => moveGame(games.indexOf(game), 'up')}
                       onMoveDown={() => moveGame(games.indexOf(game), 'down')}
+                      onToggleVisibility={() => toggleGameVisibility(game.id)}
+                      onToggleSize={() => toggleGameSize(game.id)}
                     />
                   </div>
                 ))}
               </div>
 
               {/* Row 3+: Any Other Primary Games */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-10 w-full max-w-5xl">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-3xl">
                 {games.filter(g => g.is_primary).slice(3).map((game, idx) => (
                   <div key={game.id} className="w-full">
                     <PremiumGameButton
@@ -659,22 +726,25 @@ const App: React.FC = () => {
                       index={idx + 3}
                       total={games.length}
                       isEditMode={isEditMode}
+                      isVisible={game.is_visible !== false}
                       onMoveUp={() => moveGame(games.indexOf(game), 'up')}
                       onMoveDown={() => moveGame(games.indexOf(game), 'down')}
+                      onToggleVisibility={() => toggleGameVisibility(game.id)}
+                      onToggleSize={() => toggleGameSize(game.id)}
                     />
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="w-full max-w-6xl space-y-14 mb-20">
+            <div className="w-full max-w-5xl space-y-8 mb-20">
               <div className="flex items-center gap-10 px-8 opacity-25">
                 <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent via-white to-transparent"></div>
-                <h2 className="text-white font-black text-sm uppercase tracking-[1.5em] italic">Secondary Units</h2>
+                <h2 className="text-white font-black text-xs uppercase tracking-[1.5em] italic">Secondary Units</h2>
                 <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-white to-transparent"></div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 px-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 px-4">
                 {games.filter(g => !g.is_primary).map((game, idx) => (
                   <PremiumGameButton
                     key={game.id}
@@ -686,22 +756,24 @@ const App: React.FC = () => {
                     hasOBS={game.has_obs}
                     index={idx + games.filter(g => g.is_primary).length}
                     total={games.length}
-                    isEditMode={isEditMode}
+                    isVisible={game.is_visible !== false}
                     onMoveUp={() => moveGame(games.indexOf(game), 'up')}
                     onMoveDown={() => moveGame(games.indexOf(game), 'down')}
+                    onToggleVisibility={() => toggleGameVisibility(game.id)}
+                    onToggleSize={() => toggleGameSize(game.id)}
                   />
                 ))}
               </div>
             </div>
 
-            <div className="flex flex-wrap justify-center gap-10 md:gap-20 mt-16 pb-28">
-              <button onClick={() => setCurrentView('LEADERBOARD')} className="flex items-center gap-6 text-white/40 hover:text-iabs-red font-black text-3xl tracking-[0.2em] transition-all hover:scale-110 group italic">
-                <Trophy size={32} className="group-hover:animate-bounce text-yellow-500 drop-shadow-[0_0_15px_rgba(255,215,0,0.5)]" />
+            <div className="flex flex-wrap justify-center gap-10 md:gap-20 mt-10 pb-20">
+              <button onClick={() => setCurrentView('LEADERBOARD')} className="flex items-center gap-4 text-white/40 hover:text-iabs-red font-black text-2xl tracking-[0.2em] transition-all hover:scale-105 group italic">
+                <Trophy size={28} className="group-hover:animate-bounce text-yellow-500 drop-shadow-[0_0_15px_rgba(255,215,0,0.5)]" />
                 لوحة الصدارة
               </button>
 
-              <button onClick={() => setCurrentView('ADMIN_LOGIN')} className="flex items-center gap-6 text-white/10 hover:text-white/40 font-black text-3xl tracking-[0.2em] transition-all hover:scale-110 group border-l-4 border-white/5 pl-10 md:pl-20 italic">
-                <ShieldCheck size={32} className="group-hover:text-blue-500 transition-colors" />
+              <button onClick={() => setCurrentView('ADMIN_LOGIN')} className="flex items-center gap-4 text-white/10 hover:text-white/40 font-black text-2xl tracking-[0.2em] transition-all hover:scale-105 group border-l-4 border-white/5 pl-10 md:pl-20 italic">
+                <ShieldCheck size={28} className="group-hover:text-blue-500 transition-colors" />
                 الإدارة
               </button>
             </div>
