@@ -1,433 +1,525 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
+import { Timer, Trophy, ChevronLeft, Star, Settings, User, CheckCircle2, XCircle, BarChart3, Image as ImageIcon, Lock, Clock, RotateCcw, Home, Volume2, VolumeX, Zap, Skull, PlayCircle, ArrowRight, Swords } from 'lucide-react';
+import { Question, ChatUser } from '../types';
+import { QUESTIONS_DB, CATEGORIES } from '../constants';
 import { chatService } from '../services/chatService';
 import { leaderboardService } from '../services/supabase';
-import {
-   Grid, RotateCcw, Gem, Skull, Target, LogOut, Radar,
-   Settings, Users, Play, Zap, Trophy, Bomb, ChevronLeft,
-   Activity, BarChart3, Eye, EyeOff
-} from 'lucide-react';
-import confetti from 'canvas-confetti';
-// @ts-ignore
-import tecshLogo from '../photo/image.png';
 
-interface GridHuntProps {
-   channelConnected: boolean;
+const logoImage = "https://i.ibb.co/pvCN1NQP/95505180312.png";
+
+const MAIN_BACKGROUND_URL = "https://i.ibb.co/pjDLM8Hq/1000126047.png";
+const CONTENT_BACKGROUND_URL = "https://i.ibb.co/k6mHccgc/content.png";
+
+const AVAILABLE_BACKGROUNDS = [
+   { id: 'main', url: MAIN_BACKGROUND_URL, label: 'الرئيسية' },
+   { id: 'content', url: CONTENT_BACKGROUND_URL, label: 'الميدان' },
+];
+
+interface FawazirGameProps {
+   category: string;
+   onFinish: () => void;
    onHome: () => void;
    isOBS?: boolean;
 }
 
-type CellType = 'EMPTY' | 'TREASURE' | 'BOMB';
-type GamePhase = 'SETTINGS' | 'WAITING' | 'PLAYING' | 'GAME_OVER';
-
-interface GridCell {
-   type: CellType;
-   revealed: boolean;
-   finder?: string;
-   avatar?: string;
-}
-
 interface GameSettings {
-   rows: number;
-   cols: number;
-   maxAttempts: number;
-   entryMode: 'WAITING' | 'OPEN';
-   requiredPlayers: number;
-   showCellCoordinates: boolean;
+   winMode: 'SPEED' | 'POINTS';
+   roundsCount: number;
+   timerDuration: number;
+   gameOverOnMiss: boolean;
+   backgroundId: string;
+   soundEnabled: boolean;
+   autoNext: boolean;
+   winnerDuration: number;
 }
 
-const SidebarPortal = ({ children }: { children?: React.ReactNode }) => {
-   const [mounted, setMounted] = useState(false);
-   useEffect(() => { setMounted(true); return () => setMounted(false); }, []);
-   const el = document.getElementById('game-sidebar-portal');
-   if (!mounted || !el) return null;
-   return createPortal(children, el);
-};
+export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, onHome, isOBS }) => {
+   const [questions, setQuestions] = useState<Question[]>([]);
+   const [currentIndex, setCurrentIndex] = useState(0);
+   const [timer, setTimer] = useState(20);
+   const [gameState, setGameState] = useState<'PRE_START' | 'PLAYING' | 'ROUND_WIN' | 'SUMMARY'>('PRE_START');
+   const [roundWinner, setRoundWinner] = useState<{ user: string, avatar: string } | null>(null);
+   const [roundWinners, setRoundWinners] = useState<{ user: string, avatar: string }[]>([]);
+   const [winnersList, setWinnersList] = useState<{ user: string, count: number, avatar: string }[]>([]);
+   const [backgroundImage, setBackgroundImage] = useState<string>('');
+   const [avatarCache, setAvatarCache] = useState<Record<string, string>>({});
 
-export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, isOBS }) => {
-   const [phase, setPhase] = useState<GamePhase>('SETTINGS');
    const [settings, setSettings] = useState<GameSettings>({
-      rows: 10,
-      cols: 10,
-      maxAttempts: 2,
-      entryMode: 'OPEN',
-      requiredPlayers: 5,
-      showCellCoordinates: true
+      winMode: 'SPEED',
+      roundsCount: 10,
+      timerDuration: 20,
+      gameOverOnMiss: false,
+      backgroundId: 'main',
+      soundEnabled: true,
+      autoNext: false,
+      winnerDuration: 5,
    });
 
-   const [grid, setGrid] = useState<GridCell[]>([]);
-   const [joinedPlayers, setJoinedPlayers] = useState<{ name: string, avatar?: string }[]>([]);
-   const [winner, setWinner] = useState<{ name: string, avatar?: string } | null>(null);
-   const [scoreBoard, setScoreBoard] = useState<{ name: string, score: number, avatar?: string, attempts: number }[]>([]);
-   const [lastAction, setLastAction] = useState<{ text: string, type: 'good' | 'bad' | 'neutral' } | null>(null);
-
-   const phaseRef = useRef(phase);
-   const gridRef = useRef(grid);
+   const questionsRef = useRef<Question[]>([]);
+   const currentIndexRef = useRef(0);
+   const gameStateRef = useRef(gameState);
    const settingsRef = useRef(settings);
-   const scoreBoardRef = useRef(scoreBoard);
+   const userAttemptsRef = useRef<Set<string>>(new Set());
 
-   useEffect(() => { phaseRef.current = phase; }, [phase]);
-   useEffect(() => { gridRef.current = grid; }, [grid]);
-   useEffect(() => { settingsRef.current = settings; }, [settings]);
-   useEffect(() => { scoreBoardRef.current = scoreBoard; }, [scoreBoard]);
+   useEffect(() => {
+      questionsRef.current = questions;
+      currentIndexRef.current = currentIndex;
+      gameStateRef.current = gameState;
+      settingsRef.current = settings;
+   }, [questions, currentIndex, gameState, settings]);
 
-   const initializeGame = () => {
-      const totalCells = settings.rows * settings.cols;
-      let newGrid: GridCell[] = Array(totalCells).fill(null).map(() => ({ type: 'BOMB', revealed: false }));
-      const winnerIdx = Math.floor(Math.random() * totalCells);
-      newGrid[winnerIdx] = { type: 'TREASURE', revealed: false };
+   useEffect(() => {
+      const filtered = QUESTIONS_DB.filter(q => q.category === category);
+      setQuestions(filtered.sort(() => 0.5 - Math.random()));
+      setGameState('PRE_START');
+      updateBackground('auto');
+   }, [category]);
 
-      setGrid(newGrid);
-      setWinner(null);
-      setScoreBoard([]);
-      setJoinedPlayers([]);
-      setLastAction(null);
-      setPhase(settings.entryMode === 'WAITING' ? 'WAITING' : 'PLAYING');
+   const updateBackground = (bgId: string) => {
+      if (bgId === 'auto') {
+         const cat = CATEGORIES.find(c => c.id === category);
+         const url = Array.isArray(cat?.image) ? cat.image[0] : cat?.image;
+         if (url) {
+            setBackgroundImage(`url('${url}')`);
+            return;
+         }
+         setBackgroundImage(`url('${CONTENT_BACKGROUND_URL}')`);
+      } else if (bgId === 'main') {
+         setBackgroundImage(`url('${MAIN_BACKGROUND_URL}')`);
+      } else if (bgId === 'content') {
+         setBackgroundImage(`url('${CONTENT_BACKGROUND_URL}')`);
+      } else {
+         const selected = AVAILABLE_BACKGROUNDS.find(b => b.id === bgId);
+         if (selected) setBackgroundImage(`url('${selected.url}')`);
+      }
    };
 
    useEffect(() => {
-      if (!channelConnected) return;
+      updateBackground(settings.backgroundId);
+   }, [settings.backgroundId]);
 
-      const cleanup = chatService.onMessage(async (msg) => {
-         const content = msg.content.trim().toUpperCase();
-         const currentPhase = phaseRef.current;
-         const currentSettings = settingsRef.current;
-         const currentScores = scoreBoardRef.current;
 
-         if (currentPhase === 'WAITING' && content === 'انضمام') {
-            setJoinedPlayers(prev => {
-               if (prev.find(p => p.name === msg.user.username)) return prev;
-               const newList = [...prev, { name: msg.user.username, avatar: msg.user.avatar }];
-               if (newList.length >= currentSettings.requiredPlayers) {
-                  setTimeout(() => setPhase('PLAYING'), 2000);
-               }
-               return newList;
-            });
-            return;
-         }
 
-         if (currentPhase !== 'PLAYING') return;
+   // Auto-repair missing avatars for the round winner
+   useEffect(() => {
+      if (roundWinner && !roundWinner.avatar) {
+         chatService.fetchKickAvatar(roundWinner.user).then(av => {
+            if (av) {
+               setRoundWinner(prev => (prev && prev.user === roundWinner.user) ? { ...prev, avatar: av } : prev);
+               setRoundWinners(prev => prev.map(w => w.user === roundWinner.user ? { ...w, avatar: av } : w));
+            }
+         });
+      }
+   }, [roundWinner]);
 
-         const match = content.match(/^([A-J])\s*(\d+)$/);
-         if (match) {
-            const colChar = match[1];
-            const rowNum = parseInt(match[2]);
-            const colIndex = colChar.charCodeAt(0) - 65;
-            const rowIndex = rowNum - 1;
+   const startGame = () => {
+      const freshPool = QUESTIONS_DB.filter(q => q.category === category).sort(() => 0.5 - Math.random());
+      const totalRounds = Math.min(settings.roundsCount, freshPool.length);
+      const gameQuestions = freshPool.slice(0, totalRounds);
 
-            if (colIndex < 0 || colIndex >= currentSettings.cols || rowIndex < 0 || rowIndex >= currentSettings.rows) return;
+      setWinnersList([]);
+      setCurrentIndex(0);
+      setRoundWinners([]);
+      userAttemptsRef.current.clear();
+      setQuestions(gameQuestions);
+      setTimer(settings.timerDuration);
+      setGameState('PLAYING');
+   };
 
-            const userStats = currentScores.find(p => p.name === msg.user.username);
-            if (currentSettings.maxAttempts > 0 && userStats && userStats.attempts >= currentSettings.maxAttempts) return;
+   useEffect(() => {
+      let interval: number;
+      if (gameState === 'PLAYING' && timer > 0) {
+         interval = window.setInterval(() => setTimer(prev => prev - 1), 1000);
+      } else if (timer === 0 && gameState === 'PLAYING') {
+         handleRoundEnd(null);
+      }
+      return () => clearInterval(interval);
+   }, [gameState, timer]);
 
-            const flatIndex = rowIndex * currentSettings.cols + colIndex;
-            const currentGrid = [...gridRef.current];
+   const normalizeArabic = (text: string) => {
+      if (!text) return "";
+      return text.trim().toLowerCase()
+         .replace(/\u0640/g, '') // Remove Tatweel (ـ)
+         .replace(/[أإآٱ]/g, 'ا') // Normalize Alef
+         .replace(/ة/g, 'ه') // Normalize Ta Marbuta
+         .replace(/ى/g, 'ي') // Normalize Alif Maqsura
+         .replace(/ؤ/g, 'و') // Normalize Waw Hamza (optional, but helps)
+         .replace(/ئ/g, 'ي') // Normalize Ya Hamza
+         .replace(/[ًٌٍَُِّْ]/g, '') // Remove Tashkeel
+         .replace(/[^\w\s\u0600-\u06FF]/g, '') // Remove special chars (optional, keeps Arabic & English)
+         .replace(/\s+/g, ' '); // Normalize spaces
+   };
 
-            if (!currentGrid[flatIndex].revealed) {
-               currentGrid[flatIndex] = {
-                  ...currentGrid[flatIndex],
-                  revealed: true,
-                  finder: msg.user.username,
-                  avatar: msg.user.avatar
-               };
+   useEffect(() => {
+      const unsubscribe = chatService.onMessage((msg) => {
+         if (gameStateRef.current !== 'PLAYING') return;
+         const currentQ = questionsRef.current[currentIndexRef.current];
+         if (!currentQ) return;
 
-               setGrid(currentGrid);
-               updateUserStats(msg.user.username, msg.user.avatar, 1);
+         const username = msg.user.username;
+         if (userAttemptsRef.current.has(username)) return;
+         userAttemptsRef.current.add(username);
 
-               if (currentGrid[flatIndex].type === 'TREASURE') {
-                  setLastAction({ text: `🏆 تم العثور على الماوس باد بواسطة ${msg.user.username}!`, type: 'good' });
-                  setWinner({ name: msg.user.username, avatar: msg.user.avatar });
-                  triggerConfetti(window.innerWidth / 2, window.innerHeight / 2, ['#ff0000', '#ffd700'], 150);
-                  setPhase('GAME_OVER');
-                  await leaderboardService.recordWin(msg.user.username, msg.user.avatar || '', 500);
-               } else {
-                  setLastAction({ text: `💥 انفجار! ${msg.user.username} اختار لغماً!`, type: 'bad' });
-                  const rect = document.getElementById(`cell-${flatIndex}`)?.getBoundingClientRect();
-                  if (rect) triggerConfetti(rect.x + rect.width / 2, rect.y + rect.height / 2, ['#ef4444', '#000000'], 15);
-               }
+         const correctIndex = currentQ.correctIndex;
+         const rawCorrectText = currentQ.options[correctIndex];
+         const normalizedUser = normalizeArabic(msg.content);
+         const normalizedCorrect = normalizeArabic(rawCorrectText);
+
+         const isExactMatch = normalizedUser === normalizedCorrect;
+         const isPartialMatch = (normalizedUser.length >= 3) && (normalizedUser.includes(normalizedCorrect) || normalizedCorrect.includes(normalizedUser));
+         const isTextMatch = isExactMatch || isPartialMatch;
+
+         if (isTextMatch) {
+            let avatarUrl = msg.user.avatar || avatarCache[username.toLowerCase()] || '';
+            const winnerObj = { user: username, avatar: avatarUrl };
+
+            if (!avatarUrl) {
+               chatService.fetchKickAvatar(username).then(av => {
+                  if (av) {
+                     const uLower = username.toLowerCase();
+                     setRoundWinner(prev => (prev && prev.user.toLowerCase() === uLower) ? { ...prev, avatar: av } : prev);
+                     setWinnersList(prev => prev.map(w => w.user.toLowerCase() === uLower ? { ...w, avatar: av } : w));
+                  }
+               });
+            }
+
+            if (settingsRef.current.winMode === 'SPEED') {
+               handleRoundEnd(winnerObj);
+            } else {
+               setRoundWinners(prev => [...prev, winnerObj]);
             }
          }
       });
-      return cleanup;
-   }, [channelConnected]);
+      return () => unsubscribe();
+   }, []);
 
-   const triggerConfetti = (x: number, y: number, colors: string[], count: number = 40) => {
-      confetti({
-         particleCount: count,
-         spread: 60,
-         origin: { x: x / window.innerWidth, y: y / window.innerHeight },
-         colors
-      });
-   };
+   const handleRoundEnd = async (singleWinner: { user: string, avatar: string } | null) => {
+      if (gameStateRef.current !== 'PLAYING') return;
+      const winners = settingsRef.current.winMode === 'SPEED' ? (singleWinner ? [singleWinner] : []) : roundWinners;
 
-   const updateUserStats = (name: string, avatar: string | undefined, attempts: number) => {
-      setScoreBoard(prev => {
-         const exists = prev.find(p => p.name === name);
-         if (exists) {
-            return prev.map(p => p.name === name ? { ...p, attempts: p.attempts + attempts } : p);
+      setGameState('ROUND_WIN');
+      setRoundWinners(winners);
+      setRoundWinner(winners.length > 0 ? winners[0] : null);
+
+      if (winners.length > 0) {
+         winners.forEach(async (w) => {
+            await leaderboardService.recordWin(w.user, w.avatar, 50);
+         });
+
+         setWinnersList(prev => {
+            let newList = [...prev];
+            winners.forEach(w => {
+               const idx = newList.findIndex(u => u.user === w.user);
+               if (idx !== -1) newList[idx] = { ...newList[idx], count: newList[idx].count + 1 };
+               else newList.push({ user: w.user, avatar: w.avatar, count: 1 });
+            });
+            return newList.sort((a, b) => b.count - a.count);
+         });
+      }
+
+      const waitTime = settingsRef.current.autoNext ? (settingsRef.current.winnerDuration * 1000) : 3500;
+
+      setTimeout(() => {
+         userAttemptsRef.current.clear();
+         setRoundWinners([]);
+
+         if (settingsRef.current.gameOverOnMiss && winners.length === 0) {
+            setGameState('SUMMARY');
+            return;
          }
-         return [...prev, { name, score: 0, avatar, attempts }];
-      });
+
+         setCurrentIndex(prev => {
+            const nextIdx = prev + 1;
+            if (nextIdx < questionsRef.current.length) {
+               setTimer(settingsRef.current.timerDuration);
+               setGameState('PLAYING');
+               return nextIdx;
+            } else {
+               setGameState('SUMMARY');
+               return prev;
+            }
+         });
+      }, waitTime);
    };
 
-   const COL_LABELS = Array.from({ length: settings.cols }, (_, i) => String.fromCharCode(65 + i));
-   const ROW_LABELS = Array.from({ length: settings.rows }, (_, i) => i + 1);
-
-   if (phase === 'SETTINGS') {
+   if (gameState === 'SUMMARY') {
+      const topWinner = winnersList[0];
       return (
-         <div className="w-full h-full flex items-center justify-center p-6 bg-transparent overflow-y-auto custom-scrollbar">
-            <div className="max-w-md w-full flex flex-col gap-6 animate-in zoom-in duration-700">
-               {/* Compact Header */}
-               <div className="bg-zinc-900/60 p-8 rounded-[2.5rem] border border-white/5 text-center space-y-3">
-                  <div className="w-24 h-24 bg-white/5 rounded-2xl flex items-center justify-center shadow-lg mx-auto mb-2 border border-white/10 group overflow-hidden">
-                     <img src={tecshLogo} className="w-20 h-20 object-contain group-hover:scale-110 transition-transform duration-500" alt="TECSH Logo" />
-                  </div>
-                  <h2 className="text-4xl font-black italic text-white red-neon-text tracking-tighter">صائد الماوس باد</h2>
-                  <p className="text-[10px] text-white/30 font-bold uppercase tracking-[0.2em] italic">TECSH • ONE WINNER • ONE TARGET</p>
-               </div>
+         <div className="flex-1 w-full flex flex-col items-center justify-center animate-in zoom-in duration-500 p-6 text-center bg-black/80 backdrop-blur-md">
+            <div className="glass-card w-full max-w-2xl rounded-[4rem] border-2 border-red-600/30 p-12 relative overflow-hidden shadow-[0_0_150px_rgba(255,0,0,0.2)]">
+               <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent via-red-600 to-transparent"></div>
+               <Trophy size={140} className="text-[#FFD700] mx-auto mb-8 animate-bounce drop-shadow-[0_0_40px_rgba(255,215,0,0.5)]" fill="currentColor" />
+               <h1 className="text-6xl font-black text-white italic tracking-tighter uppercase mb-2">النتائج النهائية</h1>
+               <p className="text-red-500 font-black tracking-[0.5em] text-xs uppercase mb-12">Game Session Concluded</p>
 
-               {/* Central Settings Panel */}
-               <div className="bg-zinc-900/90 backdrop-blur-3xl p-8 rounded-[2.5rem] border-2 border-white/10 shadow-2xl space-y-6">
-                  <div className="space-y-4">
-                     <div className="space-y-2">
-                        <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest pl-2 italic">نظام الدخول</label>
-                        <div className="grid grid-cols-1 gap-2">
-                           <button onClick={() => setSettings({ ...settings, entryMode: 'OPEN' })} className={`py-3 rounded-xl border-2 transition-all font-black text-[10px] ${settings.entryMode === 'OPEN' ? 'bg-red-600 border-red-400 text-white shadow-xl' : 'bg-black/40 border-white/5 text-gray-500'}`}>دخل مفتوح</button>
-                           <button onClick={() => setSettings({ ...settings, entryMode: 'WAITING' })} className={`py-3 rounded-xl border-2 transition-all font-black text-[10px] ${settings.entryMode === 'WAITING' ? 'bg-red-600 border-red-400 text-white shadow-xl' : 'bg-black/40 border-white/5 text-gray-500'}`}>شاشة انتظار</button>
-                        </div>
+               {topWinner ? (
+                  <div className="bg-white/5 p-8 rounded-[3rem] border border-white/10 mb-12">
+                     <div className="w-32 h-32 rounded-full border-4 border-[#FFD700] mx-auto mb-6 overflow-hidden shadow-2xl relative">
+                        {topWinner.avatar ? <img src={topWinner.avatar} className="w-full h-full object-cover" /> : <User size={48} className="text-white/20 mt-8 mx-auto" />}
+                        <div className="absolute bottom-0 w-full bg-[#FFD700] text-black font-black text-[10px] py-1">ULTIMATE</div>
                      </div>
-
-                     <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                           <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest pl-2 italic">أقصى محاولات</label>
-                           <input type="number" value={settings.maxAttempts} onChange={e => setSettings({ ...settings, maxAttempts: Number(e.target.value) })} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-black text-center text-lg outline-none focus:border-red-500" />
-                        </div>
-                        <div className="space-y-2">
-                           <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest pl-2 italic">إظهار الإحداثيات</label>
-                           <button
-                              onClick={() => setSettings({ ...settings, showCellCoordinates: !settings.showCellCoordinates })}
-                              className={`w-full py-3 rounded-xl border-2 transition-all font-black text-[10px] flex items-center justify-center gap-2 ${settings.showCellCoordinates ? 'bg-emerald-600/20 border-emerald-500 text-emerald-400' : 'bg-black/40 border-white/5 text-gray-500'}`}
-                           >
-                              {settings.showCellCoordinates ? <Eye size={14} /> : <EyeOff size={14} />}
-                              {settings.showCellCoordinates ? 'مفعل' : 'معطل'}
-                           </button>
-                        </div>
-                     </div>
+                     <h2 className="text-5xl font-black text-white italic mb-2 tracking-tighter">{topWinner.user}</h2>
+                     <span className="text-xl font-bold text-kick-green font-mono">{topWinner.count} إجابة صحيحة</span>
                   </div>
+               ) : (
+                  <div className="text-3xl text-gray-500 font-bold mb-12">لا يوجد فائزون في هذه الجولة</div>
+               )}
 
-                  <div className="flex gap-4 pt-4 border-t border-white/5">
-                     <button onClick={onHome} className="p-4 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 text-white transition-all"><ChevronLeft size={24} /></button>
-                     <button onClick={initializeGame} className="flex-1 bg-red-600 hover:bg-red-500 py-4 rounded-xl font-black text-white italic text-lg shadow-xl uppercase transition-all flex items-center justify-center gap-2">
-                        <Play size={20} fill="currentColor" /> ابدأ العملية
-                     </button>
-                  </div>
+               <div className="flex flex-col gap-4 w-full">
+                  <button onClick={startGame} className="group w-full bg-white text-black font-black py-6 rounded-[2rem] text-2xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-4 italic shadow-2xl">
+                     إعادة اللعبة <RotateCcw size={28} className="group-hover:rotate-180 transition-transform duration-700" />
+                  </button>
+                  <button onClick={onHome} className="w-full bg-white/5 border border-white/10 text-white font-black py-6 rounded-[2rem] text-2xl hover:bg-white/10 transition-all flex items-center justify-center gap-4 italic uppercase">
+                     <Home size={28} /> العودة للقائمة الرئيسية
+                  </button>
                </div>
-            </div>
-         </div>
-      );
-   }
-
-   if (phase === 'WAITING') {
-      return (
-         <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-transparent animate-in zoom-in duration-1000">
-            <div className="text-center space-y-8 max-w-2xl w-full bg-zinc-900/60 p-12 rounded-[3.5rem] border border-white/5 backdrop-blur-3xl shadow-2xl">
-               <Users size={60} className="text-white mx-auto animate-bounce" />
-               <div className="space-y-2">
-                  <h2 className="text-5xl font-black italic text-white red-neon-text tracking-tighter">بانتظار الأبطال</h2>
-                  <p className="text-lg text-white/40 font-bold">اكتب <span className="text-white px-4 py-1 bg-red-600 rounded-lg shadow-lg">انضمام</span> في الدردشة</p>
-               </div>
-               <div className="grid grid-cols-4 md:grid-cols-6 gap-3 justify-center max-h-[200px] overflow-y-auto custom-scrollbar pr-2">
-                  {joinedPlayers.map((p, i) => (
-                     <div key={i} className="animate-in zoom-in" style={{ animationDelay: `${i * 30}ms` }}>
-                        <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-red-600/50 shadow-md transform hover:scale-110 transition-transform mx-auto">
-                           <img src={p.avatar} className="w-full h-full object-cover" />
-                        </div>
-                     </div>
-                  ))}
-               </div>
-               <button onClick={() => setPhase('SETTINGS')} className="text-white/20 hover:text-white/50 transition-all font-black uppercase text-[10px] flex items-center gap-2 mx-auto pt-4 italic"><ChevronLeft size={16} /> العودة</button>
             </div>
          </div>
       );
    }
 
    return (
-      <>
-         <SidebarPortal>
-            <div className="h-full flex flex-col p-4 space-y-4">
-               {lastAction && (
-                  <div className={`p-4 rounded-xl text-[10px] font-black text-center border shadow-xl animate-in slide-in-from-top duration-300 ${lastAction.type === 'good' ? 'bg-blue-600/10 border-blue-500/30 text-blue-400' : 'bg-red-600/10 border-red-500/30 text-red-400'}`}>{lastAction.text}</div>
-               )}
-               <div className="bg-black/30 rounded-[2rem] border border-white/5 flex flex-col flex-1 overflow-hidden shadow-2xl">
-                  <div className="p-4 border-b border-white/5 bg-white/5 flex justify-between items-center text-[9px] font-black italic uppercase tracking-widest text-white/40">
-                     <span className="flex items-center gap-2"><BarChart3 size={12} className="text-red-500" /> نشاط الفريق</span>
-                     <span>LIVE RADAR</span>
-                  </div>
-                  <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1.5">
-                     {scoreBoard.sort((a, b) => b.attempts - a.attempts).map((p, i) => (
-                        <div key={i} className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/5">
-                           <div className="flex items-center gap-3">
-                              <div className="w-6 h-6 rounded-lg overflow-hidden border border-white/10"><img src={p.avatar} className="w-full h-full object-cover" /></div>
-                              <span className="text-[9px] font-bold text-gray-400 truncate max-w-[100px]">{p.name}</span>
-                           </div>
-                           <div className={`text-[9px] font-mono font-black border px-2 py-0.5 rounded-lg ${p.attempts >= settings.maxAttempts ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-white/5 text-gray-600'}`}>{p.attempts}/{settings.maxAttempts || '∞'}</div>
-                        </div>
-                     ))}
-                  </div>
+      <div className={`absolute inset-0 flex items-center justify-center overflow-hidden transition-all duration-1000 bg-cover bg-center ${isOBS ? 'bg-none' : ''}`} style={{ backgroundImage: isOBS ? 'none' : backgroundImage }}>
+         {!isOBS && <div className="absolute inset-0 bg-black/40"></div>}
+
+         <div className="relative z-10 w-full h-full flex flex-col items-center p-8 max-w-7xl">
+            {(!isOBS || gameState !== 'PLAYING') && gameState !== 'PRE_START' && (
+               <div className="w-full flex justify-between items-center mb-8">
+                  <div className="w-10"></div>
+                  <div className="w-10"></div>
                </div>
-               <button onClick={() => setPhase('SETTINGS')} className="w-full bg-white/5 hover:bg-white/10 py-3 rounded-xl font-black text-white text-[9px] transition-all border border-white/5 italic flex items-center justify-center gap-2 uppercase tracking-widest"><RotateCcw size={14} /> إعادة التوجيه</button>
-            </div>
-         </SidebarPortal>
+            )}
 
-         <div className="w-full h-full flex flex-col items-center justify-center p-2 relative select-none animate-in fade-in duration-500 overflow-hidden">
-            {/* Radar Effect */}
-            <div className="absolute inset-0 pointer-events-none opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
+            {gameState === 'PRE_START' ? (
+               <div className="flex-1 w-full flex items-center justify-center animate-in zoom-in overflow-y-auto custom-scrollbar p-4">
+                  <div className="glass-card p-10 rounded-[3rem] border border-red-600/20 w-full max-w-5xl text-center shadow-[0_0_100px_rgba(0,0,0,0.5)] relative overflow-hidden backdrop-blur-xl bg-black/80">
+                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent"></div>
 
-            <div className="relative z-10 flex flex-col items-center scale-75 md:scale-90 lg:scale-100 transition-transform">
+                     <div className="mb-10">
+                        <h2 className="text-6xl font-black text-white italic mb-2 tracking-tighter uppercase red-neon-text">إعدات الميدان</h2>
+                        <p className="text-gray-500 font-bold tracking-[0.5em] text-xs">ADVANCED BATTLE CONFIGURATION</p>
+                     </div>
 
-               {/* Dashboard Header */}
-               <div className="flex items-center gap-6 mb-6 bg-zinc-900/40 backdrop-blur-xl px-8 py-4 rounded-[2rem] border border-white/10 shadow-xl">
-                  <div className="flex items-center gap-3">
-                     <Skull size={18} className="text-red-500" />
-                     <div className="text-[8px] text-gray-500 font-black uppercase tracking-widest leading-none">ميدان الألغام</div>
-                     <div className="text-xl font-black text-white italic">{settings.rows * settings.cols - 1}</div>
-                  </div>
-                  <div className="w-px h-6 bg-white/10"></div>
-                  <div className="flex items-center gap-3">
-                     <div className="w-10 h-6 bg-zinc-900 border border-white/20 rounded-sm shadow-[0_4px_10px_rgba(0,0,0,0.5)] relative overflow-hidden flex items-center justify-center">
-                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/30 to-blue-900/40"></div>
-                        <div className="absolute bottom-0 right-0 w-4 h-4">
-                           <img src={tecshLogo} className="w-full h-full object-contain opacity-100" alt="logo" />
+                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10 text-right">
+                        {/* Column 1: Core Settings */}
+                        <div className="space-y-6">
+                           <div className="bg-white/5 p-6 rounded-[2rem] border border-white/5 hover:border-white/10 transition-colors">
+                              <label className="text-xs font-black text-iabs-red uppercase tracking-wider block mb-4 flex items-center gap-2"><Settings size={14} /> نظام اللعب</label>
+                              <div className="grid grid-cols-2 gap-3">
+                                 {[5, 10, 15, 20].map(n => (
+                                    <button key={n} onClick={() => setSettings({ ...settings, roundsCount: n })} className={`h-14 rounded-2xl font-black text-lg transition-all ${settings.roundsCount === n ? 'bg-red-600 text-white shadow-lg scale-105' : 'bg-black/40 text-gray-500 hover:bg-white/10'}`}>{n} جولة</button>
+                                 ))}
+                              </div>
+                           </div>
+
+                           <div className="bg-white/5 p-6 rounded-[2rem] border border-white/5 hover:border-white/10 transition-colors">
+                              <label className="text-xs font-black text-iabs-red uppercase tracking-wider block mb-4 flex items-center gap-2"><Clock size={14} /> مؤقت الإجابة</label>
+                              <input
+                                 type="range" min="5" max="60" step="5"
+                                 value={settings.timerDuration}
+                                 onChange={(e) => setSettings({ ...settings, timerDuration: parseInt(e.target.value) })}
+                                 className="w-full accent-red-600 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer mb-2"
+                              />
+                              <div className="flex justify-between text-gray-400 font-mono text-sm">
+                                 <span>5s</span>
+                                 <span className="text-white font-black text-xl">{settings.timerDuration}s</span>
+                                 <span>60s</span>
+                              </div>
+                           </div>
+                        </div>
+
+                        {/* Column 2: Advanced & Visuals */}
+                        <div className="space-y-6">
+                           <div className="bg-white/5 p-6 rounded-[2rem] border border-white/5 hover:border-white/10 transition-colors">
+                              <label className="text-xs font-black text-iabs-red uppercase tracking-wider block mb-4 flex items-center gap-2"><ImageIcon size={14} /> خلفية اللعب</label>
+                              <div className="grid grid-cols-2 gap-3">
+                                 {AVAILABLE_BACKGROUNDS.map(bg => (
+                                    <button key={bg.id} onClick={() => setSettings({ ...settings, backgroundId: bg.id })} className={`aspect-video rounded-xl border-2 transition-all relative overflow-hidden group ${settings.backgroundId === bg.id ? 'border-red-600 scale-105' : 'border-transparent opacity-50 hover:opacity-100'}`}>
+                                       <img src={bg.url} className="w-full h-full object-cover" />
+                                       <span className="absolute inset-0 flex items-center justify-center font-black text-[10px] text-white z-10 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">{bg.label}</span>
+                                    </button>
+                                 ))}
+                              </div>
+                           </div>
+
+                           <div className="grid grid-cols-2 gap-4">
+                              <button onClick={() => setSettings({ ...settings, soundEnabled: !settings.soundEnabled })} className={`p-4 rounded-[2rem] border transition-all flex flex-col items-center justify-center gap-2 ${settings.soundEnabled ? 'bg-white/10 border-green-500/50 text-green-400' : 'bg-black/40 border-white/5 text-gray-600'}`}>
+                                 {settings.soundEnabled ? <Volume2 size={24} /> : <VolumeX size={24} />}
+                                 <span className="text-xs font-black">المؤثرات</span>
+                              </button>
+
+                              <button onClick={() => setSettings({ ...settings, autoNext: !settings.autoNext })} className={`p-4 rounded-[2rem] border transition-all flex flex-col items-center justify-center gap-2 ${settings.autoNext ? 'bg-white/10 border-blue-500/50 text-blue-400' : 'bg-black/40 border-white/5 text-gray-600'}`}>
+                                 <Zap size={24} />
+                                 <span className="text-xs font-black">التالي تلقائي</span>
+                              </button>
+
+                              <button onClick={() => setSettings({ ...settings, gameOverOnMiss: !settings.gameOverOnMiss })} className={`p-4 rounded-[2rem] border transition-all flex flex-col items-center justify-center gap-2 ${settings.gameOverOnMiss ? 'bg-red-900/20 border-red-500 text-red-500' : 'bg-black/40 border-white/5 text-gray-600'}`}>
+                                 <Skull size={24} />
+                                 <span className="text-xs font-black">الموت المفاجئ</span>
+                              </button>
+
+                              <button onClick={() => setSettings({ ...settings, winMode: settings.winMode === 'SPEED' ? 'POINTS' : 'SPEED' })} className={`p-4 rounded-[2rem] border transition-all flex flex-col items-center justify-center gap-2 ${settings.winMode === 'SPEED' ? 'bg-white/10 border-yellow-500/50 text-yellow-500' : 'bg-white/10 border-purple-500/50 text-purple-500'}`}>
+                                 <Trophy size={24} />
+                                 <span className="text-xs font-black">{settings.winMode === 'SPEED' ? 'الأسرع' : 'تجميع نقاط'}</span>
+                              </button>
+                           </div>
                         </div>
                      </div>
-                     <div className="text-[8px] text-gray-500 font-black uppercase tracking-widest leading-none">الهدف</div>
-                     <div className="text-xl font-black text-white italic">{winner ? '0' : '1'}</div>
+
+                     <div className="flex gap-4">
+                        <button onClick={startGame} className="flex-1 bg-red-600 hover:bg-red-500 text-white font-black py-6 rounded-[2.5rem] text-3xl shadow-[0_10px_40px_rgba(220,38,38,0.4)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-4 group">
+                           <PlayCircle size={32} className="fill-white text-red-600" />
+                           ابدأ التحدي
+                        </button>
+                        <button onClick={onHome} className="px-8 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-[2.5rem] flex items-center justify-center transition-all">
+                           <Home size={24} />
+                        </button>
+                     </div>
                   </div>
                </div>
+            ) : (
+               <div className="flex-1 w-full flex flex-col items-center justify-center mb-24 relative">
+                  {gameState === 'ROUND_WIN' && (
+                     <div className="absolute inset-0 z-[100] flex items-center justify-center animate-in fade-in zoom-in duration-700 pointer-events-none">
+                        <div className="text-center relative max-w-5xl w-full mx-6">
+                           {roundWinners.length > 0 ? (
+                              <div className="flex flex-col items-center">
+                                 <div className="mb-8 animate-bounce relative">
+                                    <Trophy size={110} className="text-yellow-500 drop-shadow-[0_0_40px_rgba(234,179,8,0.9)] relative z-10" fill="currentColor" />
+                                    <div className="absolute -top-12 left-1/2 -translate-x-1/2 text-white font-black text-3xl uppercase tracking-[0.6em] italic drop-shadow-2xl gold-glow-text">WINNER</div>
+                                 </div>
 
-               <div className="relative bg-zinc-950/80 p-6 md:p-8 rounded-[3rem] border-4 border-white/5 shadow-[0_40px_100px_rgba(0,0,0,0.8)]">
+                                 {settings.winMode === 'SPEED' ? (
+                                    <div className="animate-in slide-in-from-bottom-20 duration-1000 flex flex-col items-center">
+                                       <div className="relative group perspective-1000">
+                                          {/* Cinematic Glow Rays */}
+                                          <div className="absolute inset-0 bg-green-500/20 blur-[100px] rounded-full animate-pulse"></div>
 
-                  {/* Unified Grid with Labels */}
-                  <div className={`grid gap-1 md:gap-1.5`} style={{
-                     gridTemplateColumns: `30px repeat(${settings.cols}, ${isOBS ? '30px' : '40px'})`,
-                     gridTemplateRows: `30px repeat(${settings.rows}, ${isOBS ? '30px' : '40px'})`
-                  }}>
-
-                     {/* Corner */}
-                     <div className="flex items-center justify-center opacity-10"><Target size={14} className="text-white" /></div>
-
-                     {/* Column Labels (A-J) */}
-                     {COL_LABELS.map(c => (
-                        <div key={c} className="flex items-center justify-center font-black text-sm md:text-xl text-zinc-700 italic">{c}</div>
-                     ))}
-
-                     {/* Rows (Label + Cells) */}
-                     {ROW_LABELS.map((r, rIdx) => (
-                        <React.Fragment key={r}>
-                           {/* Row Label */}
-                           <div className="flex items-center justify-center font-black text-sm md:text-xl text-zinc-700 italic">{r}</div>
-
-                           {/* Grid Cells for this row */}
-                           {COL_LABELS.map((c, cIdx) => {
-                              const idx = rIdx * settings.cols + cIdx;
-                              const cell = grid[idx];
-                              const isRevealed = cell?.revealed;
-                              const coord = `${c}${r}`;
-
-                              return (
-                                 <div
-                                    id={`cell-${idx}`}
-                                    key={idx}
-                                    className={`
-                          rounded-lg border-[1px] md:border-2 flex items-center justify-center transition-all duration-500 relative overflow-hidden group
-                          ${!isRevealed ? 'bg-[#05070a] border-white/5 hover:border-red-500/40 hover:bg-zinc-900 cursor-crosshair' : 'border-transparent'}
-                          ${isRevealed && cell.type === 'TREASURE' ? 'bg-gradient-to-br from-blue-700/80 to-blue-950 shadow-lg' : ''}
-                          ${isRevealed && cell.type === 'BOMB' ? 'bg-gradient-to-br from-red-600 to-red-950 opacity-80' : ''}
-                        `}
-                                 >
-                                    {!isRevealed && (
-                                       settings.showCellCoordinates ? (
-                                          <span className="text-[8px] md:text-[10px] font-black text-white/10 group-hover:text-red-500/40 transition-colors uppercase italic pointer-events-none">{coord}</span>
-                                       ) : (
-                                          <div className="w-1 h-1 rounded-full bg-white/5 group-hover:bg-red-500/20 transition-all"></div>
-                                       )
-                                    )}
-                                    {isRevealed && (
-                                       <div className="animate-in zoom-in spin-in-180 duration-500 p-1 md:p-2 w-full h-full flex items-center justify-center">
-                                          {cell.type === 'TREASURE' && (
-                                             <div className="w-10/12 h-6/12 bg-zinc-900 border border-white/20 rounded-sm shadow-inner relative overflow-hidden group/m">
-                                                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-blue-900/40"></div>
-                                                <div className="absolute bottom-0.5 right-0.5 w-6 h-6 md:w-8 md:h-8 group-hover/m:scale-110 transition-transform">
-                                                   <img src={tecshLogo} className="w-full h-full object-contain opacity-100" alt="logo" />
+                                          <div className="w-48 h-48 md:w-64 md:h-64 rounded-[3rem] md:rounded-[4rem] border-[6px] md:border-[8px] border-green-500 mx-auto mb-8 md:mb-10 overflow-hidden shadow-[0_0_80px_rgba(34,197,94,0.6)] relative bg-black transition-all duration-1000 transform-gpu hover:scale-105">
+                                             {roundWinners[0].avatar ? (
+                                                <img src={roundWinners[0].avatar} className="w-full h-full object-cover animate-in fade-in duration-500" />
+                                             ) : (
+                                                <div className="w-full h-full bg-zinc-900 flex items-center justify-center text-white/10 font-black text-7xl md:text-8xl">
+                                                   {roundWinners[0].user.charAt(0)}
                                                 </div>
+                                             )}
+                                             <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+                                             <div className="absolute bottom-4 left-0 right-0 text-center z-20">
+                                                <div className="bg-green-500 text-black px-4 py-1 md:px-6 md:py-2 rounded-full font-black text-[10px] md:text-xs uppercase italic shadow-[0_5px_15px_rgba(0,0,0,0.4)] inline-block">CHAMPION</div>
+                                             </div>
+                                          </div>
+                                       </div>
+
+                                       <div className="text-6xl md:text-8xl font-black text-white italic tracking-tighter uppercase leading-none drop-shadow-[0_10px_30px_rgba(0,0,0,1)] green-neon-text mb-6">
+                                          {roundWinners[0].user}
+                                       </div>
+
+                                       <div className="bg-white/5 backdrop-blur-2xl border-2 border-green-500/40 px-16 py-4 rounded-[2rem] text-white font-black text-4xl shadow-2xl relative overflow-hidden group">
+                                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                                          🎉 فـاز المـبـدع بـنـقـاط الجـولة
+                                       </div>
+                                    </div>
+                                 ) : (
+                                    <div className="w-full">
+                                       <h3 className="text-green-500 font-black tracking-[0.6em] text-xl uppercase mb-12 italic drop-shadow-[0_0_10px_rgba(34,197,94,0.5)]">قـائمـة الـفـائزيـن</h3>
+                                       <div className="flex flex-wrap justify-center gap-8 mb-12">
+                                          {roundWinners.slice(0, 10).map((w, idx) => (
+                                             <div key={idx} className="flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-500" style={{ animationDelay: `${idx * 100}ms` }}>
+                                                <div className="w-28 h-28 rounded-[2.5rem] border-4 border-green-500 overflow-hidden shadow-[0_0_30px_rgba(34,197,94,0.3)] bg-black relative">
+                                                   {w.avatar ? <img src={w.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-white/20 font-black text-4xl">{w.user.charAt(0)}</div>}
+                                                   <div className="absolute -bottom-2 -right-2 bg-green-500 text-black w-8 h-8 rounded-full flex items-center justify-center font-black border-2 border-black">✓</div>
+                                                </div>
+                                                <span className="text-white font-black text-lg italic drop-shadow-md">{w.user}</span>
+                                             </div>
+                                          ))}
+                                          {roundWinners.length > 10 && (
+                                             <div className="w-28 h-28 rounded-[2.5rem] bg-green-500/20 border-4 border-green-500/40 flex items-center justify-center text-green-400 font-black text-3xl backdrop-blur-md">
+                                                +{roundWinners.length - 10}
                                              </div>
                                           )}
-                                          {cell.type === 'BOMB' && <Skull size={20} className="text-white opacity-50" />}
                                        </div>
-                                    )}
-                                    {isRevealed && cell.finder && cell.type === 'TREASURE' && (
-                                       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-end justify-center pb-0.5">
-                                          <span className="text-[6px] font-black text-white truncate px-1 uppercase italic tracking-tighter">{cell.finder}</span>
-                                       </div>
-                                    )}
+                                       <div className="text-5xl font-black text-white italic drop-shadow-lg"><span className="text-green-500">{roundWinners.length}</span> لاعب حـصدوا النقاط</div>
+                                    </div>
+                                 )}
+                              </div>
+                           ) : (
+                              <div className="py-20 animate-in zoom-in duration-500">
+                                 <div className="w-40 h-40 rounded-full border-4 border-red-600 flex items-center justify-center mx-auto mb-10 bg-red-600/10 animate-pulse shadow-[0_0_50px_rgba(220,38,38,0.4)]">
+                                    <Skull size={80} className="text-red-600" />
                                  </div>
-                              );
-                           })}
-                        </React.Fragment>
-                     ))}
-                  </div>
-               </div>
-            </div>
+                                 <div className="text-8xl font-black text-red-500 italic uppercase tracking-tighter drop-shadow-[0_10px_20px_black]">انتهى الوقت!</div>
+                                 <p className="text-white/40 font-black mt-4 uppercase tracking-[0.5em]">No Winners This Round</p>
+                              </div>
+                           )}
+                        </div>
+                     </div>
+                  )}
 
-            {/* Legend */}
-            <div className="mt-8 flex gap-6 opacity-30 group hover:opacity-100 transition-opacity">
-               <div className="flex items-center gap-2 text-[9px] font-black text-white italic uppercase tracking-[0.2em]">
-                  <div className="w-5 h-3 bg-zinc-900 border border-white/20 rounded-sm relative overflow-hidden">
-                     <div className="absolute inset-0 bg-blue-500/40"></div>
-                     <div className="absolute bottom-0 right-0 w-3 h-3">
-                        <img src={tecshLogo} className="w-full h-full object-contain opacity-100" alt="logo" />
+                  <div className={`w-full max-w-5xl transition-all duration-700 ${gameState === 'ROUND_WIN' ? 'blur-2xl opacity-20 scale-95' : 'scale-100 opacity-100'}`}>
+                     <div className="relative overflow-visible p-10 md:p-16">
+                        {/* --- Integrated Status Bar --- */}
+                        <div className="absolute -top-6 inset-x-12 flex items-center justify-between z-20">
+                           <div className="flex gap-4">
+                              <div className="bg-[#0A0A0A] border-2 border-white/10 px-6 py-2 rounded-2xl flex items-center gap-4 shadow-2xl">
+                                 <span className="text-[10px] font-black text-red-600 uppercase tracking-widest italic">الجولة</span>
+                                 <span className="text-2xl font-black text-white italic font-mono">{currentIndex + 1}/{questions.length}</span>
+                              </div>
+                              <div className={`bg-[#0A0A0A] border-2 px-6 py-2 rounded-2xl flex items-center gap-4 shadow-2xl transition-all ${timer < 5 ? 'border-red-600 text-red-600 animate-pulse' : 'border-white/10 text-white'}`}>
+                                 <Clock size={16} />
+                                 <span className="text-2xl font-black font-mono italic">{timer}s</span>
+                              </div>
+                           </div>
+
+                           {/* Central Logo Circle */}
+                           <div className="absolute left-1/2 -translate-x-1/2 -top-6">
+                              <div className="w-24 h-24 bg-black rounded-full border-4 border-red-600 shadow-[0_0_40px_rgba(220,38,38,0.8)] flex items-center justify-center relative overflow-hidden group">
+                                 <div className="absolute inset-0 bg-red-600/10 rounded-full animate-pulse"></div>
+                                 <img src={logoImage} className="w-16 h-16 object-contain relative z-10 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
+                                 <div className="absolute inset-0 bg-gradient-to-t from-red-600/20 to-transparent"></div>
+                              </div>
+                           </div>
+
+                           <button
+                              onClick={() => setGameState('PRE_START')}
+                              className="w-14 h-14 bg-red-600 rounded-full border-2 border-white/20 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all text-white"
+                           >
+                              <ChevronLeft size={28} />
+                           </button>
+                        </div>
+
+                        {/* Question Section */}
+                        <div className="text-center mb-12 mt-4 px-6 relative z-10">
+                           <h2 className="text-5xl md:text-7xl font-black text-white leading-tight italic tracking-tighter drop-shadow-[0_10px_30px_rgba(0,0,0,1)]">
+                              {questions[currentIndex]?.text}
+                           </h2>
+                        </div>
+
+                        {/* Options Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full relative z-10">
+                           {questions[currentIndex]?.options.map((opt, idx) => (
+                              <div key={idx} className="group relative p-6 md:p-8 rounded-[2.5rem] border-2 border-white/5 bg-black/20 backdrop-blur-sm flex items-center justify-center transition-all hover:border-red-600/50 hover:bg-black/40 hover:scale-[1.03]">
+                                 <span className="text-2xl md:text-3xl font-black text-white/90 group-hover:text-white transition-colors italic text-center relative z-10">{opt}</span>
+                              </div>
+                           ))}
+                        </div>
+
+                        <div className="mt-8 flex justify-center">
+                           <div className="flex items-center gap-3 text-red-400 font-bold bg-black/60 px-6 py-2 rounded-full border border-red-500/30 shadow-lg backdrop-blur-md">
+                              <span className="animate-pulse">⚠️</span>
+                              <span className="tracking-wide">نظام منع السبام: محاولة واحدة فقط لكل لاعب</span>
+                           </div>
+                        </div>
+
+                        {/* Decorative Elements */}
+                        <div className="absolute bottom-6 right-10 opacity-10">
+                           <Skull size={100} className="text-white" />
+                        </div>
+                        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1/2 h-1 bg-gradient-to-r from-transparent via-red-600/40 to-transparent"></div>
                      </div>
                   </div>
-                  الماوس باد
-               </div>
-               <div className="flex items-center gap-2 text-[9px] font-black text-white italic uppercase tracking-[0.2em]"><div className="w-2.5 h-2.5 rounded-full bg-red-600" /> لـغـم</div>
-            </div>
-
-            {/* Winner Overlay */}
-            {phase === 'GAME_OVER' && winner && (
-               <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/95 backdrop-blur-3xl animate-in fade-in duration-1000 p-8">
-                  <div className="relative mb-6">
-                     <div className="absolute -inset-20 bg-blue-600/10 blur-[100px] animate-pulse rounded-full" />
-                     <div className="relative z-10 p-6 bg-white/5 rounded-[3rem] border-2 border-white/10 shadow-2xl backdrop-blur-md">
-                        <img src={tecshLogo} className="w-32 h-32 md:w-48 md:h-48 object-contain drop-shadow-[0_0_30px_rgba(255,255,255,0.3)] animate-pulse" alt="TECSH Logo" />
-                     </div>
-                  </div>
-
-                  <div className="text-center space-y-4 mb-10">
-                     <h3 className="text-5xl md:text-8xl font-black italic text-white red-neon-text uppercase leading-tight">مبروكككككك</h3>
-                     <p className="text-2xl md:text-4xl font-black italic text-red-500 tracking-tighter animate-bounce">فزت معنا بماوس باد من تيكش</p>
-                  </div>
-
-                  <div className="flex flex-col items-center gap-4 bg-white/5 p-8 px-12 rounded-[4rem] border border-white/10 shadow-2xl animate-in slide-in-from-bottom duration-1000">
-                     <div className="w-24 h-24 rounded-[2.5rem] overflow-hidden border-4 border-red-600 shadow-2xl relative">
-                        <img src={winner.avatar} className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 border-2 border-white/20 rounded-[2.5rem]"></div>
-                     </div>
-                     <div className="text-3xl font-black text-white italic tracking-tighter">{winner.name}</div>
-                     <div className="px-8 py-2 bg-red-600 text-white text-xs font-black rounded-full italic shadow-lg uppercase tracking-widest">Authorized Winner</div>
-                  </div>
-
-                  <button onClick={() => setPhase('SETTINGS')} className="mt-12 text-white/20 hover:text-white font-black text-lg italic tracking-[0.4em] transition-all flex items-center gap-4 group hover:scale-110 active:scale-95"><RotateCcw className="group-hover:rotate-180 transition-transform duration-1000" size={24} /> إعادة التعيين</button>
                </div>
             )}
          </div>
-
-
-         <style>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
-        .red-neon-text { text-shadow: 0 0 20px rgba(239,68,68,0.5), 0 0 40px rgba(239,68,68,0.2); }
-      `}</style>
-      </>
+      </div>
    );
 };
