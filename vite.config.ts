@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => {
   const SUPABASE_KEY = env.EXPO_PUBLIC_SUPABASE_KEY || process.env.EXPO_PUBLIC_SUPABASE_KEY || '';
 
   return {
-    base: '/iABSS/',
+    base: './',
     server: {
       port: 3000,
       host: '0.0.0.0',
