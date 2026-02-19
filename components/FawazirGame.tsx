@@ -212,6 +212,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
           chatService.fetchKickAvatar(username).then(av => {
             if (av) {
               const uLower = username.toLowerCase();
+              setAvatarCache(prev => ({ ...prev, [uLower]: av }));
               setRoundWinner(prev => (prev && prev.user.toLowerCase() === uLower) ? { ...prev, avatar: av } : prev);
               setRoundWinners(prev => prev.map(w => w.user.toLowerCase() === uLower ? { ...w, avatar: av } : w));
               setWinnersList(prev => prev.map(w => w.user.toLowerCase() === uLower ? { ...w, avatar: av } : w));
@@ -519,35 +520,44 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
         ) : (
           <div className="flex-1 w-full flex flex-col items-center justify-center mb-24 relative">
             {gameState === 'ROUND_WIN' && (
-              <div className="absolute inset-x-0 -inset-y-32 z-[100] flex items-center justify-center animate-in fade-in zoom-in duration-700 bg-black/60 backdrop-blur-sm">
-                <div className="text-center relative max-w-6xl w-full mx-6 p-8 rounded-[4rem] border-2 border-white/10 bg-[#0A0A0A]/95 shadow-[0_0_100px_rgba(0,0,0,0.8)] overflow-hidden">
-                  <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-transparent via-green-500 to-transparent"></div>
+              <div className="absolute inset-0 z-[100] flex items-center justify-center animate-in fade-in zoom-in duration-700 bg-black/80 backdrop-blur-md">
+                <div className="text-center relative max-w-6xl w-full mx-6 p-12 rounded-[5rem] border border-white/10 bg-zinc-950/90 shadow-[0_0_150px_rgba(0,0,0,1)] overflow-visible">
+                  {/* Decorative Header Bar */}
+                  <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-full max-w-2xl px-12 py-3 bg-green-600 rounded-full flex items-center justify-center shadow-[0_10px_40px_rgba(22,163,74,0.4)] z-[110]">
+                    <span className="text-white font-black text-3xl italic tracking-[0.8em] uppercase">COMPLETED</span>
+                  </div>
 
                   {roundWinners.length > 0 ? (
-                    <div className="flex flex-col items-center">
-                      <div className="mb-10 animate-bounce relative">
-                        <Trophy size={90} className="text-yellow-500 drop-shadow-[0_0_40px_rgba(234,179,8,0.9)] relative z-10" fill="currentColor" />
-                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 text-white font-black text-2xl uppercase tracking-[0.4em] italic drop-shadow-2xl gold-glow-text">ROUND COMPLETED</div>
+                    <div className="flex flex-col items-center mt-12">
+                      <div className="mb-12 relative group">
+                        <div className="absolute inset-0 bg-yellow-500/20 blur-[60px] rounded-full animate-pulse group-hover:blur-[80px] transition-all"></div>
+                        <Trophy size={130} className="text-yellow-500 drop-shadow-[0_0_40px_rgba(234,179,8,0.7)] relative z-10" fill="currentColor" />
                       </div>
 
                       <div className="w-full">
-                        <h3 className="text-green-500 font-black tracking-[0.4em] text-xl uppercase mb-8 italic">قـائمـة الـفـائزيـن في الجولة</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
+                        <h3 className="text-green-500 font-black tracking-[0.3em] text-2xl uppercase mb-12 italic text-center">قـائمـة الـفـائزين في الجولة</h3>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-16">
                           {roundWinners.map((w, idx) => (
-                            <div key={idx} className="bg-white/5 rounded-[2.5rem] p-6 border border-white/10 relative group hover:bg-white/10 transition-all hover:scale-105">
-                              <div className="w-20 h-20 rounded-full border-4 border-green-500 mx-auto mb-4 overflow-hidden bg-black shadow-lg">
-                                {w.avatar ? <img src={w.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-white/20 font-black text-3xl">{w.user.charAt(0)}</div>}
+                            <div key={idx} className="bg-white/5 rounded-[3.5rem] p-8 border border-white/5 relative group hover:bg-white/10 transition-all hover:scale-105 shadow-2xl">
+                              <div className="w-24 h-24 rounded-full border-4 border-green-500 mx-auto mb-6 overflow-hidden bg-zinc-900 shadow-[0_0_20px_rgba(34,197,94,0.3)]">
+                                {w.avatar ? (
+                                  <img src={w.avatar} className="w-full h-full object-cover" onError={(e) => {
+                                    (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${w.user}&background=random&color=fff&bold=true`;
+                                  }} />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-white/20 font-black text-4xl">{w.user.charAt(0)}</div>
+                                )}
                               </div>
                               <div className="text-center">
-                                <h4 className="text-xl font-black text-white truncate mb-2">{w.user}</h4>
-                                <div className="space-y-1">
-                                  <div className="bg-green-500/20 rounded-full px-3 py-1 flex items-center justify-between">
-                                    <span className="text-[10px] font-black text-green-400 uppercase">Speed</span>
-                                    <span className="text-sm font-black text-green-400 font-mono">{w.responseTime.toFixed(3)}s</span>
+                                <h4 className="text-2xl font-black text-white truncate mb-4">{w.user}</h4>
+                                <div className="space-y-2">
+                                  <div className="bg-green-500/10 rounded-2xl px-4 py-2 flex items-center justify-between border border-green-500/20">
+                                    <span className="text-[10px] font-black text-green-400 uppercase tracking-tighter">Velocity</span>
+                                    <span className="text-base font-black text-green-400 font-mono">{w.responseTime.toFixed(3)}s</span>
                                   </div>
-                                  <div className="bg-blue-500/20 rounded-full px-3 py-1 flex items-center justify-between">
-                                    <span className="text-[10px] font-black text-blue-400 uppercase">Previous Wins</span>
-                                    <span className="text-sm font-black text-blue-400">{w.winCountBefore}</span>
+                                  <div className="bg-blue-500/10 rounded-2xl px-4 py-2 flex items-center justify-between border border-blue-500/20">
+                                    <span className="text-[10px] font-black text-blue-400 uppercase tracking-tighter">Legacy Wins</span>
+                                    <span className="text-base font-black text-blue-400">{w.winCountBefore}</span>
                                   </div>
                                 </div>
                               </div>
