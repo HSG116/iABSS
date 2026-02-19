@@ -649,32 +649,6 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            <div className="w-full h-16 flex justify-center items-center gap-6 mb-8 z-[100]">
-              {userRole === 'admin' && (
-                !isEditMode ? (
-                  <button
-                    onClick={() => {
-                      setIsEditMode(true);
-                      console.log("Edit Mode Active");
-                    }}
-                    className="flex items-center gap-4 px-8 py-3 bg-white/5 hover:bg-white/10 rounded-3xl border-2 border-white/10 text-white font-black italic tracking-tighter transition-all shadow-xl hover:scale-105 active:scale-95 group"
-                  >
-                    <Edit2 size={20} className="text-red-500 group-hover:rotate-12 transition-transform" />
-                    <span>تعديل ترتيب الألعاب</span>
-                  </button>
-                ) : (
-                  <button
-                    onClick={saveGamesOrder}
-                    disabled={isSavingGames}
-                    className="flex items-center gap-4 px-8 py-3 bg-green-600 hover:bg-green-500 rounded-3xl border-2 border-white/20 text-white font-black italic tracking-tighter transition-all shadow-[0_0_40px_rgba(22,163,74,0.4)] animate-in zoom-in duration-300"
-                  >
-                    {isSavingGames ? <Loader2 size={20} className="animate-spin" /> : <Save size={20} />}
-                    <span>حفظ الترتيب الجديد</span>
-                  </button>
-                )
-              )}
-            </div>
-
             <div className="w-full flex flex-col items-center mb-16 space-y-8 px-4">
               {/* Dynamic Primary Games Layout */}
               {(() => {
@@ -806,7 +780,7 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex flex-wrap justify-center gap-10 md:gap-20 mt-10 pb-20">
+            <div className="flex flex-wrap justify-center gap-10 md:gap-20 mt-10 pb-10">
               <button onClick={() => setCurrentView('LEADERBOARD')} className="flex items-center gap-4 text-white/40 hover:text-iabs-red font-black text-2xl tracking-[0.2em] transition-all hover:scale-105 group italic">
                 <Trophy size={28} className="group-hover:animate-bounce text-yellow-500 drop-shadow-[0_0_15px_rgba(255,215,0,0.5)]" />
                 لوحة الصدارة
@@ -816,6 +790,31 @@ const App: React.FC = () => {
                 <ShieldCheck size={28} className="group-hover:text-blue-500 transition-colors" />
                 الإدارة
               </button>
+            </div>
+
+            <div className="w-full flex justify-center items-center pb-20">
+              {userRole === 'admin' && (
+                !isEditMode ? (
+                  <button
+                    onClick={() => {
+                      setIsEditMode(true);
+                    }}
+                    className="flex items-center gap-4 px-8 py-3 bg-white/5 hover:bg-white/10 rounded-3xl border-2 border-white/10 text-white font-black italic tracking-tighter transition-all shadow-xl hover:scale-105 active:scale-95 group"
+                  >
+                    <Edit2 size={20} className="text-red-500 group-hover:rotate-12 transition-transform" />
+                    <span>تعديل ترتيب الألعاب</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={saveGamesOrder}
+                    disabled={isSavingGames}
+                    className="flex items-center gap-4 px-8 py-3 bg-green-600 hover:bg-green-500 rounded-3xl border-2 border-white/20 text-white font-black italic tracking-tighter transition-all shadow-[0_0_40px_rgba(22,163,74,0.4)] animate-in zoom-in duration-300"
+                  >
+                    {isSavingGames ? <Loader2 size={20} className="animate-spin" /> : <Save size={20} />}
+                    <span>حفظ الترتيب الجديد</span>
+                  </button>
+                )
+              )}
             </div>
           </div>
         );
