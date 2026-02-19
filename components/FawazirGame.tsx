@@ -357,171 +357,197 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
             </div>
           </div>
         ) : gameState === 'SUMMARY' ? (
-          <div className="flex-1 w-full flex flex-col items-center justify-center animate-in fade-in zoom-in duration-1000 p-4 md:p-8 overflow-y-auto custom-scrollbar">
-            <div className="w-full max-w-6xl relative py-20">
-              {/* Legendary Header */}
-              <div className="text-center mb-24 relative">
-                <div className="absolute -top-40 left-1/2 -translate-x-1/2 opacity-30 blur-[120px] w-[600px] h-[600px] bg-red-600 rounded-full animate-pulse"></div>
-                <div className="relative inline-block">
-                  <Trophy size={140} className="text-[#FFD700] mx-auto mb-8 drop-shadow-[0_0_80px_rgba(255,215,0,0.8)] animate-bounce" fill="currentColor" />
-                  <div className="absolute -top-6 -right-6 animate-spin-slow">
-                    <Star size={48} className="text-yellow-400 fill-yellow-400" />
+          <div className="flex-1 w-full flex flex-col items-center animate-in fade-in duration-1000 overflow-y-auto custom-scrollbar p-6 md:p-12 relative">
+            {/* Background Glows */}
+            <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-red-600/10 blur-[180px] rounded-full animate-pulse"></div>
+            <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-yellow-600/10 blur-[180px] rounded-full animate-pulse delay-1000"></div>
+
+            <div className="w-full max-w-6xl relative z-10">
+              {/* Victory Banner */}
+              <div className="text-center mb-32 relative">
+                <div className="relative mb-8 pt-10">
+                  <div className="inline-block relative">
+                    <h2 className="text-5xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 to-yellow-600 mb-6 animate-bounce drop-shadow-[0_10px_40px_rgba(234,179,8,0.6)]">
+                      مبروكككككك 🎉🎉🎊
+                    </h2>
+                    <div className="absolute -inset-4 bg-yellow-500/10 blur-2xl rounded-full -z-10 animate-pulse"></div>
                   </div>
+                  <h1 className="text-8xl md:text-[10rem] font-black text-white italic tracking-tighter uppercase red-neon-text filter drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)] leading-none">
+                    أساطير الميدان
+                  </h1>
                 </div>
-                <h1 className="text-8xl md:text-9xl font-black text-white italic tracking-tighter uppercase mb-4 red-neon-text filter drop-shadow-2xl">أساطير الميدان</h1>
-                <div className="flex items-center justify-center gap-4">
-                  <div className="h-px w-24 bg-gradient-to-r from-transparent to-red-600"></div>
-                  <p className="text-red-500 font-black tracking-[1.5em] text-lg uppercase italic">HALL OF LEGENDS</p>
-                  <div className="h-px w-24 bg-gradient-to-l from-transparent to-red-600"></div>
+
+                <div className="flex items-center justify-center gap-10">
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-red-600 to-transparent"></div>
+                  <div className="flex flex-col items-center">
+                    <p className="text-red-500 font-black tracking-[1.5em] text-lg uppercase italic whitespace-nowrap mb-1">ULTIMATE CHAMPIONS</p>
+                    <div className="w-24 h-1 bg-red-600 rounded-full"></div>
+                  </div>
+                  <div className="h-px flex-1 bg-gradient-to-l from-transparent via-red-600 to-transparent"></div>
                 </div>
               </div>
 
               {(() => {
                 const top3 = winnersList.slice(0, 3);
                 return !top3.length ? (
-                  <div className="text-center py-32 bg-white/5 rounded-[5rem] border-2 border-dashed border-white/10 backdrop-blur-3xl">
-                    <Skull size={120} className="text-gray-600 mx-auto mb-10 opacity-30" />
-                    <h2 className="text-5xl font-black text-white/30 italic">الميدان بانتظار أبطاله...</h2>
+                  <div className="text-center py-40 bg-black/40 rounded-[5rem] border-2 border-dashed border-white/10 backdrop-blur-3xl">
+                    <Skull size={140} className="text-gray-800 mx-auto mb-10 opacity-30" />
+                    <h2 className="text-6xl font-black text-white/20 italic">الميدان بانتظار أبطاله...</h2>
                   </div>
                 ) : (
-                  <div className="flex flex-col md:flex-row items-end justify-center gap-4 md:gap-0 mb-24 perspective-1000">
-                    {/* 2nd Place */}
-                    {top3[1] && (
-                      <div className="w-full md:w-1/3 animate-in slide-in-from-left-20 duration-1000 delay-300">
-                        <div className="bg-gradient-to-b from-slate-400/20 to-black/80 backdrop-blur-3xl rounded-t-[4rem] border-x-4 border-t-4 border-slate-400/30 p-10 relative shadow-2xl h-[450px] flex flex-col items-center justify-end">
-                          <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-40 h-40 rounded-[3rem] border-4 border-slate-400 overflow-hidden shadow-[0_0_50px_rgba(148,163,184,0.4)] bg-zinc-900 group">
-                            {top3[1].avatar ? <img src={top3[1].avatar} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" /> : <User size={60} className="text-slate-400 mt-10 mx-auto" />}
-                            <div className="absolute inset-0 bg-gradient-to-t from-slate-400/40 to-transparent"></div>
-                          </div>
-                          <div className="bg-slate-400 text-black px-8 py-2 rounded-full font-black text-sm mb-6 shadow-xl tracking-widest">🥈 2ND PLACE</div>
-                          <h3 className="text-4xl font-black text-white truncate w-full text-center mb-8 drop-shadow-lg leading-tight">{top3[1].user}</h3>
-                          <div className="grid grid-cols-2 gap-4 w-full">
-                            <div className="bg-white/5 p-4 rounded-3xl border border-white/10 text-center">
-                              <span className="text-[10px] text-slate-400 font-black block mb-1">GAMES</span>
-                              <span className="text-2xl font-black text-white italic">{top3[1].winCount}</span>
+                  <div className="relative pt-40 mb-32">
+                    <div className="flex flex-col md:flex-row items-end justify-center gap-6 md:gap-8">
+                      {/* 2nd Place */}
+                      {top3[1] && (
+                        <div className="w-full md:w-1/4 animate-in slide-in-from-left-20 duration-1000 delay-300">
+                          <div className="relative group">
+                            <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-36 h-36 rounded-[3rem] border-4 border-slate-400 overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] bg-zinc-900 z-10 transition-all group-hover:scale-110 group-hover:-translate-y-2">
+                              {top3[1].avatar ? <img src={top3[1].avatar} className="w-full h-full object-cover" /> : <User size={50} className="text-slate-400 mt-12 mx-auto" />}
+                              <div className="absolute inset-0 bg-gradient-to-t from-slate-400/20 to-transparent"></div>
                             </div>
-                            <div className="bg-white/5 p-4 rounded-3xl border border-white/10 text-center">
-                              <span className="text-[10px] text-slate-400 font-black block mb-1">SPEED</span>
-                              <span className="text-2xl font-black text-white italic">{top3[1].averageTime.toFixed(2)}s</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* 1st Place - The Champion */}
-                    {top3[0] && (
-                      <div className="w-full md:w-2/5 z-20 animate-in slide-in-from-bottom-20 duration-1000">
-                        <div className="bg-gradient-to-b from-yellow-500/20 to-black/90 backdrop-blur-3xl rounded-t-[5rem] border-x-8 border-t-8 border-[#FFD700] p-12 relative shadow-[0_0_150px_rgba(255,215,0,0.3)] h-[600px] flex flex-col items-center justify-end ring-4 ring-yellow-500/20">
-                          {/* Champion Crown Container */}
-                          <div className="absolute -top-52 left-1/2 -translate-x-1/2 flex flex-col items-center">
-                            <div className="animate-float mb-4">
-                              <div className="relative">
-                                <Trophy size={100} className="text-yellow-400 fill-yellow-400 filter drop-shadow-[0_0_30px_rgba(255,215,0,0.8)]" />
-                                <div className="absolute top-0 right-0 animate-ping">
-                                  <Star size={32} className="text-yellow-400" />
+                            <div className="bg-gradient-to-b from-slate-400/20 to-black/95 backdrop-blur-3xl rounded-t-[4rem] border-t-4 border-x-4 border-slate-400/30 p-10 pt-20 flex flex-col items-center h-[360px] shadow-2xl relative overflow-hidden">
+                              <div className="absolute top-0 right-0 w-32 h-32 bg-slate-400/5 blur-3xl rounded-full"></div>
+                              <div className="bg-slate-400 text-black px-6 py-1.5 rounded-full font-black text-xs mb-6 shadow-xl tracking-widest uppercase">🥈 2nd Place</div>
+                              <h3 className="text-3xl font-black text-white truncate w-full text-center mb-8 drop-shadow-md">{top3[1].user}</h3>
+                              <div className="grid grid-cols-2 gap-4 w-full mt-auto">
+                                <div className="bg-white/5 p-4 rounded-3xl border border-white/5 text-center group-hover:bg-white/10 transition-colors">
+                                  <span className="text-[10px] text-slate-400 font-black block mb-1">GAMES</span>
+                                  <span className="text-2xl font-black text-white italic">{top3[1].winCount}</span>
+                                </div>
+                                <div className="bg-white/5 p-4 rounded-3xl border border-white/5 text-center group-hover:bg-white/10 transition-colors">
+                                  <span className="text-[10px] text-slate-400 font-black block mb-1">SPEED</span>
+                                  <span className="text-2xl font-black text-white italic">{top3[1].averageTime.toFixed(2)}s</span>
                                 </div>
                               </div>
                             </div>
-                            <div className="w-56 h-56 rounded-[4rem] border-8 border-[#FFD700] overflow-hidden shadow-[0_0_100px_rgba(255,215,0,0.6)] bg-zinc-900 group ring-8 ring-yellow-500/10">
-                              {top3[0].avatar ? <img src={top3[0].avatar} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" /> : <User size={80} className="text-[#FFD700] mt-12 mx-auto" />}
-                              <div className="absolute inset-0 bg-gradient-to-t from-yellow-500/40 to-transparent"></div>
-                            </div>
                           </div>
+                        </div>
+                      )}
 
-                          <div className="bg-gradient-to-r from-yellow-600 via-yellow-400 to-yellow-600 text-black px-12 py-3 rounded-full font-black text-xl mb-10 shadow-[0_10px_40px_rgba(255,215,0,0.5)] tracking-widest flex items-center gap-3 italic">
-                            THE CHAMPION
-                          </div>
-                          <h3 className="text-6xl font-black text-white truncate w-full text-center mb-10 gold-glow-text filter drop-shadow-2xl leading-none">{top3[0].user}</h3>
-                          <div className="grid grid-cols-2 gap-6 w-full">
-                            <div className="bg-yellow-500/10 p-6 rounded-[2.5rem] border-2 border-yellow-500/30 text-center shadow-inner">
-                              <span className="text-xs text-yellow-500 font-black block mb-2 uppercase tracking-tighter">VICTORIES</span>
-                              <span className="text-4xl font-black text-white italic drop-shadow-md">{top3[0].winCount}</span>
+                      {/* 1st Place - The Legend */}
+                      {top3[0] && (
+                        <div className="w-full md:w-1/3 z-20 animate-in slide-in-from-bottom-32 duration-1000">
+                          <div className="relative group">
+                            {/* Throne / Pedestal Base Glow */}
+                            <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-4/5 h-20 bg-yellow-500/20 blur-3xl animate-pulse"></div>
+
+                            {/* Trophy Container */}
+                            <div className="absolute -top-56 left-1/2 -translate-x-1/2 flex flex-col items-center z-20 w-full">
+                              <div className="relative mb-6 animate-float">
+                                <Trophy size={110} className="text-yellow-400 fill-yellow-400 filter drop-shadow-[0_0_40px_rgba(255,215,0,0.8)]" />
+                                <div className="absolute -top-4 -right-4 animate-spin-slow">
+                                  <Star size={40} className="text-white fill-white opacity-50" />
+                                </div>
+                              </div>
+                              <div className="w-56 h-56 rounded-[4rem] border-8 border-yellow-500 overflow-hidden shadow-[0_25px_80px_rgba(255,215,0,0.5)] bg-zinc-900 ring-8 ring-yellow-500/10 transition-all group-hover:scale-110 group-hover:-translate-y-4">
+                                {top3[0].avatar ? <img src={top3[0].avatar} className="w-full h-full object-cover" /> : <User size={90} className="text-yellow-500 mt-16 mx-auto" />}
+                                <div className="absolute inset-0 bg-gradient-to-t from-yellow-500/30 to-transparent"></div>
+                                <div className="absolute inset-0 bg-yellow-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                              </div>
                             </div>
-                            <div className="bg-yellow-500/10 p-6 rounded-[2.5rem] border-2 border-yellow-500/30 text-center shadow-inner">
-                              <span className="text-xs text-yellow-500 font-black block mb-2 uppercase tracking-tighter">AVG SPEED</span>
-                              <span className="text-4xl font-black text-white italic drop-shadow-md">{top3[0].averageTime.toFixed(3)}s</span>
+
+                            <div className="bg-gradient-to-b from-yellow-500/30 to-black/95 backdrop-blur-3xl rounded-t-[5rem] border-t-8 border-x-8 border-yellow-500 p-12 pt-60 flex flex-col items-center h-[580px] shadow-[0_0_200px_rgba(255,215,0,0.2)] relative overflow-hidden">
+                              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-yellow-300 to-transparent"></div>
+                              <div className="bg-gradient-to-r from-yellow-600 via-yellow-400 to-yellow-600 text-black px-12 py-3 rounded-full font-black text-xl mb-10 shadow-[0_15px_50px_rgba(255,215,0,0.6)] italic tracking-widest uppercase">🏆 THE CHAMPION</div>
+                              <h3 className="text-5xl md:text-7xl font-black text-white truncate w-full text-center mb-10 gold-glow-text leading-tight">{top3[0].user}</h3>
+                              <div className="grid grid-cols-2 gap-6 w-full mt-auto">
+                                <div className="bg-yellow-500/10 p-6 rounded-[2.5rem] border-2 border-yellow-500/20 text-center shadow-inner hover:bg-yellow-500/20 transition-all">
+                                  <span className="text-xs text-yellow-500 font-black block mb-2 uppercase tracking-tighter">VICTORIES</span>
+                                  <span className="text-4xl font-black text-white italic drop-shadow-md font-mono">{top3[0].winCount}</span>
+                                </div>
+                                <div className="bg-yellow-500/10 p-6 rounded-[2.5rem] border-2 border-yellow-500/20 text-center shadow-inner hover:bg-yellow-500/20 transition-all">
+                                  <span className="text-xs text-yellow-500 font-black block mb-2 uppercase tracking-tighter">AVG SPEED</span>
+                                  <span className="text-4xl font-black text-white italic drop-shadow-md font-mono">{top3[0].averageTime.toFixed(3)}s</span>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {/* 3rd Place */}
-                    {top3[2] && (
-                      <div className="w-full md:w-1/3 animate-in slide-in-from-right-20 duration-1000 delay-500">
-                        <div className="bg-gradient-to-b from-orange-800/20 to-black/80 backdrop-blur-3xl rounded-t-[4rem] border-x-4 border-t-4 border-orange-800/40 p-10 relative shadow-2xl h-[380px] flex flex-col items-center justify-end">
-                          <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-36 h-36 rounded-[2.5rem] border-4 border-orange-800 overflow-hidden shadow-[0_0_40px_rgba(154,52,18,0.4)] bg-zinc-900 group">
-                            {top3[2].avatar ? <img src={top3[2].avatar} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" /> : <User size={50} className="text-orange-800 mt-10 mx-auto" />}
-                            <div className="absolute inset-0 bg-gradient-to-t from-orange-800/40 to-transparent"></div>
-                          </div>
-                          <div className="bg-orange-800 text-white px-8 py-2 rounded-full font-black text-sm mb-6 shadow-xl tracking-widest">🥉 3RD PLACE</div>
-                          <h3 className="text-3xl font-black text-white truncate w-full text-center mb-8">{top3[2].user}</h3>
-                          <div className="grid grid-cols-2 gap-4 w-full">
-                            <div className="bg-white/5 p-4 rounded-3xl border border-white/10 text-center">
-                              <span className="text-[10px] text-orange-800 font-black block mb-1">GAMES</span>
-                              <span className="text-xl font-black text-white italic">{top3[2].winCount}</span>
+                      {/* 3rd Place */}
+                      {top3[2] && (
+                        <div className="w-full md:w-1/4 animate-in slide-in-from-right-20 duration-1000 delay-500">
+                          <div className="relative group">
+                            <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-32 h-32 rounded-[2.5rem] border-4 border-orange-800 overflow-hidden shadow-[0_15px_40px_rgba(0,0,0,0.5)] bg-zinc-900 z-10 transition-all group-hover:scale-110 group-hover:-translate-y-2">
+                              {top3[2].avatar ? <img src={top3[2].avatar} className="w-full h-full object-cover" /> : <User size={40} className="text-orange-800 mt-10 mx-auto" />}
+                              <div className="absolute inset-0 bg-gradient-to-t from-orange-800/20 to-transparent"></div>
                             </div>
-                            <div className="bg-white/5 p-4 rounded-3xl border border-white/10 text-center">
-                              <span className="text-[10px] text-orange-800 font-black block mb-1">SPEED</span>
-                              <span className="text-xl font-black text-white italic">{top3[2].averageTime.toFixed(2)}s</span>
+                            <div className="bg-gradient-to-b from-orange-800/20 to-black/90 backdrop-blur-3xl rounded-t-[3.5rem] border-t-4 border-x-4 border-orange-800/30 p-8 pt-20 flex flex-col items-center h-[320px] shadow-2xl relative overflow-hidden">
+                              <div className="absolute top-0 left-0 w-32 h-32 bg-orange-800/5 blur-3xl rounded-full"></div>
+                              <div className="bg-orange-800/80 text-white px-5 py-1.5 rounded-full font-black text-[10px] mb-6 shadow-xl tracking-widest uppercase">🥉 3rd Place</div>
+                              <h3 className="text-2xl font-black text-white truncate w-full text-center mb-8">{top3[2].user}</h3>
+                              <div className="grid grid-cols-2 gap-3 w-full mt-auto">
+                                <div className="bg-white/5 p-3 rounded-2xl border border-white/5 text-center group-hover:bg-white/10 transition-colors">
+                                  <span className="text-[8px] text-orange-800 font-black block">WINS</span>
+                                  <span className="text-xl font-black text-white">{top3[2].winCount}</span>
+                                </div>
+                                <div className="bg-white/5 p-3 rounded-2xl border border-white/5 text-center group-hover:bg-white/10 transition-colors">
+                                  <span className="text-[8px] text-orange-800 font-black block">SPEED</span>
+                                  <span className="text-xl font-black text-white">{top3[2].averageTime.toFixed(2)}s</span>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 );
               })()}
 
-              <div className="mt-8 flex flex-col md:flex-row gap-8 w-full items-center justify-center">
-                <button onClick={startGame} className="group min-w-[300px] px-16 bg-white text-black font-black py-8 rounded-[3rem] text-3xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-6 italic shadow-[0_30px_100px_rgba(255,255,255,0.3)] ring-4 ring-white/10">
+              <div className="flex flex-col md:flex-row gap-8 w-full items-center justify-center mb-40">
+                <button onClick={startGame} className="group min-w-[320px] px-16 bg-white text-black font-black py-8 rounded-[3rem] text-3xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-6 italic shadow-[0_25px_80px_rgba(255,255,255,0.25)] border-b-8 border-gray-300">
                   إعادة المعركة <RotateCcw size={40} className="group-hover:rotate-180 transition-transform duration-1000" />
                 </button>
-                <button onClick={onHome} className="min-w-[300px] px-16 bg-red-600 text-white font-black py-8 rounded-[3rem] text-3xl hover:bg-red-500 hover:scale-105 transition-all flex items-center justify-center gap-6 italic shadow-[0_30px_100px_rgba(220,38,38,0.3)] border-b-8 border-red-800">
+                <button onClick={onHome} className="group min-w-[320px] px-16 bg-red-600 text-white font-black py-8 rounded-[3rem] text-3xl hover:bg-red-500 hover:scale-105 transition-all flex items-center justify-center gap-6 italic shadow-[0_25px_80px_rgba(220,38,38,0.35)] border-b-8 border-red-800">
                   <Home size={40} /> الرئيسية
                 </button>
               </div>
 
               {/* Hall of Legends Ranking (4-23) */}
-              <div className="mt-40 w-full max-w-6xl mx-auto">
-                <div className="text-center mb-16 relative">
+              <div className="mt-20 w-full max-w-6xl mx-auto pb-40">
+                <div className="text-center mb-20 relative">
                   <div className="absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
-                  <h3 className="bg-black/40 backdrop-blur-md px-12 py-3 rounded-full border border-white/10 inline-block text-white/60 font-black text-2xl uppercase tracking-[0.4em] italic relative z-10">
-                    قـائمة الأسـاطـير العشـرين
-                  </h3>
+                  <div className="relative z-10 inline-flex flex-col items-center">
+                    <h3 className="bg-black/60 backdrop-blur-2xl px-16 py-4 rounded-full border-2 border-white/10 text-white font-black text-3xl uppercase tracking-[0.5em] italic shadow-2xl">
+                      قـائمة الأسـاطـير
+                    </h3>
+                    <div className="w-1/2 h-1 bg-red-600 rounded-full mt-2"></div>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                   {Array.from({ length: 20 }).map((_, i) => {
                     const player = winnersList[i + 3];
                     if (!player) return (
-                      <div key={i} className="bg-black/40 rounded-3xl p-6 border-2 border-dashed border-white/5 opacity-20 flex items-center gap-4 grayscale">
-                        <span className="text-4xl font-black text-white italic">#{i + 4}</span>
-                        <div className="w-14 h-14 rounded-2xl bg-zinc-900 border border-white/5"></div>
-                        <div className="flex-1 h-4 bg-zinc-800 rounded"></div>
+                      <div key={i} className="bg-black/40 rounded-[2.5rem] p-8 border-2 border-dashed border-white/5 opacity-20 flex items-center gap-6 grayscale">
+                        <span className="text-5xl font-black text-white italic">#{i + 4}</span>
+                        <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-white/5"></div>
+                        <div className="flex-1 h-5 bg-zinc-800 rounded"></div>
                       </div>
                     );
                     return (
-                      <div key={i} className="group bg-white/[0.03] backdrop-blur-xl rounded-[2.5rem] p-6 flex items-center gap-6 border border-white/10 hover:border-red-600/50 hover:bg-red-600/[0.05] transition-all hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(220,38,38,0.2)] relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-red-600/5 blur-[50px] group-hover:bg-red-600/20 transition-all"></div>
-                        <span className="text-4xl font-black text-white/10 italic absolute right-6 group-hover:text-red-500/20 transition-all">#{i + 4}</span>
+                      <div key={i} className="group bg-gradient-to-br from-white/[0.05] to-transparent backdrop-blur-2xl rounded-[3rem] p-8 flex items-center gap-8 border border-white/10 hover:border-red-600/50 hover:bg-red-600/[0.08] transition-all hover:-translate-y-3 hover:shadow-[0_30px_70px_rgba(220,38,38,0.25)] relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/5 blur-[60px] group-hover:bg-red-600/20 transition-all"></div>
+                        <span className="text-5xl font-black text-white/5 italic absolute right-8 group-hover:text-red-500/20 transition-all">#{i + 4}</span>
                         <div className="relative">
-                          <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-white/10 group-hover:border-red-500 transition-all shadow-xl">
-                            {player.avatar ? <img src={player.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-xl text-white/20">{player.user.charAt(0)}</div>}
+                          <div className="w-20 h-20 rounded-3xl overflow-hidden border-4 border-white/10 group-hover:border-red-500 transition-all shadow-2xl scale-110">
+                            {player.avatar ? <img src={player.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-2xl text-white/20">{player.user.charAt(0)}</div>}
                           </div>
-                          <div className="absolute -bottom-1 -right-1 bg-red-600 text-white w-6 h-6 rounded-lg text-[10px] flex items-center justify-center font-black border-2 border-black">✓</div>
+                          <div className="absolute -bottom-2 -right-2 bg-red-600 text-white w-8 h-8 rounded-xl text-xs flex items-center justify-center font-black border-2 border-black shadow-lg">✓</div>
                         </div>
                         <div className="relative z-10 min-w-0">
-                          <div className="text-xl font-black text-white truncate mb-1">{player.user}</div>
-                          <div className="flex gap-4">
-                            <div className="flex items-center gap-1">
-                              <span className="text-xs font-bold text-red-500">{player.winCount}</span>
-                              <span className="text-[10px] text-white/40 uppercase font-bold tracking-tighter">WINS</span>
+                          <div className="text-2xl font-black text-white truncate mb-2 group-hover:red-neon-text transition-all">{player.user}</div>
+                          <div className="flex gap-5">
+                            <div className="flex flex-col">
+                              <span className="text-[8px] text-white/40 font-bold uppercase tracking-widest">Victories</span>
+                              <span className="text-xl font-black text-red-500">{player.winCount}</span>
                             </div>
-                            <div className="flex items-center gap-1">
-                              <span className="text-xs font-bold text-blue-400">{player.averageTime.toFixed(2)}s</span>
-                              <span className="text-[10px] text-white/40 uppercase font-bold tracking-tighter">SPD</span>
+                            <div className="w-px h-8 bg-white/10 self-end"></div>
+                            <div className="flex flex-col">
+                              <span className="text-[8px] text-white/40 font-bold uppercase tracking-widest">Speed</span>
+                              <span className="text-xl font-black text-blue-400">{player.averageTime.toFixed(2)}s</span>
                             </div>
                           </div>
                         </div>
