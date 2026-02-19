@@ -88,3 +88,13 @@ export interface Game {
   coming_soon_text: string;
   position: number;
 }
+export interface GameSettings {
+  winMode: 'SPEED' | 'POINTS';
+  roundsCount: number;
+  timerDuration: number;
+  gameOverOnMiss: boolean;
+  backgroundId: string;
+  soundEnabled: boolean;
+  autoNext: boolean;
+  winnerDuration: number;
+}

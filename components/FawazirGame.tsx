@@ -458,19 +458,44 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                   <Home size={28} /> العودة للرئيسية
                 </button>
               </div>
+
+              {/* Ranking List (4-23) */}
+              {winnersList.length > 3 && (
+                <div className="mt-16 w-full max-w-5xl mx-auto">
+                  <h3 className="text-white/40 font-black text-xl uppercase tracking-[0.5em] mb-8 italic text-center flex items-center justify-center gap-4">
+                    <Star size={20} className="text-yellow-500" />
+                    بقية الأساطير (TOP 20)
+                    <Star size={20} className="text-yellow-500" />
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    {winnersList.slice(3, 23).map((player, i) => (
+                      <div key={i} className="bg-white/5 rounded-2xl p-4 flex items-center gap-4 border border-white/5 hover:bg-white/10 transition-all group relative overflow-hidden">
+                        <span className="text-white/20 font-black text-sm w-6">#{i + 4}</span>
+                        <div className="w-10 h-10 rounded-xl overflow-hidden border border-white/20 flex-shrink-0">
+                          {player.avatar ? <img src={player.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-xs">{player.user.charAt(0)}</div>}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-xs font-black text-white truncate">{player.user}</div>
+                          <div className="text-[10px] font-bold text-kick-green uppercase">{player.winCount} Wins</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         ) : (
-          <div className={`flex-1 w-full flex flex-col items-center justify-center mb-24 relative ${gameState === 'ROUND_WIN' ? '' : 'backdrop-blur-2xl'}`}>
+          <div className={`flex-1 w-full flex flex-col items-center justify-center mb-24 relative ${gameState === 'ROUND_WIN' ? '' : ''}`}>
             {gameState === 'ROUND_WIN' && (
               <div className="absolute inset-0 z-[100] flex items-center justify-center animate-in fade-in zoom-in duration-1000">
                 <div className="absolute top-0 left-1/4 w-96 h-96 bg-green-500/20 blur-[150px] animate-pulse"></div>
                 <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500/20 blur-[150px] animate-pulse delay-700"></div>
-                <div className="text-center relative max-w-7xl w-full mx-6 p-1 bg-gradient-to-b from-white/10 to-transparent rounded-[5rem] shadow-[0_0_100px_rgba(0,0,0,1)] overflow-visible">
-                  <div className="bg-[#050505] rounded-[4.9rem] p-12 relative overflow-hidden">
+                <div className="text-center relative max-w-2xl w-full mx-6 p-1 bg-gradient-to-b from-white/10 to-transparent rounded-[4rem] shadow-[0_0_100px_rgba(0,0,0,1)] overflow-visible">
+                  <div className="bg-[#050505] rounded-[3.9rem] p-6 relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-green-500 to-transparent animate-shimmer"></div>
-                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-full max-w-md px-12 py-4 bg-green-600 rounded-full flex items-center justify-center shadow-[0_15px_50px_rgba(22,163,74,0.5)] z-[110] border-t-4 border-white/20 animate-bounce">
-                      <span className="text-white font-black text-4xl italic tracking-[0.2em] uppercase drop-shadow-lg">VICTORY ACHIEVED!</span>
+                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-full max-w-xs px-8 py-3 bg-green-600 rounded-full flex items-center justify-center shadow-[0_15px_40px_rgba(22,163,74,0.4)] z-[110] border-t-4 border-white/20 animate-bounce">
+                      <span className="text-white font-black text-2xl italic tracking-[0.2em] uppercase drop-shadow-lg">VICTORY!</span>
                     </div>
 
                     {roundWinners.length > 0 ? (
@@ -488,7 +513,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                                 </div>
                               </div>
                               <div className="flex items-center gap-10 animate-in slide-in-from-bottom-20 duration-1000">
-                                <div className="w-56 h-56 rounded-[4rem] border-8 border-green-500 shadow-[0_0_60px_rgba(34,197,94,0.5)] overflow-hidden bg-zinc-900 group">
+                                <div className="w-40 h-40 rounded-[3rem] border-8 border-green-500 shadow-[0_0_60px_rgba(34,197,94,0.5)] overflow-hidden bg-zinc-900 group">
                                   {roundWinners[0].avatar ? (
                                     <img src={roundWinners[0].avatar} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
                                   ) : (
@@ -496,13 +521,13 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                                   )}
                                 </div>
                                 <div className="text-right">
-                                  <h2 className="text-8xl font-black text-white italic tracking-tighter green-neon-text mb-4">{roundWinners[0].user}</h2>
+                                  <h2 className="text-5xl font-black text-white italic tracking-tighter green-neon-text mb-4">{roundWinners[0].user}</h2>
                                   <div className="flex gap-4">
-                                    <div className="bg-green-500 text-black px-6 py-3 rounded-2xl font-black text-2xl italic flex items-center gap-3">
-                                      <Clock size={24} /> {roundWinners[0].responseTime.toFixed(3)}s
+                                    <div className="bg-green-500 text-black px-4 py-2 rounded-xl font-black text-xl italic flex items-center gap-2">
+                                      <Clock size={20} /> {roundWinners[0].responseTime.toFixed(3)}s
                                     </div>
-                                    <div className="bg-white/10 text-white px-6 py-3 rounded-2xl font-black text-2xl italic border border-white/20">
-                                      Total Wins: {roundWinners[0].winCountBefore + 1}
+                                    <div className="bg-white/10 text-white px-4 py-2 rounded-xl font-black text-xl italic border border-white/20">
+                                      Wins: {roundWinners[0].winCountBefore + 1}
                                     </div>
                                   </div>
                                 </div>
