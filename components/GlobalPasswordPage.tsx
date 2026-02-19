@@ -495,9 +495,12 @@ export const GlobalPasswordPage: React.FC<GlobalPasswordPageProps> = ({
 
             </div>
 
-            <div className="absolute bottom-10 opacity-30 flex items-center gap-3 animate-pulse pointer-events-none">
-                <Sparkles size={20} className="text-white" />
-                <span className="text-sm text-white uppercase tracking-[0.6em] font-bold">SECURED BY iABS CLOUD SYSTEM</span>
+            <div className="absolute bottom-10 opacity-30 flex flex-col items-center gap-1 animate-pulse pointer-events-none">
+                <div className="flex items-center gap-3">
+                    <Sparkles size={20} className="text-white" />
+                    <span className="text-sm text-white uppercase tracking-[0.6em] font-bold">SECURED BY iABS CLOUD SYSTEM</span>
+                </div>
+                <span className="text-[10px] text-zinc-500 font-mono">BUILD_REF: {new Date().toLocaleDateString()} | v2.0.5</span>
             </div>
 
             <style>{`
