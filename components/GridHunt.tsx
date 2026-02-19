@@ -294,8 +294,11 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                   </div>
                   <div className="w-px h-6 bg-white/10"></div>
                   <div className="flex items-center gap-3">
-                     <div className="w-8 h-5 bg-blue-500/20 border border-blue-400/50 rounded-sm shadow-[0_0_10px_rgba(96,165,250,0.3)] flex items-center justify-center overflow-hidden">
-                        <div className="w-full h-full bg-gradient-to-br from-blue-400/20 to-transparent"></div>
+                     <div className="w-10 h-6 bg-zinc-900 border border-white/20 rounded-sm shadow-[0_4px_10px_rgba(0,0,0,0.5)] relative overflow-hidden flex items-center justify-center">
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/30 to-blue-900/40"></div>
+                        <div className="absolute bottom-0.5 right-0.5 w-2 h-2">
+                           <img src={tecshLogo} className="w-full h-full object-contain opacity-80" alt="logo" />
+                        </div>
                      </div>
                      <div className="text-[8px] text-gray-500 font-black uppercase tracking-widest leading-none">الهدف</div>
                      <div className="text-xl font-black text-white italic">{winner ? '0' : '1'}</div>
@@ -352,9 +355,11 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                                     {isRevealed && (
                                        <div className="animate-in zoom-in spin-in-180 duration-500 p-1 md:p-2 w-full h-full flex items-center justify-center">
                                           {cell.type === 'TREASURE' && (
-                                             <div className="w-10/12 h-6/12 bg-white/10 border border-white/20 rounded-sm shadow-inner relative overflow-hidden flex items-center justify-center">
-                                                <div className="absolute inset-0 bg-blue-500/20"></div>
-                                                <img src={tecshLogo} className="w-4 h-4 object-contain opacity-50" />
+                                             <div className="w-10/12 h-6/12 bg-zinc-900 border border-white/20 rounded-sm shadow-inner relative overflow-hidden group/m">
+                                                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-blue-900/40"></div>
+                                                <div className="absolute bottom-0.5 right-0.5 w-3 h-3 md:w-4 md:h-4 group-hover/m:scale-110 transition-transform">
+                                                   <img src={tecshLogo} className="w-full h-full object-contain opacity-70" alt="logo" />
+                                                </div>
                                              </div>
                                           )}
                                           {cell.type === 'BOMB' && <Skull size={20} className="text-white opacity-50" />}
@@ -376,7 +381,15 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
 
             {/* Legend */}
             <div className="mt-8 flex gap-6 opacity-30 group hover:opacity-100 transition-opacity">
-               <div className="flex items-center gap-2 text-[9px] font-black text-white italic uppercase tracking-[0.2em]"><div className="w-4 h-2.5 rounded-sm bg-blue-500" /> الماوس باد</div>
+               <div className="flex items-center gap-2 text-[9px] font-black text-white italic uppercase tracking-[0.2em]">
+                  <div className="w-5 h-3 bg-zinc-900 border border-white/20 rounded-sm relative overflow-hidden">
+                     <div className="absolute inset-0 bg-blue-500/40"></div>
+                     <div className="absolute bottom-[1px] right-[1px] w-1.5 h-1.5">
+                        <img src={tecshLogo} className="w-full h-full object-contain" alt="logo" />
+                     </div>
+                  </div>
+                  الماوس باد
+               </div>
                <div className="flex items-center gap-2 text-[9px] font-black text-white italic uppercase tracking-[0.2em]"><div className="w-2.5 h-2.5 rounded-full bg-red-600" /> لـغـم</div>
             </div>
 
