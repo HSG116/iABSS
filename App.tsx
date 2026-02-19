@@ -361,50 +361,7 @@ const App: React.FC = () => {
     );
   };
 
-  const WelcomeGate = () => (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/98 backdrop-blur-3xl p-6 animate-in fade-in duration-1000">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-red-600/15 via-transparent to-transparent"></div>
 
-      <div className="max-w-2xl w-full bg-[#050505] border border-red-600/30 rounded-[4rem] p-12 relative overflow-hidden shadow-[0_0_150px_rgba(255,0,0,0.3)]">
-        <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent via-red-600 to-transparent"></div>
-
-        <div className="text-center mb-12">
-          <img src="https://i.ibb.co/pvCN1NQP/95505180312.png" className="h-40 mx-auto mb-8 drop-shadow-[0_0_30px_rgba(255,0,0,0.6)] animate-float" alt="Logo" />
-          <h1 className="text-6xl font-black text-white italic tracking-tighter uppercase">بـوابـة الدخـول</h1>
-          <p className="text-red-500 font-black tracking-[0.5em] text-xs uppercase mt-3">iABS System Access</p>
-        </div>
-
-        <div className="space-y-6 mb-12">
-          <div className="bg-white/5 p-6 rounded-3xl border border-white/10 flex items-center gap-6 group hover:border-red-600/40 transition-all">
-            <div className="w-20 h-20 bg-red-600 rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(255,0,0,0.4)] shrink-0">
-              <Maximize2 size={40} className="text-white" />
-            </div>
-            <div className="text-right">
-              <h3 className="text-2xl font-black text-white mb-1">أبعاد الشاشة (75%)</h3>
-              <p className="text-gray-400 text-sm leading-relaxed font-bold">لضمان رؤية الميدان بالكامل، يرجى ضبط زووم المتصفح على <span className="text-red-500 underline decoration-2">75%</span> من إعدادات المتصفح.</p>
-            </div>
-          </div>
-
-          <div className="bg-white/5 p-6 rounded-3xl border border-white/10 flex items-center gap-6 group hover:border-red-600/40 transition-all">
-            <div className="w-20 h-20 bg-zinc-800 rounded-2xl flex items-center justify-center shadow-lg shrink-0 border border-red-600/20">
-              <MonitorOff size={40} className="text-red-500" />
-            </div>
-            <div className="text-right">
-              <h3 className="text-2xl font-black text-white mb-1">تعطيل مانع الإعلانات</h3>
-              <p className="text-gray-400 text-sm leading-relaxed font-bold">يمنع منعاً باتاً تشغيل AdBlock، الموقع يعتمد كلياً على الصور وبدونها ستواجه <span className="text-red-500">أخطاء برمجية</span> ولن تظهر الصور.</p>
-            </div>
-          </div>
-        </div>
-
-        <button
-          onClick={() => setShowWelcome(false)}
-          className="w-full bg-white text-black font-black py-7 rounded-[2rem] text-3xl hover:scale-[1.03] active:scale-95 transition-all flex items-center justify-center gap-4 shadow-[0_20px_60px_rgba(255,255,255,0.1)] italic border-t-4 border-red-600/10 uppercase"
-        >
-          دخـول الـمـنـصـة <CheckCircle2 size={32} />
-        </button>
-      </div>
-    </div>
-  );
 
   const renderContent = (obsMode: boolean = false) => {
     switch (currentView) {
@@ -758,7 +715,7 @@ const App: React.FC = () => {
       }} />}
 
       {/* Only show content if authorized */}
-      {isAuthorized && showWelcome && userRole === 'admin' && <WelcomeGate />}
+
       {isAuthorized && (
         userRole === 'user' ? (
           <div className="flex-1 w-full max-w-7xl mx-auto flex flex-col p-4 md:p-8 animate-in slide-in-from-bottom-20 duration-1000">
