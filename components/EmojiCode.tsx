@@ -37,7 +37,7 @@ interface PlayerScore {
 
 type GamePhase = 'SETUP' | 'LOBBY' | 'LOADING' | 'QUESTION' | 'ANSWERED' | 'BETWEEN' | 'FINALE';
 
-const GEMINI_API_KEY = "AIzaSyA_8V3V7D-Y9fmVYM3HtK3kIo17XpqQhhM";
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 
 const normalizeArabic = (text: string) => {
     return text

@@ -21,7 +21,7 @@ interface GameConfig { joinKeyword: string; maxPlayers: number; roundDuration: n
 type GamePhase = 'SETUP' | 'LOBBY' | 'OBS_CONNECTION' | 'SELECT_WORD' | 'DRAWING' | 'RESULTS' | 'FINALE';
 interface PlayerScore { user: ChatUser; score: number; wins: number; }
 
-const GEMINI_API_KEY = "AIzaSyA_8V3V7D-Y9fmVYM3HtK3kIo17XpqQhhM";
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 
 const WORDS_TO_DRAW = [
     'سيارة', 'بيت', 'شجرة', 'شمس', 'قمر', 'بحر', 'كتاب', 'قلم', 'تفاحة', 'موزة',

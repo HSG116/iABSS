@@ -6,7 +6,7 @@ import { TYPING_WORDS } from '../constants';
 import { Keyboard as KeyboardIcon, Play, RotateCcw, Trophy, Zap, Timer, LogOut, Home, History, User } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
-const GEMINI_API_KEY = "AIzaSyA_8V3V7D-Y9fmVYM3HtK3kIo17XpqQhhM";
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 
 interface TypingRaceProps {
    channelConnected: boolean;

@@ -272,11 +272,13 @@ const App: React.FC = () => {
         </div>
       )}
 
-      <div className={`relative z - 30 flex - shrink - 0 transition - transform duration - 500 transform group - hover: scale - 115 group - hover: rotate - 6 flex items - center justify - center ${isPrimary ? 'w-12 h-12' : 'w-10 h-10'} ${isComingSoon ? 'opacity-30' : ''} `}>
-        <Icon size={isPrimary ? 40 : 28} color="#FFFFFF" strokeWidth={2.5} className="drop-shadow-[0_0_15px_rgba(255,255,255,0.8)]" />
+      <div className="relative z-30 flex-shrink-0 transition-all duration-500 transform group-hover:scale-110 group-hover:rotate-6 flex items-center justify-center">
+        <div className={`relative ${isPrimary ? 'w-12 h-12' : 'w-10 h-10'} flex items-center justify-center ${isComingSoon ? 'opacity-30' : ''}`}>
+          <Icon size={isPrimary ? 40 : 26} color="#FFFFFF" strokeWidth={2.5} className="drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
+        </div>
       </div>
 
-      <span className={`relative z - 30 drop - shadow - [0_3px_6px_rgba(0, 0, 0, 0.5)] tracking - tighter uppercase leading - tight ${isComingSoon ? 'opacity-30' : ''} `} style={{ color: '#FFFFFF' }}>
+      <span className={`relative z-30 text-white font-black italic tracking-tighter uppercase leading-none bg-transparent ${isComingSoon ? 'opacity-30' : ''}`}>
         {title}
       </span>
 
@@ -562,7 +564,7 @@ const App: React.FC = () => {
               {/* Row 2: Two Columns - More compact */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
                 <PremiumGameButton title="الكراسي الموسيقية" icon={Armchair} isPrimary onClick={() => setCurrentView('MUSICAL_CHAIRS')} />
-                <PremiumGameButton title="حرب المصاقيل" icon={Swords} isPrimary onClick={() => setCurrentView('MASAQIL_WAR')} />
+                <PremiumGameButton title="صائد الكنز" icon={Gem} isPrimary onClick={() => setCurrentView('GRID_HUNT')} />
               </div>
             </div>
 
@@ -580,7 +582,7 @@ const App: React.FC = () => {
                 <PremiumGameButton title="تحدي الأعلام" icon={Flag} onClick={() => setCurrentView('FLAG_QUIZ')} />
                 <PremiumGameButton title="حرب الفرق" icon={Users2} onClick={() => setCurrentView('TEAM_BATTLE')} />
                 <PremiumGameButton title="سباق الكتابة" icon={Keyboard} onClick={() => setCurrentView('TYPING_RACE')} />
-                <PremiumGameButton title="صائد الكنز" icon={Gem} onClick={() => setCurrentView('GRID_HUNT')} />
+                <PremiumGameButton title="حرب المصاقيل" icon={Swords} onClick={() => setCurrentView('MASAQIL_WAR')} />
                 <PremiumGameButton title="تحدي الأكواب" icon={Coffee} onClick={() => setCurrentView('CUP_SHUFFLE')} />
                 <PremiumGameButton title="حرب الألوان" icon={PaintBucket} onClick={() => setCurrentView('TERRITORY_WAR')} />
                 <PremiumGameButton title="صادق أم كذاب" icon={AlertTriangle} isComingSoon={false} onClick={() => setCurrentView('TRUTH_OR_LIE')} hasOBS />

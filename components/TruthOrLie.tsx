@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { pexelsService } from '../services/pexelsService';
 
-const GEMINI_API_KEY = "AIzaSyA_8V3V7D-Y9fmVYM3HtK3kIo17XpqQhhM";
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 
 interface TruthOrLieProps {
     onHome: () => void;
