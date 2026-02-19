@@ -1,11 +1,11 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
-const SUPABASE_KEY = process.env.EXPO_PUBLIC_SUPABASE_KEY || '';
+const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+const SUPABASE_KEY = process.env.EXPO_PUBLIC_SUPABASE_KEY || 'placeholder';
 
-if (!SUPABASE_URL || !SUPABASE_KEY) {
-  console.error('Supabase credentials are missing! Please check your environment variables.');
+if (!process.env.EXPO_PUBLIC_SUPABASE_URL) {
+  console.warn('⚠️ Supabase credentials missing. Please add EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_KEY to your GitHub Repository Secrets.');
 }
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
