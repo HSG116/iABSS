@@ -172,9 +172,15 @@ const App: React.FC = () => {
     setIsSavingGames(true);
     const gamesToSave = games.map(g => ({
       id: g.id,
+      title: g.title,
+      view_id: g.view_id,
+      icon_name: g.icon_name,
       position: g.position,
       is_primary: !!g.is_primary,
-      is_visible: g.is_visible !== false
+      is_visible: g.is_visible !== false,
+      has_obs: !!g.has_obs,
+      is_coming_soon: !!g.is_coming_soon,
+      coming_soon_text: g.coming_soon_text || 'قريباً'
     }));
 
     if (gamesToSave.some(g => !g.id)) {
@@ -756,6 +762,7 @@ const App: React.FC = () => {
                     hasOBS={game.has_obs}
                     index={idx + games.filter(g => g.is_primary).length}
                     total={games.length}
+                    isEditMode={isEditMode}
                     isVisible={game.is_visible !== false}
                     onMoveUp={() => moveGame(games.indexOf(game), 'up')}
                     onMoveDown={() => moveGame(games.indexOf(game), 'down')}
