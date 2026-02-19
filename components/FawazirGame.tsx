@@ -520,71 +520,117 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
         ) : (
           <div className="flex-1 w-full flex flex-col items-center justify-center mb-24 relative">
             {gameState === 'ROUND_WIN' && (
-              <div className="absolute inset-0 z-[100] flex items-center justify-center animate-in fade-in zoom-in duration-700 bg-black/80 backdrop-blur-md">
-                <div className="text-center relative max-w-6xl w-full mx-6 p-12 rounded-[5rem] border border-white/10 bg-zinc-950/90 shadow-[0_0_150px_rgba(0,0,0,1)] overflow-visible">
-                  {/* Decorative Header Bar */}
-                  <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-full max-w-2xl px-12 py-3 bg-green-600 rounded-full flex items-center justify-center shadow-[0_10px_40px_rgba(22,163,74,0.4)] z-[110]">
-                    <span className="text-white font-black text-3xl italic tracking-[0.8em] uppercase">COMPLETED</span>
-                  </div>
+              <div className="absolute inset-0 z-[100] flex items-center justify-center animate-in fade-in zoom-in duration-1000 bg-black/90 backdrop-blur-2xl">
+                {/* Background Light Effects */}
+                <div className="absolute top-0 left-1/4 w-96 h-96 bg-green-500/20 blur-[150px] animate-pulse"></div>
+                <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500/20 blur-[150px] animate-pulse delay-700"></div>
 
-                  {roundWinners.length > 0 ? (
-                    <div className="flex flex-col items-center mt-12">
-                      <div className="mb-12 relative group">
-                        <div className="absolute inset-0 bg-yellow-500/20 blur-[60px] rounded-full animate-pulse group-hover:blur-[80px] transition-all"></div>
-                        <Trophy size={130} className="text-yellow-500 drop-shadow-[0_0_40px_rgba(234,179,8,0.7)] relative z-10" fill="currentColor" />
-                      </div>
+                <div className="text-center relative max-w-7xl w-full mx-6 p-1 bg-gradient-to-b from-white/10 to-transparent rounded-[5rem] shadow-[0_0_100px_rgba(0,0,0,1)] overflow-visible">
+                  <div className="bg-[#050505] rounded-[4.9rem] p-12 relative overflow-hidden">
+                    {/* Animated Decorative Lines */}
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-green-500 to-transparent animate-shimmer"></div>
 
-                      <div className="w-full">
-                        <h3 className="text-green-500 font-black tracking-[0.3em] text-2xl uppercase mb-12 italic text-center">قـائمـة الـفـائزين في الجولة</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-16">
-                          {roundWinners.map((w, idx) => (
-                            <div key={idx} className="bg-white/5 rounded-[3.5rem] p-8 border border-white/5 relative group hover:bg-white/10 transition-all hover:scale-105 shadow-2xl">
-                              <div className="w-24 h-24 rounded-full border-4 border-green-500 mx-auto mb-6 overflow-hidden bg-zinc-900 shadow-[0_0_20px_rgba(34,197,94,0.3)]">
-                                {w.avatar ? (
-                                  <img src={w.avatar} className="w-full h-full object-cover" onError={(e) => {
-                                    (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${w.user}&background=random&color=fff&bold=true`;
-                                  }} />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-white/20 font-black text-4xl">{w.user.charAt(0)}</div>
-                                )}
+                    {/* Header: Dynamic Banner */}
+                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-full max-w-md px-12 py-4 bg-green-600 rounded-full flex items-center justify-center shadow-[0_15px_50px_rgba(22,163,74,0.5)] z-[110] border-t-4 border-white/20 animate-bounce">
+                      <span className="text-white font-black text-4xl italic tracking-[0.2em] uppercase drop-shadow-lg">VICTORY ACHIEVED!</span>
+                    </div>
+
+                    {roundWinners.length > 0 ? (
+                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 mt-12">
+
+                        {/* MVP Section (Fastest Player) */}
+                        <div className="lg:col-span-12 flex flex-col items-center mb-4">
+                          <div className="relative">
+                            <div className="absolute inset-0 bg-yellow-500/30 blur-[100px] rounded-full animate-pulse scale-150"></div>
+                            <div className="relative z-10 flex flex-col items-center">
+                              <Trophy size={140} className="text-yellow-500 mb-6 animate-float drop-shadow-[0_0_60px_rgba(234,179,8,1)]" fill="currentColor" />
+                              <div className="bg-gradient-to-r from-yellow-500 to-amber-700 text-black px-10 py-2 rounded-2xl font-black text-xl italic shadow-2xl skew-x-[-12deg] mb-8">
+                                MVP OF THE ROUND
                               </div>
-                              <div className="text-center">
-                                <h4 className="text-2xl font-black text-white truncate mb-4">{w.user}</h4>
-                                <div className="space-y-2">
-                                  <div className="bg-green-500/10 rounded-2xl px-4 py-2 flex items-center justify-between border border-green-500/20">
-                                    <span className="text-[10px] font-black text-green-400 uppercase tracking-tighter">Velocity</span>
-                                    <span className="text-base font-black text-green-400 font-mono">{w.responseTime.toFixed(3)}s</span>
-                                  </div>
-                                  <div className="bg-blue-500/10 rounded-2xl px-4 py-2 flex items-center justify-between border border-blue-500/20">
-                                    <span className="text-[10px] font-black text-blue-400 uppercase tracking-tighter">Legacy Wins</span>
-                                    <span className="text-base font-black text-blue-400">{w.winCountBefore}</span>
-                                  </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-10 animate-in slide-in-from-bottom-20 duration-1000">
+                            <div className="w-56 h-56 rounded-[4rem] border-8 border-green-500 shadow-[0_0_60px_rgba(34,197,94,0.5)] overflow-hidden bg-zinc-900 group">
+                              {roundWinners[0].avatar ? (
+                                <img src={roundWinners[0].avatar} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-green-500 font-black text-8xl">{roundWinners[0].user.charAt(0)}</div>
+                              )}
+                            </div>
+                            <div className="text-right">
+                              <h2 className="text-8xl font-black text-white italic tracking-tighter green-neon-text mb-4">{roundWinners[0].user}</h2>
+                              <div className="flex gap-4">
+                                <div className="bg-green-500 text-black px-6 py-3 rounded-2xl font-black text-2xl italic flex items-center gap-3">
+                                  <Clock size={24} /> {roundWinners[0].responseTime.toFixed(3)}s
+                                </div>
+                                <div className="bg-white/10 text-white px-6 py-3 rounded-2xl font-black text-2xl italic border border-white/20">
+                                  Total Wins: {roundWinners[0].winCountBefore + 1}
                                 </div>
                               </div>
                             </div>
-                          ))}
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="flex gap-4 w-full justify-center">
-                        <button onClick={nextRound} className="group px-20 bg-green-600 hover:bg-green-500 text-white font-black py-6 rounded-[2.5rem] text-3xl shadow-[0_20px_50px_rgba(34,197,94,0.3)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-4 italic">
-                          الجولة التالية <ArrowRight size={32} className="group-hover:translate-x-2 transition-transform" />
+                        {/* Middle: Standings Leaderboard (Top 3 Overall) */}
+                        <div className="lg:col-span-12 bg-white/5 rounded-[3rem] p-10 border border-white/10 backdrop-blur-3xl">
+                          <h3 className="text-white/40 font-black text-xl uppercase tracking-[0.5em] mb-8 italic flex items-center justify-center gap-4">
+                            <Star size={20} className="text-yellow-500" />
+                            المراكز الثلاثة الأولى حالياً
+                            <Star size={20} className="text-yellow-500" />
+                          </h3>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {[0, 1, 2].map(rank => {
+                              const player = winnersList[rank];
+                              const colors = ['#FFD700', '#C0C0C0', '#CD7F32'];
+                              if (!player) return (
+                                <div key={rank} className="bg-black/40 border border-white/5 rounded-3xl p-6 opacity-30 flex items-center justify-center italic text-white/50">
+                                  {rank + 1} - بانتظار البطل
+                                </div>
+                              );
+                              return (
+                                <div key={rank} className="bg-white/5 border-2 rounded-3xl p-6 flex items-center gap-6 relative overflow-hidden group hover:scale-[1.03] transition-all" style={{ borderColor: `${colors[rank]}30` }}>
+                                  <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-white/5 to-transparent rounded-bl-[2rem]"></div>
+                                  <div className="text-5xl font-black italic opacity-20 absolute left-4" style={{ color: colors[rank] }}>#{rank + 1}</div>
+                                  <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 z-10" style={{ borderColor: colors[rank] }}>
+                                    {player.avatar ? <img src={player.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-white/20">{player.user.charAt(0)}</div>}
+                                  </div>
+                                  <div className="z-10">
+                                    <div className="text-2xl font-black text-white truncate">{player.user}</div>
+                                    <div className="text-sm font-bold opacity-60 flex gap-4 uppercase font-mono">
+                                      <span className="text-kick-green">{player.winCount} Wins</span>
+                                      <span>{player.averageTime.toFixed(2)}s</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Bottom: Action Group */}
+                        <div className="lg:col-span-12 flex justify-center mt-10">
+                          <button onClick={nextRound} className="group relative px-24 py-8 bg-white text-black font-black rounded-[3rem] text-4xl shadow-[0_20px_80px_rgba(255,255,255,0.2)] hover:scale-105 active:scale-95 transition-all flex items-center gap-6 italic overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-black/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                            الجولة التالية <ArrowRight size={40} className="group-hover:translate-x-3 transition-transform" />
+                          </button>
+                        </div>
+
+                      </div>
+                    ) : (
+                      <div className="py-24 flex flex-col items-center">
+                        <div className="w-48 h-48 rounded-full border-8 border-red-600 flex items-center justify-center mb-12 bg-red-600/10 animate-pulse shadow-[0_0_100px_rgba(220,38,38,0.5)]">
+                          <Skull size={100} className="text-red-600" />
+                        </div>
+                        <h2 className="text-8xl font-black text-red-500 italic uppercase tracking-tighter mb-6 red-neon-text">TIME OVER</h2>
+                        <p className="text-white/40 font-black text-2xl uppercase tracking-[1em] mb-16">No Legends Found</p>
+
+                        <button onClick={nextRound} className="group px-16 py-6 bg-white/5 border-2 border-white/10 hover:bg-white/20 text-white font-black rounded-3xl text-3xl transition-all flex items-center gap-6">
+                          المتابعة للجولة القادمة <ArrowRight className="group-hover:translate-x-2 transition-transform" />
                         </button>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="py-20 flex flex-col items-center">
-                      <div className="w-40 h-40 rounded-full border-4 border-red-600 flex items-center justify-center mb-10 bg-red-600/10 animate-pulse shadow-[0_0_50px_rgba(220,38,38,0.4)]">
-                        <Skull size={80} className="text-red-600" />
-                      </div>
-                      <div className="text-7xl font-black text-red-500 italic uppercase tracking-tighter mb-4">انتهى الوقت!</div>
-                      <p className="text-white/40 font-black uppercase tracking-[0.5em] mb-12">No Strategic Winners</p>
-
-                      <button onClick={nextRound} className="px-16 bg-white/10 border-2 border-white/10 hover:bg-white/20 text-white font-black py-5 rounded-[2rem] text-2xl transition-all flex items-center gap-4">
-                        الاستمرار للجولة القادمة <ArrowRight />
-                      </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
             )}
