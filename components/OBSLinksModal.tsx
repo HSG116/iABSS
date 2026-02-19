@@ -28,7 +28,7 @@ const GAMES: GameLink[] = [
     { id: 'FLAG_QUIZ', label: 'تحدي الأعلام', icon: Flag },
     { id: 'TEAM_BATTLE', label: 'حرب الفرق', icon: Users2 },
     { id: 'TYPING_RACE', label: 'سباق الكتابة', icon: Keyboard },
-    { id: 'GRID_HUNT', label: 'صائد الكنز', icon: Gem },
+    { id: 'GRID_HUNT', label: 'صائد الماوس باد', icon: Gem },
     { id: 'CUP_SHUFFLE', label: 'تحدي الأكواب', icon: Coffee },
     { id: 'TERRITORY_WAR', label: 'حرب الألوان', icon: PaintBucket },
     { id: 'TRUTH_OR_LIE', label: 'صادق أم كذاب', icon: AlertTriangle },

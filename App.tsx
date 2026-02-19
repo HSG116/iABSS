@@ -565,7 +565,7 @@ const App: React.FC = () => {
               {/* Row 2: Two Columns - More compact */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
                 <PremiumGameButton title="الكراسي الموسيقية" icon={Armchair} isPrimary onClick={() => setCurrentView('MUSICAL_CHAIRS')} />
-                <PremiumGameButton title="صائد الكنز" icon={TecshIcon} isPrimary onClick={() => setCurrentView('GRID_HUNT')} />
+                <PremiumGameButton title="صائد الماوس باد" icon={TecshIcon} isPrimary onClick={() => setCurrentView('GRID_HUNT')} />
               </div>
             </div>
 

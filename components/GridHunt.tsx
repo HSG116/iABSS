@@ -133,7 +133,7 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome }) 
 
                // Scoring
                if (currentGrid[flatIndex].type === 'TREASURE') {
-                  setLastAction({ text: `${msg.user.username} عثر على كنز! +100`, type: 'good' });
+                  setLastAction({ text: `${msg.user.username} عثر على ماوس باد! +100`, type: 'good' });
                   updateScore(msg.user.username, msg.user.avatar, 100);
                   triggerTreasure(px, py);
                   await leaderboardService.recordWin(msg.user.username, msg.user.avatar || '', 25);
@@ -172,7 +172,7 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome }) 
             <div className="bg-black/40 p-6 rounded-[2.5rem] border border-white/5 space-y-6 animate-in slide-in-from-right duration-500 shadow-2xl backdrop-blur-md">
                <div className="flex items-center justify-between border-b border-white/5 pb-4">
                   <h4 className="text-[12px] font-black text-cyan-400 uppercase tracking-widest flex items-center gap-3">
-                     <Radar size={16} className="animate-spin-slow" /> رادار الكنز
+                     <Radar size={16} className="animate-spin-slow" /> رادار الماوس باد
                   </h4>
                   <button onClick={onHome} className="p-2.5 bg-red-600/10 hover:bg-red-600/20 text-red-500 rounded-xl transition-all border border-red-500/20"><LogOut size={16} /></button>
                </div>
