@@ -81,7 +81,7 @@ export const GlobalPasswordPage: React.FC<GlobalPasswordPageProps> = ({
             }, 3500);
 
             // Use a timeout or immediate fallback for password check
-            const fallback = "123456";
+            const fallback = "116971";
 
             try {
                 // We'll try to fetch the password config but won't let it block the app

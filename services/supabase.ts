@@ -223,9 +223,9 @@ export const leaderboardService = {
     }
   },
   async verifyAdminPassword(inputPassword: string): Promise<boolean> {
-    if (!isConfigured) return inputPassword === '123456';
+    if (!isConfigured) return inputPassword === '116971';
     const { data, error } = await supabase.from('app_config').select('value').eq('key', 'admin_password').single();
-    if (error || !data) return inputPassword === '123456';
+    if (error || !data) return inputPassword === '116971';
     return data.value === inputPassword;
   },
   async resetLeaderboard() {
