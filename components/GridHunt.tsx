@@ -177,11 +177,11 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
             <div className="max-w-md w-full flex flex-col gap-6 animate-in zoom-in duration-700">
                {/* Compact Header */}
                <div className="bg-zinc-900/60 p-8 rounded-[2.5rem] border border-white/5 text-center space-y-3">
-                  <div className="w-16 h-16 bg-iabs-red rounded-2xl flex items-center justify-center shadow-lg rotate-12 mx-auto mb-2">
-                     <Gem size={32} color="white" />
+                  <div className="w-24 h-24 bg-white/5 rounded-2xl flex items-center justify-center shadow-lg mx-auto mb-2 border border-white/10 group overflow-hidden">
+                     <img src="photo/image.png" className="w-20 h-20 object-contain group-hover:scale-110 transition-transform duration-500" alt="TECSH Logo" />
                   </div>
                   <h2 className="text-4xl font-black italic text-white red-neon-text tracking-tighter">صائد الماوس باد</h2>
-                  <p className="text-[10px] text-white/30 font-bold uppercase tracking-[0.2em]">One Winner • One Target</p>
+                  <p className="text-[10px] text-white/30 font-bold uppercase tracking-[0.2em] italic">TECSH • ONE WINNER • ONE TARGET</p>
                </div>
 
                {/* Central Settings Panel */}
@@ -292,7 +292,9 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                   </div>
                   <div className="w-px h-6 bg-white/10"></div>
                   <div className="flex items-center gap-3">
-                     <Gem size={18} className="text-blue-400" />
+                     <div className="w-8 h-5 bg-blue-500/20 border border-blue-400/50 rounded-sm shadow-[0_0_10px_rgba(96,165,250,0.3)] flex items-center justify-center overflow-hidden">
+                        <div className="w-full h-full bg-gradient-to-br from-blue-400/20 to-transparent"></div>
+                     </div>
                      <div className="text-[8px] text-gray-500 font-black uppercase tracking-widest leading-none">الهدف</div>
                      <div className="text-xl font-black text-white italic">{winner ? '0' : '1'}</div>
                   </div>
@@ -334,7 +336,7 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                                     className={`
                           rounded-lg border-[1px] md:border-2 flex items-center justify-center transition-all duration-500 relative overflow-hidden group
                           ${!isRevealed ? 'bg-[#05070a] border-white/5 hover:border-red-500/40 hover:bg-zinc-900 cursor-crosshair' : 'border-transparent'}
-                          ${isRevealed && cell.type === 'TREASURE' ? 'bg-gradient-to-br from-blue-500 to-blue-900 shadow-lg' : ''}
+                          ${isRevealed && cell.type === 'TREASURE' ? 'bg-gradient-to-br from-blue-700/80 to-blue-950 shadow-lg' : ''}
                           ${isRevealed && cell.type === 'BOMB' ? 'bg-gradient-to-br from-red-600 to-red-950 opacity-80' : ''}
                         `}
                                  >
@@ -346,8 +348,13 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                                        )
                                     )}
                                     {isRevealed && (
-                                       <div className="animate-in zoom-in spin-in-180 duration-500 p-1 md:p-2">
-                                          {cell.type === 'TREASURE' && <Gem size={20} className="text-white drop-shadow-md" />}
+                                       <div className="animate-in zoom-in spin-in-180 duration-500 p-1 md:p-2 w-full h-full flex items-center justify-center">
+                                          {cell.type === 'TREASURE' && (
+                                             <div className="w-10/12 h-6/12 bg-white/10 border border-white/20 rounded-sm shadow-inner relative overflow-hidden flex items-center justify-center">
+                                                <div className="absolute inset-0 bg-blue-500/20"></div>
+                                                <img src="photo/image.png" className="w-4 h-4 object-contain opacity-50" />
+                                             </div>
+                                          )}
                                           {cell.type === 'BOMB' && <Skull size={20} className="text-white opacity-50" />}
                                        </div>
                                     )}
@@ -367,7 +374,7 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
 
             {/* Legend */}
             <div className="mt-8 flex gap-6 opacity-30 group hover:opacity-100 transition-opacity">
-               <div className="flex items-center gap-2 text-[9px] font-black text-white italic uppercase tracking-[0.2em]"><div className="w-2.5 h-2.5 rounded-full bg-blue-500" /> الماوس باد</div>
+               <div className="flex items-center gap-2 text-[9px] font-black text-white italic uppercase tracking-[0.2em]"><div className="w-4 h-2.5 rounded-sm bg-blue-500" /> الماوس باد</div>
                <div className="flex items-center gap-2 text-[9px] font-black text-white italic uppercase tracking-[0.2em]"><div className="w-2.5 h-2.5 rounded-full bg-red-600" /> لـغـم</div>
             </div>
 
@@ -376,20 +383,30 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/95 backdrop-blur-3xl animate-in fade-in duration-1000 p-8">
                   <div className="relative mb-6">
                      <div className="absolute -inset-20 bg-blue-600/10 blur-[100px] animate-pulse rounded-full" />
-                     <Trophy size={140} className="text-yellow-500 relative z-10 drop-shadow-2xl" />
+                     <div className="relative z-10 p-6 bg-white/5 rounded-[3rem] border-2 border-white/10 shadow-2xl backdrop-blur-md">
+                        <img src="photo/image.png" className="w-32 h-32 md:w-48 md:h-48 object-contain drop-shadow-[0_0_30px_rgba(255,255,255,0.3)] animate-pulse" alt="TECSH Logo" />
+                     </div>
                   </div>
-                  <h3 className="text-6xl md:text-8xl font-black italic text-white red-neon-text mb-8 uppercase text-center">بـطل اللعبة</h3>
-                  <div className="flex flex-col items-center gap-4 bg-white/5 p-10 rounded-[4rem] border border-white/10 shadow-2xl animate-in slide-in-from-bottom duration-1000">
-                     <div className="w-28 h-28 rounded-[2.5rem] overflow-hidden border-4 border-yellow-500 shadow-2xl">
+
+                  <div className="text-center space-y-4 mb-10">
+                     <h3 className="text-5xl md:text-8xl font-black italic text-white red-neon-text uppercase leading-tight">مبروكككككك</h3>
+                     <p className="text-2xl md:text-4xl font-black italic text-red-500 tracking-tighter animate-bounce">فزت معنا بماوس باد من تيكش</p>
+                  </div>
+
+                  <div className="flex flex-col items-center gap-4 bg-white/5 p-8 px-12 rounded-[4rem] border border-white/10 shadow-2xl animate-in slide-in-from-bottom duration-1000">
+                     <div className="w-24 h-24 rounded-[2.5rem] overflow-hidden border-4 border-red-600 shadow-2xl relative">
                         <img src={winner.avatar} className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 border-2 border-white/20 rounded-[2.5rem]"></div>
                      </div>
                      <div className="text-3xl font-black text-white italic tracking-tighter">{winner.name}</div>
-                     <div className="px-8 py-2 bg-yellow-500 text-black text-xs font-black rounded-full italic shadow-lg">MISSION COMPLETE</div>
+                     <div className="px-8 py-2 bg-red-600 text-white text-xs font-black rounded-full italic shadow-lg uppercase tracking-widest">Authorized Winner</div>
                   </div>
-                  <button onClick={() => setPhase('SETTINGS')} className="mt-12 text-white/20 hover:text-white font-black text-lg italic tracking-[0.4em] transition-all flex items-center gap-4 group"><RotateCcw className="group-hover:rotate-180 transition-transform duration-1000" size={24} /> إعادة التعيين</button>
+
+                  <button onClick={() => setPhase('SETTINGS')} className="mt-12 text-white/20 hover:text-white font-black text-lg italic tracking-[0.4em] transition-all flex items-center gap-4 group hover:scale-110 active:scale-95"><RotateCcw className="group-hover:rotate-180 transition-transform duration-1000" size={24} /> إعادة التعيين</button>
                </div>
             )}
          </div>
+
 
          <style>{`
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
