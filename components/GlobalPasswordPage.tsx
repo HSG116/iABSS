@@ -69,20 +69,34 @@ export const GlobalPasswordPage: React.FC<GlobalPasswordPageProps> = ({
                 }
             } catch (e) { }
 
+            // Fail-safe: Always move to PASSWORD screen after 3.5s if still loading
+            const failSafe = setTimeout(() => {
+                setStep(current => {
+                    if (current === 'LOADING') {
+                        console.warn("Auth init timed out, forcing UI...");
+                        return 'PASSWORD';
+                    }
+                    return current;
+                });
+            }, 3500);
+
             // Use a timeout or immediate fallback for password check
             const fallback = "123456";
 
             try {
                 // We'll try to fetch the password config but won't let it block the app
-                const { data, error } = await Promise.race([
+                const { data } = await Promise.race([
                     supabase.from('app_config').select('value').eq('key', configKey).single(),
-                    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2000))
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2500))
                 ]) as any;
+
+                clearTimeout(failSafe);
 
                 if (data && data.value) {
                     setTargetPin(data.value);
-                    setPin(new Array(data.value.length).fill(''));
-                    inputs.current = inputs.current.slice(0, data.value.length);
+                    const length = data.value.length || 6;
+                    setPin(new Array(length).fill(''));
+                    inputs.current = inputs.current.slice(0, length);
 
                     if (hasStoredSession && storedToken === data.value) {
                         setUserType('RETURNING');
@@ -94,13 +108,18 @@ export const GlobalPasswordPage: React.FC<GlobalPasswordPageProps> = ({
                     }
                 } else {
                     setTargetPin(fallback);
-                    setPin(new Array(fallback.length).fill(''));
+                    const length = fallback.length;
+                    setPin(new Array(length).fill(''));
+                    inputs.current = inputs.current.slice(0, length);
                     setUserType('NEW');
                     setStep('PASSWORD');
                 }
             } catch (e) {
+                clearTimeout(failSafe);
                 setTargetPin(fallback);
-                setPin(new Array(fallback.length).fill(''));
+                const length = fallback.length;
+                setPin(new Array(length).fill(''));
+                inputs.current = inputs.current.slice(0, length);
                 setUserType('NEW');
                 setStep('PASSWORD');
             }
@@ -195,8 +214,6 @@ export const GlobalPasswordPage: React.FC<GlobalPasswordPageProps> = ({
             setError(false);
         }, 600);
     };
-
-
 
     const startScan = () => {
         if (step !== 'FINGERPRINT') return;
