@@ -5,7 +5,7 @@ import { leaderboardService } from '../services/supabase';
 import {
    Grid, RotateCcw, Gem, Skull, Target, LogOut, Radar,
    Settings, Users, Play, Zap, Trophy, Bomb, ChevronLeft,
-   Activity, BarChart3
+   Activity, BarChart3, Eye, EyeOff
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -31,6 +31,7 @@ interface GameSettings {
    maxAttempts: number;
    entryMode: 'WAITING' | 'OPEN';
    requiredPlayers: number;
+   showCellCoordinates: boolean;
 }
 
 const SidebarPortal = ({ children }: { children?: React.ReactNode }) => {
@@ -48,7 +49,8 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
       cols: 10,
       maxAttempts: 2,
       entryMode: 'OPEN',
-      requiredPlayers: 5
+      requiredPlayers: 5,
+      showCellCoordinates: true
    });
 
    const [grid, setGrid] = useState<GridCell[]>([]);
@@ -169,9 +171,6 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
    const COL_LABELS = Array.from({ length: settings.cols }, (_, i) => String.fromCharCode(65 + i));
    const ROW_LABELS = Array.from({ length: settings.rows }, (_, i) => i + 1);
 
-   // RENDERING HELPERS
-   const cellStyle = "w-7 h-7 md:w-10 md:h-10";
-
    if (phase === 'SETTINGS') {
       return (
          <div className="w-full h-full flex items-center justify-center p-6 bg-transparent overflow-y-auto custom-scrollbar">
@@ -196,9 +195,21 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                         </div>
                      </div>
 
-                     <div className="space-y-2">
-                        <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest pl-2 italic">أقصى محاولات</label>
-                        <input type="number" value={settings.maxAttempts} onChange={e => setSettings({ ...settings, maxAttempts: Number(e.target.value) })} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-black text-center text-lg outline-none" />
+                     <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                           <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest pl-2 italic">أقصى محاولات</label>
+                           <input type="number" value={settings.maxAttempts} onChange={e => setSettings({ ...settings, maxAttempts: Number(e.target.value) })} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-black text-center text-lg outline-none focus:border-red-500" />
+                        </div>
+                        <div className="space-y-2">
+                           <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest pl-2 italic">إظهار الإحداثيات</label>
+                           <button
+                              onClick={() => setSettings({ ...settings, showCellCoordinates: !settings.showCellCoordinates })}
+                              className={`w-full py-3 rounded-xl border-2 transition-all font-black text-[10px] flex items-center justify-center gap-2 ${settings.showCellCoordinates ? 'bg-emerald-600/20 border-emerald-500 text-emerald-400' : 'bg-black/40 border-white/5 text-gray-500'}`}
+                           >
+                              {settings.showCellCoordinates ? <Eye size={14} /> : <EyeOff size={14} />}
+                              {settings.showCellCoordinates ? 'مفعل' : 'معطل'}
+                           </button>
+                        </div>
                      </div>
                   </div>
 
@@ -253,7 +264,7 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                   <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1.5">
                      {scoreBoard.sort((a, b) => b.attempts - a.attempts).map((p, i) => (
                         <div key={i} className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/5">
-                           <div className="flex items-center gap-2">
+                           <div className="flex items-center gap-3">
                               <div className="w-6 h-6 rounded-lg overflow-hidden border border-white/10"><img src={p.avatar} className="w-full h-full object-cover" /></div>
                               <span className="text-[9px] font-bold text-gray-400 truncate max-w-[100px]">{p.name}</span>
                            </div>
@@ -287,16 +298,16 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                   </div>
                </div>
 
-               <div className="relative bg-zinc-950/80 p-8 rounded-[3rem] border-4 border-white/5 shadow-[0_40px_100px_rgba(0,0,0,0.8)]">
+               <div className="relative bg-zinc-950/80 p-6 md:p-8 rounded-[3rem] border-4 border-white/5 shadow-[0_40px_100px_rgba(0,0,0,0.8)]">
 
                   {/* Unified Grid with Labels */}
-                  <div className={`grid gap-1.5`} style={{
-                     gridTemplateColumns: `40px repeat(${settings.cols}, ${isOBS ? '30px' : '40px'})`,
-                     gridTemplateRows: `40px repeat(${settings.rows}, ${isOBS ? '30px' : '40px'})`
+                  <div className={`grid gap-1 md:gap-1.5`} style={{
+                     gridTemplateColumns: `30px repeat(${settings.cols}, ${isOBS ? '30px' : '40px'})`,
+                     gridTemplateRows: `30px repeat(${settings.rows}, ${isOBS ? '30px' : '40px'})`
                   }}>
 
                      {/* Corner */}
-                     <div className="flex items-center justify-center opacity-10"><Target size={16} className="text-white" /></div>
+                     <div className="flex items-center justify-center opacity-10"><Target size={14} className="text-white" /></div>
 
                      {/* Column Labels (A-J) */}
                      {COL_LABELS.map(c => (
@@ -310,25 +321,32 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                            <div className="flex items-center justify-center font-black text-sm md:text-xl text-zinc-700 italic">{r}</div>
 
                            {/* Grid Cells for this row */}
-                           {COL_LABELS.map((_, cIdx) => {
+                           {COL_LABELS.map((c, cIdx) => {
                               const idx = rIdx * settings.cols + cIdx;
                               const cell = grid[idx];
                               const isRevealed = cell?.revealed;
+                              const coord = `${c}${r}`;
 
                               return (
                                  <div
                                     id={`cell-${idx}`}
                                     key={idx}
                                     className={`
-                          rounded-lg border-2 flex items-center justify-center transition-all duration-500 relative overflow-hidden group
+                          rounded-lg border-[1px] md:border-2 flex items-center justify-center transition-all duration-500 relative overflow-hidden group
                           ${!isRevealed ? 'bg-[#05070a] border-white/5 hover:border-red-500/40 hover:bg-zinc-900 cursor-crosshair' : 'border-transparent'}
                           ${isRevealed && cell.type === 'TREASURE' ? 'bg-gradient-to-br from-blue-500 to-blue-900 shadow-lg' : ''}
                           ${isRevealed && cell.type === 'BOMB' ? 'bg-gradient-to-br from-red-600 to-red-950 opacity-80' : ''}
                         `}
                                  >
-                                    {!isRevealed && <div className="w-1 h-1 rounded-full bg-white/5 group-hover:bg-red-500/20 transition-all"></div>}
+                                    {!isRevealed && (
+                                       settings.showCellCoordinates ? (
+                                          <span className="text-[8px] md:text-[10px] font-black text-white/10 group-hover:text-red-500/40 transition-colors uppercase italic pointer-events-none">{coord}</span>
+                                       ) : (
+                                          <div className="w-1 h-1 rounded-full bg-white/5 group-hover:bg-red-500/20 transition-all"></div>
+                                       )
+                                    )}
                                     {isRevealed && (
-                                       <div className="animate-in zoom-in spin-in-180 duration-500 p-2">
+                                       <div className="animate-in zoom-in spin-in-180 duration-500 p-1 md:p-2">
                                           {cell.type === 'TREASURE' && <Gem size={20} className="text-white drop-shadow-md" />}
                                           {cell.type === 'BOMB' && <Skull size={20} className="text-white opacity-50" />}
                                        </div>
