@@ -53,19 +53,7 @@ export const GlobalPasswordPage: React.FC<GlobalPasswordPageProps> = ({
 
     useEffect(() => {
         const initAuth = async () => {
-            // Failsafe timeout to prevent black screen if Supabase hangs
-            const timeoutId = setTimeout(() => {
-                if (step === 'LOADING') {
-                    console.warn("Auth initialization timed out, falling back to local...");
-                    const fallback = "123456";
-                    setTargetPin(fallback);
-                    setPin(new Array(fallback.length).fill(''));
-                    setUserType('NEW');
-                    setStep('PASSWORD');
-                }
-            }, 3500);
-
-            // 1. Check LocalStorage for existing access
+            // Check LocalStorage first (Instant)
             const storedSession = localStorage.getItem(storageKey);
             let storedToken: string | null = null;
             let hasStoredSession = false;
@@ -81,15 +69,15 @@ export const GlobalPasswordPage: React.FC<GlobalPasswordPageProps> = ({
                 }
             } catch (e) { }
 
-            // 2. Fetch Password Config (needed for new users OR verification)
-            try {
-                const { data } = await supabase
-                    .from('app_config')
-                    .select('value')
-                    .eq('key', configKey)
-                    .single();
+            // Use a timeout or immediate fallback for password check
+            const fallback = "123456";
 
-                clearTimeout(timeoutId);
+            try {
+                // We'll try to fetch the password config but won't let it block the app
+                const { data, error } = await Promise.race([
+                    supabase.from('app_config').select('value').eq('key', configKey).single(),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2000))
+                ]) as any;
 
                 if (data && data.value) {
                     setTargetPin(data.value);
@@ -105,16 +93,12 @@ export const GlobalPasswordPage: React.FC<GlobalPasswordPageProps> = ({
                         setStep('PASSWORD');
                     }
                 } else {
-                    const fallback = "123456";
                     setTargetPin(fallback);
                     setPin(new Array(fallback.length).fill(''));
                     setUserType('NEW');
                     setStep('PASSWORD');
                 }
             } catch (e) {
-                clearTimeout(timeoutId);
-                console.error("Auth init error:", e);
-                const fallback = "123456";
                 setTargetPin(fallback);
                 setPin(new Array(fallback.length).fill(''));
                 setUserType('NEW');
