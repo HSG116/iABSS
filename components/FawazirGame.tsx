@@ -533,12 +533,12 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
             </div>
           </div>
         ) : (
-          <div className={`flex-1 w-full flex flex-col items-center justify-center mb-24 relative ${gameState === 'ROUND_WIN' ? '' : ''}`}>
+          <div className="flex-1 w-full flex flex-col items-center justify-center relative">
             {gameState === 'ROUND_WIN' && (
               <div className="absolute inset-0 z-[100] flex items-center justify-center animate-in fade-in zoom-in duration-1000">
                 <div className="absolute top-0 left-1/4 w-96 h-96 bg-green-500/20 blur-[150px] animate-pulse"></div>
                 <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500/20 blur-[150px] animate-pulse delay-700"></div>
-                <div className="text-center relative max-w-3xl w-full mx-6 p-1 bg-gradient-to-b from-white/10 to-transparent rounded-[5rem] shadow-[0_50px_100px_rgba(0,0,0,0.8)] overflow-visible">
+                <div className="text-center relative max-w-4xl w-full mx-6 p-1 bg-gradient-to-b from-white/10 to-transparent rounded-[5rem] shadow-[0_50px_100px_rgba(0,0,0,0.8)] overflow-visible">
                   <div className="bg-[#050505] rounded-[4.9rem] p-10 relative overflow-hidden ring-1 ring-white/10">
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent animate-shimmer"></div>
 
@@ -572,14 +572,19 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                         ) : (
                           <div className="w-full flex flex-col items-center mb-12">
                             <h3 className="text-red-500 font-black tracking-[0.5em] text-2xl uppercase mb-10 italic">ROUND WINNERS</h3>
-                            <div className="flex flex-wrap justify-center gap-6 max-h-48 overflow-y-auto custom-scrollbar p-4">
+                            <div className="flex flex-wrap justify-center gap-8 max-h-[400px] overflow-y-auto custom-scrollbar p-6 bg-white/[0.02] rounded-[3rem] border border-white/5 w-full">
                               {roundWinners.map((w, idx) => (
-                                <div key={idx} className="flex flex-col items-center gap-2 group">
-                                  <div className="w-20 h-20 rounded-[1.5rem] border-2 border-red-600 overflow-hidden shadow-xl bg-black relative">
-                                    {w.avatar ? <img src={w.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-white/5 font-black text-2xl">{w.user.charAt(0)}</div>}
-                                    <div className="absolute inset-0 bg-red-600/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                <div key={idx} className="flex flex-col items-center gap-3 group animate-in zoom-in duration-500" style={{ animationDelay: `${idx * 50}ms` }}>
+                                  <div className="relative">
+                                    <div className="w-24 h-24 rounded-[2rem] border-4 border-red-600 overflow-hidden shadow-[0_0_30px_rgba(220,38,38,0.3)] bg-black">
+                                      {w.avatar ? <img src={w.avatar} className="w-full h-full object-cover group-hover:scale-125 transition-transform duration-700" /> : <div className="w-full h-full flex items-center justify-center text-white/5 font-black text-4xl">{w.user.charAt(0)}</div>}
+                                    </div>
+                                    <div className="absolute -bottom-2 -right-2 bg-red-600 text-white w-7 h-7 rounded-lg flex items-center justify-center font-black border-2 border-black text-[10px] shadow-xl">#{idx + 1}</div>
                                   </div>
-                                  <span className="text-white font-black text-xs truncate max-w-[80px]">{w.user}</span>
+                                  <span className="text-white font-black text-sm block truncate max-w-[100px] drop-shadow-md">{w.user}</span>
+                                  <div className="bg-red-600/20 px-2 py-0.5 rounded-lg border border-red-500/20 mt-1">
+                                    <span className="text-red-500 font-black text-[10px] font-mono italic">{w.responseTime.toFixed(3)}s</span>
+                                  </div>
                                 </div>
                               ))}
                             </div>
@@ -591,13 +596,13 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                           <div className="flex flex-col md:flex-row items-center justify-between mb-8 px-4 gap-4">
                             <h4 className="text-white/40 font-black text-sm uppercase tracking-[0.5em] italic">TOP PERFORMANCE RANKING</h4>
                             <div className="flex gap-4">
-                              <div className="bg-red-600/20 px-4 py-2 rounded-xl border border-red-500/30 flex items-center gap-3 shadow-lg">
+                              <div className="bg-red-600/20 px-4 py-2 rounded-xl border border-red-500/30 flex items-center gap-3 shadow-[0_0_20px_rgba(220,38,38,0.2)]">
                                 <span className="text-[10px] text-red-500 font-black uppercase">AVG SPEED:</span>
-                                <span className="text-xl font-black text-white italic">{(roundWinners.reduce((acc, curr) => acc + curr.responseTime, 0) / (roundWinners.length || 1)).toFixed(3)}s</span>
+                                <span className="text-2xl font-black text-white italic font-mono">{(roundWinners.reduce((acc, curr) => acc + curr.responseTime, 0) / (roundWinners.length || 1)).toFixed(3)}s</span>
                               </div>
                               <div className="bg-white/5 px-4 py-2 rounded-xl border border-white/10 flex items-center gap-3 shadow-lg">
                                 <span className="text-[10px] text-white/40 font-black uppercase">PARTICIPANTS:</span>
-                                <span className="text-xl font-black text-white italic">{roundWinners.length}</span>
+                                <span className="text-2xl font-black text-white italic font-mono">{roundWinners.length}</span>
                               </div>
                             </div>
                           </div>
