@@ -305,7 +305,8 @@ const App: React.FC = () => {
         <button
           onClick={isComingSoon ? undefined : onClick}
           disabled={isComingSoon || isEditMode}
-          className={`group relative flex items-center justify-center gap-4 md:gap-6 overflow-hidden border-2 border-white/10 transition-all duration-300 active:scale-95 text-white font-black italic
+          className={`group relative flex items-center justify-center gap-4 md:gap-6 overflow-hidden border-2 transition-all duration-300 active:scale-95 text-white font-black italic
+            ${isEditMode ? "border-white/40 ring-4 ring-white/10 scale-95 opacity-80" : "border-white/10"}
             ${isComingSoon ? "bg-zinc-900 cursor-not-allowed grayscale pointer-events-none" : "bg-iabs-red shadow-[0_15px_40px_rgba(255,0,0,0.3)]"}
             ${isPrimary
               ? "px-10 py-5 text-2xl md:text-3xl rounded-[2.5rem] hover:scale-105 w-full lg:max-w-md shadow-[0_20px_50px_rgba(255,0,0,0.4)]"
@@ -581,57 +582,86 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            <div className="w-full h-20 flex justify-center items-center gap-6 mb-8">
+            <div className="w-full h-20 flex justify-center items-center gap-6 mb-12 z-[100]">
               {userRole === 'admin' && (
                 !isEditMode ? (
                   <button
-                    onClick={() => setIsEditMode(true)}
-                    className="flex items-center gap-3 px-8 py-3 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 text-white font-bold transition-all"
+                    onClick={() => {
+                      setIsEditMode(true);
+                      console.log("Edit Mode Active");
+                    }}
+                    className="flex items-center gap-4 px-10 py-4 bg-white/5 hover:bg-white/10 rounded-3xl border-2 border-white/10 text-white font-black italic tracking-tighter transition-all shadow-2xl hover:scale-105 active:scale-95 group"
                   >
-                    <Edit2 size={20} /> تعديل ترتيب الألعاب
+                    <Edit2 size={24} className="text-red-500 group-hover:rotate-12 transition-transform" />
+                    <span>تعديل ترتيب الألعاب</span>
                   </button>
                 ) : (
                   <button
                     onClick={saveGamesOrder}
                     disabled={isSavingGames}
-                    className="flex items-center gap-3 px-8 py-3 bg-green-600 hover:bg-green-500 rounded-2xl border border-white/10 text-white font-bold transition-all shadow-[0_0_20px_rgba(22,163,74,0.4)]"
+                    className="flex items-center gap-4 px-10 py-4 bg-green-600 hover:bg-green-500 rounded-3xl border-2 border-white/20 text-white font-black italic tracking-tighter transition-all shadow-[0_0_40px_rgba(22,163,74,0.4)] animate-in zoom-in duration-300"
                   >
-                    {isSavingGames ? <Loader2 size={20} className="animate-spin" /> : <Save size={20} />} حفظ الترتيب الجديد
+                    {isSavingGames ? <Loader2 size={24} className="animate-spin" /> : <Save size={24} />}
+                    <span>حفظ الترتيب الجديد</span>
                   </button>
                 )
               )}
             </div>
 
-            <div className="w-full flex flex-col items-center mb-24 space-y-6 px-6">
-              {/* Row 1 & 2: Primary Games */}
-              <div className="w-full flex flex-col items-center gap-6 max-w-4xl">
-                {games.filter(g => g.is_primary).map((game, idx) => (
-                  <div key={game.id} className={`${idx === 0 ? 'w-full flex justify-center' : 'grid grid-cols-1 md:grid-cols-2 gap-6 w-full'}`}>
-                    {idx === 0 ? (
-                      <PremiumGameButton
-                        title={game.title}
-                        icon={ICON_MAP[game.icon_name] || Sparkles}
-                        isPrimary
-                        onClick={() => setCurrentView(game.view_id)}
-                        index={idx}
-                        total={games.length}
-                        isEditMode={isEditMode}
-                        onMoveUp={() => moveGame(games.indexOf(game), 'up')}
-                        onMoveDown={() => moveGame(games.indexOf(game), 'down')}
-                      />
-                    ) : (
-                      <PremiumGameButton
-                        title={game.title}
-                        icon={ICON_MAP[game.icon_name] || Sparkles}
-                        isPrimary
-                        onClick={() => setCurrentView(game.view_id)}
-                        index={idx}
-                        total={games.length}
-                        isEditMode={isEditMode}
-                        onMoveUp={() => moveGame(games.indexOf(game), 'up')}
-                        onMoveDown={() => moveGame(games.indexOf(game), 'down')}
-                      />
-                    )}
+            <div className="w-full flex flex-col items-center mb-24 space-y-12 px-6">
+              {/* Row 1: First Primary Game - Centered */}
+              <div className="w-full flex justify-center max-w-4xl">
+                {games.filter(g => g.is_primary).slice(0, 1).map((game) => (
+                  <div key={game.id} className="w-full flex justify-center">
+                    <PremiumGameButton
+                      title={game.title}
+                      icon={ICON_MAP[game.icon_name] || Sparkles}
+                      isPrimary
+                      onClick={() => setCurrentView(game.view_id)}
+                      index={0}
+                      total={games.length}
+                      isEditMode={isEditMode}
+                      onMoveUp={() => moveGame(games.indexOf(game), 'up')}
+                      onMoveDown={() => moveGame(games.indexOf(game), 'down')}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {/* Row 2: Next Primary Games - Side by Side (Fixed Layout) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10 w-full max-w-5xl">
+                {games.filter(g => g.is_primary).slice(1, 3).map((game, idx) => (
+                  <div key={game.id} className="w-full">
+                    <PremiumGameButton
+                      title={game.title}
+                      icon={ICON_MAP[game.icon_name] || Sparkles}
+                      isPrimary
+                      onClick={() => setCurrentView(game.view_id)}
+                      index={idx + 1}
+                      total={games.length}
+                      isEditMode={isEditMode}
+                      onMoveUp={() => moveGame(games.indexOf(game), 'up')}
+                      onMoveDown={() => moveGame(games.indexOf(game), 'down')}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {/* Row 3+: Any Other Primary Games */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10 w-full max-w-5xl">
+                {games.filter(g => g.is_primary).slice(3).map((game, idx) => (
+                  <div key={game.id} className="w-full">
+                    <PremiumGameButton
+                      title={game.title}
+                      icon={ICON_MAP[game.icon_name] || Sparkles}
+                      isPrimary
+                      onClick={() => setCurrentView(game.view_id)}
+                      index={idx + 3}
+                      total={games.length}
+                      isEditMode={isEditMode}
+                      onMoveUp={() => moveGame(games.indexOf(game), 'up')}
+                      onMoveDown={() => moveGame(games.indexOf(game), 'down')}
+                    />
                   </div>
                 ))}
               </div>
