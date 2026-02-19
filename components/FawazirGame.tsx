@@ -693,26 +693,48 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                   </h2>
                 </div>
 
-                {gameState === 'ROUND_WIN' ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full relative z-10 animate-in slide-in-from-bottom-10 duration-700">
-                    {questions[currentIndex]?.options.map((opt, idx) => {
-                      const isCorrect = idx === questions[currentIndex]?.correctIndex;
-                      return (
-                        <div key={idx} className={`group relative p-8 rounded-[3rem] border-2 flex items-center justify-center transition-all shadow-xl overflow-hidden ${isCorrect ? 'border-green-500 bg-green-500/20 scale-105 shadow-[0_0_30px_rgba(34,197,94,0.3)]' : 'border-white/5 bg-black/40 opacity-50 grayscale'}`}>
-                          <span className={`text-2xl md:text-4xl font-black italic text-center relative z-10 px-8 transition-colors ${isCorrect ? 'text-green-500' : 'text-white'}`}>{opt}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-20 animate-pulse">
-                    <div className="bg-red-600/10 border-2 border-dashed border-red-600/30 rounded-[3rem] px-20 py-12 backdrop-blur-md">
-                      <p className="text-4xl md:text-5xl font-black text-white italic text-center drop-shadow-lg">
-                        اكتب الإجابة في الشات للفوز! ⌨️
-                      </p>
-                    </div>
+                {gameState === 'PLAYING' && (
+                  <div className="mb-8 animate-pulse text-center">
+                    <p className="text-red-500 font-black text-xl italic tracking-[0.2em] uppercase">
+                      اكتب الإجابة في الشات للفوز! ⌨️
+                    </p>
                   </div>
                 )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full relative z-10 animate-in slide-in-from-bottom-10 duration-700">
+                  {questions[currentIndex]?.options.map((opt, idx) => {
+                    const isCorrect = idx === questions[currentIndex]?.correctIndex;
+                    const isRoundWin = gameState === 'ROUND_WIN';
+
+                    let cardStyles = "border-white/10 bg-black/60 hover:border-red-600/50 hover:bg-red-600/[0.02]";
+                    let textStyles = "text-white";
+
+                    if (isRoundWin) {
+                      if (isCorrect) {
+                        cardStyles = "border-green-500 bg-green-500/20 scale-105 shadow-[0_0_50px_rgba(34,197,94,0.4)]";
+                        textStyles = "text-green-500";
+                      } else {
+                        cardStyles = "border-white/5 bg-black/40 opacity-30 grayscale";
+                        textStyles = "text-white/20";
+                      }
+                    }
+
+                    return (
+                      <div key={idx} className={`group relative p-8 md:p-12 rounded-[3.5rem] border-4 flex items-center justify-center transition-all shadow-2xl overflow-hidden ${cardStyles}`}>
+                        <div className="absolute top-0 left-0 w-2 h-full bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <span className={`text-3xl md:text-5xl font-black italic text-center relative z-10 px-8 transition-all ${textStyles} drop-shadow-md`}>{opt}</span>
+                        {!isRoundWin && (
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-600/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                        )}
+                        {isRoundWin && isCorrect && (
+                          <div className="absolute top-4 right-8 text-green-500 animate-bounce">
+                            <CheckCircle2 size={32} />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
 
                 {!isOBS && (
                   <div className="mt-12 flex flex-col items-center gap-6 relative z-50">
