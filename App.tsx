@@ -676,71 +676,104 @@ const App: React.FC = () => {
             </div>
 
             <div className="w-full flex flex-col items-center mb-16 space-y-8 px-4">
-              {/* Row 1: First Primary Game - Centered */}
-              <div className="w-full flex justify-center max-w-2xl">
-                {games.filter(g => g.is_primary).slice(0, 1).map((game) => (
-                  <div key={game.id} className="w-full flex justify-center">
-                    <PremiumGameButton
-                      title={game.title}
-                      icon={ICON_MAP[game.icon_name] || Sparkles}
-                      isPrimary
-                      onClick={() => setCurrentView(game.view_id)}
-                      index={0}
-                      total={games.length}
-                      isEditMode={isEditMode}
-                      isVisible={game.is_visible !== false}
-                      onMoveUp={() => moveGame(games.indexOf(game), 'up')}
-                      onMoveDown={() => moveGame(games.indexOf(game), 'down')}
-                      onToggleVisibility={() => toggleGameVisibility(game.id)}
-                      onToggleSize={() => toggleGameSize(game.id)}
-                    />
-                  </div>
-                ))}
-              </div>
+              {/* Dynamic Primary Games Layout */}
+              {(() => {
+                const primaryVisible = games.filter(g => g.is_primary && (g.is_visible !== false || isEditMode));
 
-              {/* Row 2: Next Primary Games - Side by Side (Fixed Layout) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-3xl">
-                {games.filter(g => g.is_primary).slice(1, 3).map((game, idx) => (
-                  <div key={game.id} className="w-full">
-                    <PremiumGameButton
-                      title={game.title}
-                      icon={ICON_MAP[game.icon_name] || Sparkles}
-                      isPrimary
-                      onClick={() => setCurrentView(game.view_id)}
-                      index={idx + 1}
-                      total={games.length}
-                      isEditMode={isEditMode}
-                      isVisible={game.is_visible !== false}
-                      onMoveUp={() => moveGame(games.indexOf(game), 'up')}
-                      onMoveDown={() => moveGame(games.indexOf(game), 'down')}
-                      onToggleVisibility={() => toggleGameVisibility(game.id)}
-                      onToggleSize={() => toggleGameSize(game.id)}
-                    />
-                  </div>
-                ))}
-              </div>
+                if (primaryVisible.length === 2) {
+                  return (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-3xl">
+                      {primaryVisible.map((game, idx) => (
+                        <PremiumGameButton
+                          key={game.id}
+                          title={game.title}
+                          icon={ICON_MAP[game.icon_name] || Sparkles}
+                          isPrimary
+                          onClick={() => setCurrentView(game.view_id)}
+                          index={idx}
+                          total={games.length}
+                          isEditMode={isEditMode}
+                          isVisible={game.is_visible !== false}
+                          onMoveUp={() => moveGame(games.indexOf(game), 'up')}
+                          onMoveDown={() => moveGame(games.indexOf(game), 'down')}
+                          onToggleVisibility={() => toggleGameVisibility(game.id)}
+                          onToggleSize={() => toggleGameSize(game.id)}
+                        />
+                      ))}
+                    </div>
+                  );
+                }
 
-              {/* Row 3+: Any Other Primary Games */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-3xl">
-                {games.filter(g => g.is_primary).slice(3).map((game, idx) => (
-                  <div key={game.id} className="w-full">
-                    <PremiumGameButton
-                      title={game.title}
-                      icon={ICON_MAP[game.icon_name] || Sparkles}
-                      isPrimary
-                      onClick={() => setCurrentView(game.view_id)}
-                      index={idx + 3}
-                      total={games.length}
-                      isEditMode={isEditMode}
-                      isVisible={game.is_visible !== false}
-                      onMoveUp={() => moveGame(games.indexOf(game), 'up')}
-                      onMoveDown={() => moveGame(games.indexOf(game), 'down')}
-                      onToggleVisibility={() => toggleGameVisibility(game.id)}
-                      onToggleSize={() => toggleGameSize(game.id)}
-                    />
-                  </div>
-                ))}
-              </div>
+                return (
+                  <>
+                    {/* Row 1: First Primary Game - Centered */}
+                    <div className="w-full flex justify-center max-w-2xl">
+                      {primaryVisible.slice(0, 1).map((game) => (
+                        <div key={game.id} className="w-full flex justify-center">
+                          <PremiumGameButton
+                            title={game.title}
+                            icon={ICON_MAP[game.icon_name] || Sparkles}
+                            isPrimary
+                            onClick={() => setCurrentView(game.view_id)}
+                            index={0}
+                            total={games.length}
+                            isEditMode={isEditMode}
+                            isVisible={game.is_visible !== false}
+                            onMoveUp={() => moveGame(games.indexOf(game), 'up')}
+                            onMoveDown={() => moveGame(games.indexOf(game), 'down')}
+                            onToggleVisibility={() => toggleGameVisibility(game.id)}
+                            onToggleSize={() => toggleGameSize(game.id)}
+                          />
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Row 2: Next Primary Games - Side by Side */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-3xl">
+                      {primaryVisible.slice(1, 3).map((game, idx) => (
+                        <div key={game.id} className="w-full">
+                          <PremiumGameButton
+                            title={game.title}
+                            icon={ICON_MAP[game.icon_name] || Sparkles}
+                            isPrimary
+                            onClick={() => setCurrentView(game.view_id)}
+                            index={idx + 1}
+                            total={games.length}
+                            isEditMode={isEditMode}
+                            isVisible={game.is_visible !== false}
+                            onMoveUp={() => moveGame(games.indexOf(game), 'up')}
+                            onMoveDown={() => moveGame(games.indexOf(game), 'down')}
+                            onToggleVisibility={() => toggleGameVisibility(game.id)}
+                            onToggleSize={() => toggleGameSize(game.id)}
+                          />
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Row 3+: Any Other Primary Games */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-3xl">
+                      {primaryVisible.slice(3).map((game, idx) => (
+                        <div key={game.id} className="w-full">
+                          <PremiumGameButton
+                            title={game.title}
+                            icon={ICON_MAP[game.icon_name] || Sparkles}
+                            isPrimary
+                            onClick={() => setCurrentView(game.view_id)}
+                            index={idx + 3}
+                            total={games.length}
+                            isEditMode={isEditMode}
+                            isVisible={game.is_visible !== false}
+                            onMoveUp={() => moveGame(games.indexOf(game), 'up')}
+                            onMoveDown={() => moveGame(games.indexOf(game), 'down')}
+                            onToggleVisibility={() => toggleGameVisibility(game.id)}
+                            onToggleSize={() => toggleGameSize(game.id)}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                );
+              })()}
             </div>
 
             <div className="w-full max-w-5xl space-y-8 mb-20">
