@@ -73,26 +73,27 @@ export const GlobalPasswordPage: React.FC<GlobalPasswordPageProps> = ({
             const failSafe = setTimeout(() => {
                 setStep(current => {
                     if (current === 'LOADING') {
-                        console.warn("Auth init timed out, forcing UI...");
+                        console.warn("[iABS] Auth init timed out, forcing UI...");
                         return 'PASSWORD';
                     }
                     return current;
                 });
             }, 3500);
 
-            // Use a timeout or immediate fallback for password check
+            // Use a fallback if DB is unreachable
             const fallback = "116971";
 
             try {
-                // We'll try to fetch the password config but won't let it block the app
-                const { data } = await Promise.race([
-                    supabase.from('app_config').select('value').eq('key', configKey).single(),
+                // Primary: Fetch Security Protocol from Cloud (Supabase)
+                const { data, error } = await Promise.race([
+                    supabase.from('app_config').select('value').eq('key', configKey).maybeSingle(),
                     new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2500))
                 ]) as any;
 
                 clearTimeout(failSafe);
 
                 if (data && data.value) {
+                    console.log("[iABS] 🟢 Cloud Security Protocol Loaded");
                     setTargetPin(data.value);
                     const length = data.value.length || 6;
                     setPin(new Array(length).fill(''));
@@ -107,6 +108,8 @@ export const GlobalPasswordPage: React.FC<GlobalPasswordPageProps> = ({
                         setStep('PASSWORD');
                     }
                 } else {
+                    // DB is connected but key not found or error occurred
+                    console.warn("[iABS] 🟡 Using Local Security Protocol (Key Not Found)");
                     setTargetPin(fallback);
                     const length = fallback.length;
                     setPin(new Array(length).fill(''));
@@ -115,7 +118,9 @@ export const GlobalPasswordPage: React.FC<GlobalPasswordPageProps> = ({
                     setStep('PASSWORD');
                 }
             } catch (e) {
+                // Totally offline or timeout
                 clearTimeout(failSafe);
+                console.warn("[iABS] 🔴 Cloud Connection Failed. Using Emergency Protocol.");
                 setTargetPin(fallback);
                 const length = fallback.length;
                 setPin(new Array(length).fill(''));
@@ -492,7 +497,7 @@ export const GlobalPasswordPage: React.FC<GlobalPasswordPageProps> = ({
 
             <div className="absolute bottom-10 opacity-30 flex items-center gap-3 animate-pulse pointer-events-none">
                 <Sparkles size={20} className="text-white" />
-                <span className="text-sm text-white uppercase tracking-[0.6em] font-bold">SECURED BY iABS SYSTEM</span>
+                <span className="text-sm text-white uppercase tracking-[0.6em] font-bold">SECURED BY iABS CLOUD SYSTEM</span>
             </div>
 
             <style>{`

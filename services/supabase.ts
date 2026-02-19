@@ -1,10 +1,24 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-const isConfigured = !!(process.env.EXPO_PUBLIC_SUPABASE_URL && process.env.EXPO_PUBLIC_SUPABASE_KEY && process.env.EXPO_PUBLIC_SUPABASE_URL !== 'https://placeholder.supabase.co');
+// Layered approach for environment variables (Vite + Process support)
+const getEnv = (key: string) => {
+  return (import.meta.env && import.meta.env[key]) || (process.env && process.env[key]) || '';
+};
 
-const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
-const SUPABASE_KEY = process.env.EXPO_PUBLIC_SUPABASE_KEY || 'placeholder';
+const URL_VAL = getEnv('EXPO_PUBLIC_SUPABASE_URL');
+const KEY_VAL = getEnv('EXPO_PUBLIC_SUPABASE_KEY');
+
+const isConfigured = !!(URL_VAL && KEY_VAL && URL_VAL !== 'https://placeholder.supabase.co' && !KEY_VAL.includes('placeholder'));
+
+if (isConfigured) {
+  console.log("%c[iABS] 🟢 System Online: Connected to Supabase", "color: #53fc18; font-weight: bold;");
+} else {
+  console.warn("%c[iABS] 🟡 System Offline: Using Fallback Mode", "color: #fbbf24; font-weight: bold;");
+}
+
+const SUPABASE_URL = URL_VAL || 'https://placeholder.supabase.co';
+const SUPABASE_KEY = KEY_VAL || 'placeholder';
 
 // Create a safe client even if data is missing
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
