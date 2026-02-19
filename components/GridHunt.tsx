@@ -296,8 +296,8 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                   <div className="flex items-center gap-3">
                      <div className="w-10 h-6 bg-zinc-900 border border-white/20 rounded-sm shadow-[0_4px_10px_rgba(0,0,0,0.5)] relative overflow-hidden flex items-center justify-center">
                         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/30 to-blue-900/40"></div>
-                        <div className="absolute bottom-0.5 right-0.5 w-2 h-2">
-                           <img src={tecshLogo} className="w-full h-full object-contain opacity-80" alt="logo" />
+                        <div className="absolute bottom-0 right-0 w-4 h-4">
+                           <img src={tecshLogo} className="w-full h-full object-contain opacity-100" alt="logo" />
                         </div>
                      </div>
                      <div className="text-[8px] text-gray-500 font-black uppercase tracking-widest leading-none">الهدف</div>
@@ -357,8 +357,8 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                                           {cell.type === 'TREASURE' && (
                                              <div className="w-10/12 h-6/12 bg-zinc-900 border border-white/20 rounded-sm shadow-inner relative overflow-hidden group/m">
                                                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-blue-900/40"></div>
-                                                <div className="absolute bottom-0.5 right-0.5 w-3 h-3 md:w-4 md:h-4 group-hover/m:scale-110 transition-transform">
-                                                   <img src={tecshLogo} className="w-full h-full object-contain opacity-70" alt="logo" />
+                                                <div className="absolute bottom-0.5 right-0.5 w-6 h-6 md:w-8 md:h-8 group-hover/m:scale-110 transition-transform">
+                                                   <img src={tecshLogo} className="w-full h-full object-contain opacity-100" alt="logo" />
                                                 </div>
                                              </div>
                                           )}
@@ -384,8 +384,8 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                <div className="flex items-center gap-2 text-[9px] font-black text-white italic uppercase tracking-[0.2em]">
                   <div className="w-5 h-3 bg-zinc-900 border border-white/20 rounded-sm relative overflow-hidden">
                      <div className="absolute inset-0 bg-blue-500/40"></div>
-                     <div className="absolute bottom-[1px] right-[1px] w-1.5 h-1.5">
-                        <img src={tecshLogo} className="w-full h-full object-contain" alt="logo" />
+                     <div className="absolute bottom-0 right-0 w-3 h-3">
+                        <img src={tecshLogo} className="w-full h-full object-contain opacity-100" alt="logo" />
                      </div>
                   </div>
                   الماوس باد
