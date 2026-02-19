@@ -588,17 +588,50 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
 
                         <div className="w-full bg-white/[0.03] rounded-[3rem] p-8 border border-white/10 backdrop-blur-xl relative overflow-hidden mb-10">
                           <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/5 blur-3xl rounded-full"></div>
-                          <h4 className="text-white/40 font-black text-sm uppercase tracking-[0.5em] mb-6 italic text-center">TOP PERFORMANCE RANKING</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {winnersList.slice(0, 9).map((player, idx) => (
-                              <div key={idx} className={`p-4 rounded-2xl flex items-center gap-4 border transition-all ${idx === 0 ? 'bg-yellow-500/10 border-yellow-500/30' : 'bg-black/40 border-white/5'}`}>
-                                <span className={`text-xl font-black italic ${idx === 0 ? 'text-yellow-500' : 'text-white/20'}`}>#{idx + 1}</span>
-                                <div className="w-10 h-10 rounded-xl overflow-hidden border border-white/10 flex-shrink-0">
+                          <div className="flex flex-col md:flex-row items-center justify-between mb-8 px-4 gap-4">
+                            <h4 className="text-white/40 font-black text-sm uppercase tracking-[0.5em] italic">TOP PERFORMANCE RANKING</h4>
+                            <div className="flex gap-4">
+                              <div className="bg-red-600/20 px-4 py-2 rounded-xl border border-red-500/30 flex items-center gap-3 shadow-lg">
+                                <span className="text-[10px] text-red-500 font-black uppercase">AVG SPEED:</span>
+                                <span className="text-xl font-black text-white italic">{(roundWinners.reduce((acc, curr) => acc + curr.responseTime, 0) / (roundWinners.length || 1)).toFixed(3)}s</span>
+                              </div>
+                              <div className="bg-white/5 px-4 py-2 rounded-xl border border-white/10 flex items-center gap-3 shadow-lg">
+                                <span className="text-[10px] text-white/40 font-black uppercase">PARTICIPANTS:</span>
+                                <span className="text-xl font-black text-white italic">{roundWinners.length}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                            {winnersList.slice(0, 3).map((player, idx) => (
+                              <div key={idx} className={`p-4 rounded-3xl flex items-center gap-4 border transition-all bg-black/40 relative overflow-hidden group hover:scale-[1.02] shadow-2xl ${idx === 0 ? 'border-yellow-500/50 shadow-yellow-500/10' : 'border-white/5'}`}>
+                                <div className="absolute top-0 right-0 w-12 h-12 bg-gradient-to-bl from-white/10 to-transparent rounded-bl-2xl opacity-10"></div>
+                                <span className={`text-3xl font-black italic ${idx === 0 ? 'text-yellow-500' : 'text-white/20'}`}>#{idx + 1}</span>
+                                <div className={`w-14 h-14 rounded-2xl overflow-hidden border-2 flex-shrink-0 shadow-xl ${idx === 0 ? 'border-yellow-500 animate-pulse' : 'border-white/10'}`}>
                                   {player.avatar ? <img src={player.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-[10px]">{player.user.charAt(0)}</div>}
                                 </div>
                                 <div className="min-w-0">
-                                  <div className="text-sm font-black text-white truncate">{player.user}</div>
-                                  <div className="text-[10px] font-bold text-red-500">{player.winCount} WINS</div>
+                                  <div className="text-lg font-black text-white truncate">{player.user}</div>
+                                  <div className="flex gap-2">
+                                    <div className="text-[10px] font-bold text-red-500">{player.winCount} WINS</div>
+                                    <div className="text-white/20 text-[10px]">|</div>
+                                    <div className="text-[10px] font-bold text-blue-400">{player.averageTime.toFixed(3)}s</div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="max-h-64 overflow-y-auto custom-scrollbar pr-4 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                            {winnersList.slice(3, 33).map((player, i) => (
+                              <div key={i} className="bg-black/40 rounded-2xl p-3 flex items-center gap-3 border border-white/5 hover:bg-white/10 transition-all group relative overflow-hidden">
+                                <span className="text-white/10 font-black text-[10px] italic">#{i + 4}</span>
+                                <div className="w-10 h-10 rounded-xl overflow-hidden border border-white/10 flex-shrink-0">
+                                  {player.avatar ? <img src={player.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-[8px]">{player.user.charAt(0)}</div>}
+                                </div>
+                                <div className="min-w-0">
+                                  <div className="text-xs font-black text-white truncate">{player.user}</div>
+                                  <div className="text-[8px] font-bold text-red-500">{player.winCount} WINS</div>
                                 </div>
                               </div>
                             ))}
