@@ -6,7 +6,7 @@ import {
    Grid, RotateCcw, Gem, Skull, Target, LogOut, Radar,
    Map as MapIcon, Crosshair, Settings, Users, Play,
    Shield, Zap, Radio, Timer, Trophy, Star, ChevronLeft,
-   Search, ShieldCheck, Activity
+   Search, ShieldCheck, Activity, BarChart3
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -244,79 +244,77 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
 
    if (phase === 'SETTINGS') {
       return (
-         <div className="w-full h-full flex items-center justify-center p-6 bg-transparent">
-            <div className="max-w-4xl w-full grid grid-cols-1 md:grid-cols-2 gap-12 items-center animate-in zoom-in duration-700">
-               <div className="space-y-8 text-right md:text-left">
-                  <div className="w-24 h-24 bg-iabs-red rounded-[2rem] flex items-center justify-center shadow-[0_20px_50px_rgba(239,68,68,0.4)] rotate-12 mb-6">
-                     <Gem size={48} color="white" />
+         <div className="w-full h-full flex items-center justify-center p-4 bg-transparent overflow-y-auto">
+            <div className="max-w-4xl w-full flex flex-col md:flex-row gap-8 items-stretch animate-in zoom-in duration-700">
+               {/* Info Section */}
+               <div className="flex-1 space-y-6 text-right md:text-left flex flex-col justify-center bg-zinc-900/40 p-10 rounded-[3rem] border border-white/5">
+                  <div className="w-20 h-20 bg-iabs-red rounded-[1.8rem] flex items-center justify-center shadow-[0_15px_40px_rgba(239,68,68,0.3)] rotate-12 mb-2">
+                     <Gem size={40} color="white" />
                   </div>
-                  <h2 className="text-6xl md:text-7xl font-black italic text-white red-neon-text tracking-tighter leading-tight">صائد<br />الماوس باد</h2>
-                  <p className="text-white/40 font-bold uppercase tracking-[0.4em] text-xs">Tactical Intelligence Hub • V2.0</p>
+                  <h2 className="text-5xl md:text-6xl font-black italic text-white red-neon-text tracking-tighter leading-tight">صائد<br />الماوس باد</h2>
+                  <p className="text-white/30 font-bold uppercase tracking-[0.3em] text-[10px]">Tactical Intelligence • Ver 2.0</p>
 
-                  <div className="flex flex-wrap gap-4 mt-8">
-                     <div className="bg-white/5 border border-white/10 px-6 py-3 rounded-2xl flex items-center gap-3">
-                        <Users className="text-blue-500" size={20} />
-                        <span className="text-white font-bold text-sm">متعدد اللاعبين</span>
+                  <div className="space-y-3 pt-6 border-t border-white/5">
+                     <div className="flex items-center gap-3 text-white/60">
+                        <ShieldCheck className="text-emerald-500" size={18} />
+                        <span className="font-bold text-xs italic uppercase">نظام الدروع والوقاية</span>
                      </div>
-                     <div className="bg-white/5 border border-white/10 px-6 py-3 rounded-2xl flex items-center gap-3">
-                        <ShieldCheck className="text-emerald-500" size={20} />
-                        <span className="text-white font-bold text-sm">نظام الأمان</span>
-                     </div>
-                     <div className="bg-white/5 border border-white/10 px-6 py-3 rounded-2xl flex items-center gap-3">
-                        <Activity className="text-red-500" size={20} />
-                        <span className="text-white font-bold text-sm">تتبع اللحظي</span>
+                     <div className="flex items-center gap-3 text-white/60">
+                        <Target className="text-blue-500" size={18} />
+                        <span className="font-bold text-xs italic uppercase">رادار المسح التكتيكي</span>
                      </div>
                   </div>
                </div>
 
-               <div className="bg-zinc-900/60 backdrop-blur-3xl p-8 rounded-[3rem] border-2 border-white/10 shadow-2xl space-y-6">
-                  <div className="flex items-center gap-3 border-b border-white/10 pb-4 mb-2">
-                     <Settings className="text-red-500" />
-                     <h3 className="text-white font-black italic text-xl">تجهيز الميدان</h3>
+               {/* Settings Card */}
+               <div className="flex-1 bg-zinc-900/80 backdrop-blur-3xl p-8 rounded-[3rem] border-2 border-white/10 shadow-2xl flex flex-col">
+                  <div className="flex items-center gap-3 border-b border-white/10 pb-4 mb-6">
+                     <Settings className="text-red-500" size={24} />
+                     <h3 className="text-white font-black italic text-xl uppercase tracking-tighter">إعدادات الميدان</h3>
                   </div>
 
-                  <div className="space-y-5">
+                  <div className="space-y-6 flex-1">
                      <div className="space-y-2">
-                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-2">مود دخول اللاعبين</label>
+                        <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest pl-2 italic">مود دخول اللاعبين</label>
                         <div className="grid grid-cols-2 gap-3">
                            <button
                               onClick={() => setSettings({ ...settings, entryMode: 'OPEN' })}
-                              className={`p-4 rounded-2xl border-2 transition-all font-black text-xs italic ${settings.entryMode === 'OPEN' ? 'bg-red-600 border-red-400 text-white' : 'bg-black/40 border-white/5 text-gray-500'}`}
+                              className={`py-3 rounded-2xl border-2 transition-all font-black text-xs italic ${settings.entryMode === 'OPEN' ? 'bg-red-600 border-red-400 text-white' : 'bg-black/40 border-white/5 text-gray-500 hover:text-gray-300'}`}
                            >دخول مفتوح</button>
                            <button
                               onClick={() => setSettings({ ...settings, entryMode: 'WAITING' })}
-                              className={`p-4 rounded-2xl border-2 transition-all font-black text-xs italic ${settings.entryMode === 'WAITING' ? 'bg-red-600 border-red-400 text-white' : 'bg-black/40 border-white/5 text-gray-500'}`}
+                              className={`py-3 rounded-2xl border-2 transition-all font-black text-xs italic ${settings.entryMode === 'WAITING' ? 'bg-red-600 border-red-400 text-white' : 'bg-black/40 border-white/5 text-gray-500 hover:text-gray-300'}`}
                            >شاشة انتظار</button>
                         </div>
                      </div>
 
                      <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                           <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-2">عدد الفائزين</label>
-                           <input type="number" value={settings.winnersNeeded} onChange={e => setSettings({ ...settings, winnersNeeded: Number(e.target.value) })} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-black text-center" />
+                           <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest pl-2 italic">عدد الفائزين</label>
+                           <input type="number" value={settings.winnersNeeded} onChange={e => setSettings({ ...settings, winnersNeeded: Number(e.target.value) })} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-black text-center text-sm outline-none focus:border-red-500 transition-colors" />
                         </div>
                         <div className="space-y-2">
-                           <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-2">المحاولات للفوز</label>
-                           <input type="number" value={settings.maxAttempts} onChange={e => setSettings({ ...settings, maxAttempts: Number(e.target.value) })} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-black text-center" />
+                           <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest pl-2 italic">محاولات الشخص</label>
+                           <input type="number" value={settings.maxAttempts} onChange={e => setSettings({ ...settings, maxAttempts: Number(e.target.value) })} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-black text-center text-sm outline-none focus:border-red-500 transition-colors" />
                         </div>
                      </div>
 
                      <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                           <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-2">عدد الماوسات</label>
-                           <input type="number" value={settings.treasureCount} onChange={e => setSettings({ ...settings, treasureCount: Number(e.target.value) })} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-black text-center" />
+                           <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest pl-2 italic">الماوسات</label>
+                           <input type="number" value={settings.treasureCount} onChange={e => setSettings({ ...settings, treasureCount: Number(e.target.value) })} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-black text-center text-sm outline-none focus:border-red-500 transition-colors" />
                         </div>
                         <div className="space-y-2">
-                           <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pl-2">الألغام</label>
-                           <input type="number" value={settings.bombCount} onChange={e => setSettings({ ...settings, bombCount: Number(e.target.value) })} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-black text-center" />
+                           <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest pl-2 italic">الألغام</label>
+                           <input type="number" value={settings.bombCount} onChange={e => setSettings({ ...settings, bombCount: Number(e.target.value) })} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-black text-center text-sm outline-none focus:border-red-500 transition-colors" />
                         </div>
                      </div>
                   </div>
 
-                  <div className="flex gap-4 pt-4">
-                     <button onClick={onHome} className="p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 text-white transition-all"><ChevronLeft /></button>
-                     <button onClick={initializeGame} className="flex-1 bg-iabs-red hover:bg-red-500 py-4 rounded-2xl font-black text-white italic tracking-tighter text-lg shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3">
-                        <Play size={24} fill="currentColor" /> إطلاق العملية
+                  <div className="flex gap-4 pt-8">
+                     <button onClick={onHome} className="px-5 py-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 text-white transition-all"><ChevronLeft size={20} /></button>
+                     <button onClick={initializeGame} className="flex-1 bg-red-600 hover:bg-red-500 py-4 rounded-2xl font-black text-white italic tracking-tighter text-lg shadow-[0_10px_30px_rgba(185,28,28,0.4)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3">
+                        <Play size={20} fill="currentColor" /> إطلاق العملية
                      </button>
                   </div>
                </div>
@@ -331,33 +329,33 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
             <div className="text-center space-y-12 max-w-4xl w-full">
                <div className="relative inline-block">
                   <div className="absolute -inset-10 bg-red-600/20 blur-[60px] animate-pulse rounded-full"></div>
-                  <Users size={120} className="text-white relative z-10 animate-bounce" />
-                  <div className="absolute -bottom-4 -right-4 bg-red-600 px-6 py-2 rounded-full border-4 border-black text-white font-black text-2xl shadow-xl">
+                  <Users size={100} className="text-white relative z-10 animate-bounce" />
+                  <div className="absolute -bottom-2 -right-2 bg-red-600 px-5 py-1.5 rounded-full border-4 border-black text-white font-black text-xl shadow-xl">
                      {joinedPlayers.length}/{settings.requiredPlayers}
                   </div>
                </div>
 
                <div className="space-y-4">
-                  <h2 className="text-7xl font-black italic text-white red-neon-text tracking-tighter">في انتظار الفريق</h2>
-                  <p className="text-2xl text-white/40 font-bold">أكتب <span className="text-white px-4 py-1 bg-red-600 rounded-lg italic">انضمام</span> في الدردشة الآن للدخول</p>
+                  <h2 className="text-6xl md:text-7xl font-black italic text-white red-neon-text tracking-tighter">في انتظار الفريق</h2>
+                  <p className="text-xl md:text-2xl text-white/40 font-bold">أكتب <span className="text-white px-4 py-1 bg-red-600 rounded-lg italic shadow-[0_0_20px_rgba(220,38,38,0.5)]">انضمام</span> في الدردشة الآن للدخول</p>
                </div>
 
-               <div className="grid grid-cols-4 md:grid-cols-8 gap-6 justify-center">
+               <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 justify-center">
                   {joinedPlayers.map((p, i) => (
-                     <div key={i} className="space-y-3 animate-in zoom-in" style={{ animationDelay: `${i * 100}ms` }}>
-                        <div className="w-20 h-20 rounded-[2rem] overflow-hidden border-4 border-red-600/50 shadow-lg transform hover:rotate-6 transition-transform">
+                     <div key={i} className="space-y-2 animate-in zoom-in" style={{ animationDelay: `${i * 80}ms` }}>
+                        <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-red-600/50 shadow-lg transform hover:scale-110 transition-transform">
                            <img src={p.avatar} className="w-full h-full object-cover" />
                         </div>
-                        <div className="text-xs font-black text-white/50 truncate max-w-[80px] mx-auto italic">{p.name}</div>
+                        <div className="text-[9px] font-black text-white/50 truncate max-w-[64px] mx-auto italic uppercase">{p.name}</div>
                      </div>
                   ))}
                   {Array.from({ length: Math.max(0, settings.requiredPlayers - joinedPlayers.length) }).map((_, i) => (
-                     <div key={i} className="w-20 h-20 rounded-[2rem] bg-white/5 border-2 border-white/5 border-dashed flex items-center justify-center text-white/10 font-black text-4xl">?</div>
+                     <div key={i} className="w-16 h-16 rounded-2xl bg-white/5 border-2 border-white/10 border-dashed flex items-center justify-center text-white/5 font-black text-2xl">?</div>
                   ))}
                </div>
 
-               <button onClick={() => setPhase('SETTINGS')} className="text-white/20 hover:text-white/50 transition-all font-black uppercase tracking-widest text-sm flex items-center gap-2 mx-auto pt-10">
-                  <ChevronLeft size={16} /> العودة للإعدادات
+               <button onClick={() => setPhase('SETTINGS')} className="text-white/20 hover:text-white/50 transition-all font-black uppercase tracking-widest text-[10px] flex items-center gap-2 mx-auto pt-12 italic">
+                  <ChevronLeft size={14} /> العودة للإعدادات
                </button>
             </div>
          </div>
@@ -367,158 +365,155 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
    return (
       <>
          <SidebarPortal>
-            <div className="bg-zinc-900/90 p-6 rounded-[2.5rem] border border-white/10 space-y-6 animate-in slide-in-from-right duration-500 shadow-2xl backdrop-blur-xl h-full flex flex-col">
+            <div className="bg-zinc-900/90 p-5 rounded-[2rem] border-l border-white/10 space-y-6 animate-in slide-in-from-right duration-500 shadow-2xl backdrop-blur-3xl h-full flex flex-col w-[320px]">
                <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                  <h4 className="text-[14px] font-black text-iabs-red uppercase tracking-widest flex items-center gap-3 italic">
-                     <Radar size={18} className="animate-spin-slow" /> الميدان التكتيكي
+                  <h4 className="text-[12px] font-black text-iabs-red uppercase tracking-widest flex items-center gap-2 italic">
+                     <Radar size={16} className="animate-spin-slow" /> الميدان التكتيكي
                   </h4>
-                  <button onClick={() => setPhase('SETTINGS')} className="p-2.5 bg-white/5 hover:bg-red-600/20 text-white/50 hover:text-red-500 rounded-xl transition-all border border-white/10">
-                     <LogOut size={16} />
+                  <button onClick={() => setPhase('SETTINGS')} className="p-2 bg-white/5 hover:bg-red-600/20 text-white/40 hover:text-red-500 rounded-lg transition-all border border-white/5">
+                     <LogOut size={14} />
                   </button>
                </div>
 
-               <div className="flex-1 space-y-4 overflow-y-auto custom-scrollbar pr-2">
-                  <div className="space-y-4">
-                     {/* Last Action Box */}
-                     {lastAction && (
-                        <div className={`p-4 rounded-2xl text-[12px] font-bold text-center border shadow-lg transition-all animate-in slide-in-from-top-4 duration-300 ${lastAction.type === 'good' ? 'bg-blue-600/20 border-blue-500/50 text-blue-300' :
-                              lastAction.type === 'bad' ? 'bg-red-600/20 border-red-500/50 text-red-300' :
-                                 lastAction.type === 'special' ? 'bg-emerald-600/20 border-emerald-500/50 text-emerald-300' :
-                                    'bg-zinc-800/50 border-white/10 text-gray-400'
-                           }`}>
-                           {lastAction.text}
-                        </div>
-                     )}
+               <div className="flex-1 space-y-6 overflow-y-auto custom-scrollbar pr-1">
+                  {/* Dynamic Alerts */}
+                  {lastAction && (
+                     <div className={`p-4 rounded-xl text-[11px] font-black text-center border shadow-xl transition-all animate-in slide-in-from-top duration-300 italic ${lastAction.type === 'good' ? 'bg-blue-600/10 border-blue-500/30 text-blue-400' :
+                           lastAction.type === 'bad' ? 'bg-red-600/10 border-red-500/30 text-red-400' :
+                              lastAction.type === 'special' ? 'bg-emerald-600/10 border-emerald-500/30 text-emerald-400' :
+                                 'bg-white/5 border-white/10 text-gray-500'
+                        }`}>
+                        {lastAction.text}
+                     </div>
+                  )}
 
-                     {/* Winners Display */}
+                  {/* Top Winners (Compact) */}
+                  {winners.length > 0 && (
                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-[9px] font-black text-white/30 uppercase tracking-widest mb-1">
+                           <Trophy size={10} className="text-yellow-500" /> الأبطال الفائزون
+                        </div>
                         {winners.map((w, i) => (
-                           <div key={i} className="flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-yellow-500/20 to-transparent border border-yellow-500/30 animate-in slide-in-from-left duration-500">
-                              <div className="flex items-center gap-3">
-                                 <Trophy size={20} className="text-yellow-500" />
-                                 <div className="w-8 h-8 rounded-full overflow-hidden border border-yellow-500/50">
+                           <div key={i} className="flex items-center justify-between p-2 rounded-xl bg-yellow-500/5 border border-yellow-500/20 animate-in slide-in-from-left duration-300">
+                              <div className="flex items-center gap-2">
+                                 <div className="w-7 h-7 rounded-lg overflow-hidden border border-yellow-500/30">
                                     <img src={w.avatar} className="w-full h-full object-cover" />
                                  </div>
-                                 <span className="text-xs font-black text-white italic">{w.name}</span>
+                                 <span className="text-[10px] font-black text-white italic">{w.name}</span>
                               </div>
-                              <span className="text-[10px] font-black text-yellow-500 italic">WINNER</span>
+                              <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
                            </div>
                         ))}
                      </div>
+                  )}
 
-                     {/* Stats Summary */}
-                     <div className="grid grid-cols-2 gap-2">
-                        <div className="bg-black/40 p-3 rounded-2xl border border-white/5 text-center">
-                           <span className="block text-[8px] text-gray-500 font-bold uppercase tracking-widest">متبقي مـاوس</span>
-                           <span className="text-xl font-black text-blue-500 italic">{settings.treasureCount - winners.length}</span>
-                        </div>
-                        <div className="bg-black/40 p-3 rounded-2xl border border-white/5 text-center">
-                           <span className="block text-[8px] text-gray-500 font-bold uppercase tracking-widest">عدد الألـغام</span>
-                           <span className="text-xl font-black text-red-500 italic">{settings.bombCount}</span>
-                        </div>
+                  {/* Live Scoreboard (TALLER) */}
+                  <div className="bg-black/30 rounded-2xl border border-white/5 flex flex-col flex-1 min-h-[400px]">
+                     <div className="p-3 border-b border-white/5 bg-white/5 flex justify-between items-center rounded-t-2xl">
+                        <span className="text-[9px] font-black text-white/40 uppercase tracking-widest flex items-center gap-2 italic">
+                           <BarChart3 size={12} className="text-red-500" /> نشاط الميدان
+                        </span>
+                        <span className="text-[8px] font-bold text-gray-600">LIVE FEED</span>
                      </div>
-
-                     {/* Live Score/Attempts Board */}
-                     <div className="bg-black/40 rounded-3xl border border-white/10 p-4 space-y-3">
-                        <div className="flex items-center justify-between text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">
-                           <span>تحركات المتسابقين</span>
-                           <Zap size={14} className="text-yellow-500" />
-                        </div>
-                        <div className="space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
-                           {scoreBoard.sort((a, b) => b.attempts - a.attempts).map((p, i) => (
-                              <div key={i} className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all">
-                                 <div className="flex items-center gap-3">
-                                    <div className="w-6 h-6 rounded-lg overflow-hidden border border-white/10 relative">
-                                       <img src={p.avatar} className="w-full h-full object-cover" />
-                                       {p.hasShield && <div className="absolute inset-0 bg-emerald-500/40 flex items-center justify-center"><Shield size={10} className="text-white" /></div>}
-                                    </div>
-                                    <span className="text-[10px] font-bold text-gray-300 truncate max-w-[80px]">{p.name}</span>
+                     <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-2">
+                        {scoreBoard.sort((a, b) => b.attempts - a.attempts).map((p, i) => (
+                           <div key={i} className="flex items-center justify-between p-2.5 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all group">
+                              <div className="flex items-center gap-2.5">
+                                 <div className="w-7 h-7 rounded-lg overflow-hidden border border-white/10 relative">
+                                    <img src={p.avatar} className="w-full h-full object-cover" />
+                                    {p.hasShield && <div className="absolute inset-0 bg-emerald-500/50 flex items-center justify-center"><Shield size={10} className="text-white" /></div>}
                                  </div>
-                                 <div className="text-[10px] font-mono font-black text-red-500 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/20">
-                                    {p.attempts}/{settings.maxAttempts || '∞'}
-                                 </div>
+                                 <span className="text-[10px] font-bold text-gray-400 group-hover:text-white truncate max-w-[90px] italic">{p.name}</span>
                               </div>
-                           ))}
-                        </div>
+                              <div className={`text-[10px] font-mono font-black border px-2 py-0.5 rounded-lg transition-colors ${p.attempts >= settings.maxAttempts ? 'bg-red-500/20 border-red-500/30 text-red-400' : 'bg-white/5 border-white/10 text-gray-500'}`}>
+                                 {p.attempts}/{settings.maxAttempts || '∞'}
+                              </div>
+                           </div>
+                        ))}
+                        {scoreBoard.length === 0 && (
+                           <div className="h-full flex flex-col items-center justify-center py-20 opacity-10">
+                              <Radar size={40} />
+                              <span className="text-[8px] font-black tracking-widest mt-2 uppercase">Searching for targets...</span>
+                           </div>
+                        )}
                      </div>
                   </div>
                </div>
 
                <button
                   onClick={() => setPhase('SETTINGS')}
-                  className="w-full bg-white/5 hover:bg-white/10 py-3 rounded-2xl font-black text-white text-[10px] transition-all border border-white/10 italic flex items-center justify-center gap-2"
+                  className="w-full bg-white/5 hover:bg-white/10 py-3 rounded-xl font-black text-white text-[9px] transition-all border border-white/5 italic flex items-center justify-center gap-2 uppercase tracking-widest"
                >
-                  <RotateCcw size={14} /> إعادة ضبط العملية
+                  <RotateCcw size={14} /> إعادة التوجيه الفني
                </button>
             </div>
          </SidebarPortal>
 
-         <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-transparent relative overflow-hidden select-none animate-in fade-in duration-500">
+         <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-transparent relative overflow-hidden select-none animate-in fade-in duration-500">
 
             {/* Radar Map Elements */}
             <div className="absolute inset-0 pointer-events-none">
-               <div className="w-full h-full opacity-[0.05]" style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '60px 60px' }}></div>
-               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150vh] h-[150vh] rounded-full border border-red-500/5 animate-ping-slow"></div>
+               <div className="w-full h-full opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '50px 50px' }}></div>
+               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[160vh] h-[160vh] rounded-full border border-red-500/5 animate-ping-slow"></div>
             </div>
 
-            <div className="relative z-10 flex flex-col items-center">
+            <div className="relative z-10 flex flex-col items-center max-w-[90vw]">
 
-               {/* Header Dashboard Overlay */}
-               <div className="flex gap-8 mb-8 bg-zinc-900/60 backdrop-blur-2xl px-12 py-5 rounded-[2.5rem] border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
-                  <div className="flex items-center gap-4">
-                     <div className="w-12 h-12 bg-blue-600/20 rounded-2xl flex items-center justify-center"><Gem size={28} className="text-blue-400" /></div>
-                     <div className="text-right">
-                        <div className="text-xs text-gray-500 font-black uppercase tracking-widest leading-none mb-1">الماوسات</div>
-                        <div className="text-3xl font-black text-white italic leading-none">{winners.length}/{settings.winnersNeeded}</div>
+               {/* Header Dashboard (MORE COMPACT) */}
+               <div className="flex gap-6 mb-6 bg-zinc-900/40 backdrop-blur-3xl px-10 py-4 rounded-[2rem] border border-white/10 shadow-2xl">
+                  <div className="flex items-center gap-3">
+                     <div className="w-10 h-10 bg-blue-600/10 rounded-xl flex items-center justify-center border border-blue-500/20"><Gem size={22} className="text-blue-400" /></div>
+                     <div>
+                        <div className="text-[8px] text-gray-500 font-black uppercase tracking-widest leading-none mb-1">الماوسات</div>
+                        <div className="text-2xl font-black text-white italic leading-none">{winners.length}/{settings.winnersNeeded}</div>
                      </div>
                   </div>
-                  <div className="w-[1px] h-12 bg-white/10"></div>
-                  <div className="flex items-center gap-4">
-                     <div className="w-12 h-12 bg-emerald-600/20 rounded-2xl flex items-center justify-center"><Shield size={28} className="text-emerald-400" /></div>
-                     <div className="text-right">
-                        <div className="text-xs text-gray-500 font-black uppercase tracking-widest leading-none mb-1">الـدروع</div>
-                        <div className="text-3xl font-black text-white italic leading-none">{scoreBoard.filter(p => p.hasShield).length}</div>
+                  <div className="w-[1px] h-10 bg-white/5"></div>
+                  <div className="flex items-center gap-3">
+                     <div className="w-10 h-10 bg-emerald-600/10 rounded-xl flex items-center justify-center border border-emerald-500/20"><Shield size={22} className="text-emerald-400" /></div>
+                     <div>
+                        <div className="text-[8px] text-gray-500 font-black uppercase tracking-widest leading-none mb-1">الـدروع</div>
+                        <div className="text-2xl font-black text-white italic leading-none">{scoreBoard.filter(p => p.hasShield).length}</div>
                      </div>
                   </div>
-                  <div className="w-[1px] h-12 bg-white/10"></div>
-                  <div className="flex items-center gap-4 text-center">
-                     <div className="text-right">
-                        <div className="text-xs text-gray-500 font-black uppercase tracking-widest leading-none mb-1">المهمة</div>
-                        <div className="text-3xl font-black text-red-500 italic leading-none animate-pulse">ACTIVE</div>
+                  <div className="w-[1px] h-10 bg-white/5"></div>
+                  <div className="flex items-center gap-3 text-right">
+                     <div className="px-3 py-1 bg-red-600/20 border border-red-500/30 rounded-lg">
+                        <div className="text-[10px] font-black text-red-500 italic animate-pulse tracking-tighter">OPERATIONAL</div>
                      </div>
                   </div>
                </div>
 
-               <div className="flex flex-col items-center">
+               <div className="flex flex-col items-center transform scale-[0.85] md:scale-100">
                   {/* Top Coordinates */}
-                  <div className="flex gap-1.5 mb-3 ml-[60px]">
+                  <div className="flex gap-1 mb-2 ml-[45px] md:ml-[55px]">
                      {COL_LABELS.map((c, i) => (
-                        <div key={c} className={`w-[40px] h-[40px] md:w-[60px] md:h-[60px] flex items-center justify-center font-black text-sm md:text-2xl transition-all ${scannerCol === i ? 'text-white scale-125 drop-shadow-[0_0_15px_white]' : 'text-zinc-600'}`}>
+                        <div key={c} className={`w-[35px] h-[35px] md:w-[50px] md:h-[50px] flex items-center justify-center font-black text-xs md:text-xl transition-all ${scannerCol === i ? 'text-white scale-125 drop-shadow-[0_0_10px_white]' : 'text-zinc-700'}`}>
                            {c}
                         </div>
                      ))}
                   </div>
 
-                  <div className="flex gap-3">
+                  <div className="flex gap-2">
                      {/* Left Coordinates */}
-                     <div className="flex flex-col gap-1.5">
+                     <div className="flex flex-col gap-1">
                         {ROW_LABELS.map((r, i) => (
-                           <div key={r} className={`w-[40px] h-[40px] md:w-[60px] md:h-[60px] flex items-center justify-center font-black text-sm md:text-2xl transition-all ${scannerRow === i ? 'text-white scale-125 drop-shadow-[0_0_15px_white]' : 'text-zinc-600'}`}>
+                           <div key={r} className={`w-[35px] h-[35px] md:w-[50px] md:h-[50px] flex items-center justify-center font-black text-xs md:text-xl transition-all ${scannerRow === i ? 'text-white scale-125 drop-shadow-[0_0_10px_white]' : 'text-zinc-700'}`}>
                               {r}
                            </div>
                         ))}
                      </div>
 
-                     {/* GRID */}
-                     <div className="grid grid-cols-10 gap-1.5 p-4 bg-zinc-950/90 backdrop-blur-3xl rounded-[3rem] border-4 border-white/5 shadow-2xl relative">
+                     {/* GRID (COMPACTED) */}
+                     <div className="grid grid-cols-10 gap-1 p-3 bg-zinc-950/90 backdrop-blur-3xl rounded-[2.5rem] border-2 border-white/5 shadow-2xl relative">
 
                         {/* Scanner Animations */}
-                        <div className="absolute inset-0 pointer-events-none z-50 overflow-hidden rounded-[2.5rem]">
+                        <div className="absolute inset-0 pointer-events-none z-50 overflow-hidden rounded-[2rem]">
                            {scannerRow !== null && (
-                              <div className="absolute left-0 w-full h-[60px] bg-red-600/10 border-y-2 border-red-500 shadow-[0_0_50px_rgba(239,68,68,0.3)] animate-pulse" style={{ top: scannerRow * 67.5 + 16 }} />
+                              <div className="absolute left-0 w-full h-[50px] bg-red-600/5 border-y-2 border-red-500/50 shadow-[0_0_30px_rgba(239,68,68,0.2)] animate-pulse" style={{ top: scannerRow * 51 + 14 }} />
                            )}
                            {scannerCol !== null && (
-                              <div className="absolute top-0 w-[60px] h-full bg-red-600/10 border-x-2 border-red-500 shadow-[0_0_50px_rgba(239,68,68,0.3)] animate-pulse" style={{ left: scannerCol * 67.5 + 16 }} />
+                              <div className="absolute top-0 w-[50px] h-full bg-red-600/5 border-x-2 border-red-500/50 shadow-[0_0_30px_rgba(239,68,68,0.2)] animate-pulse" style={{ left: scannerCol * 51 + 14 }} />
                            )}
                         </div>
 
@@ -534,34 +529,34 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                                  id={`cell-${idx}`}
                                  key={idx}
                                  className={`
-                        w-[40px] h-[40px] md:w-[60px] md:h-[60px] rounded-[1rem] border-2 flex items-center justify-center transition-all duration-500 relative overflow-hidden group
+                        w-[35px] h-[35px] md:w-[50px] md:h-[50px] rounded-lg border flex items-center justify-center transition-all duration-500 relative overflow-hidden group
                         ${!isRevealed
-                                       ? `bg-[#0a0f14] ${isBeingScanned ? 'border-red-500 scale-95 shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'border-white/5'} hover:border-white/40 hover:bg-zinc-900 cursor-crosshair`
-                                       : 'border-transparent rotate-0 scale-100'}
-                        ${isRevealed && cell.type === 'TREASURE' ? 'bg-gradient-to-br from-blue-500 to-blue-800 shadow-[0_0_40px_rgba(59,130,246,0.6)] animate-in zoom-in' : ''}
-                        ${isRevealed && cell.type === 'BOMB' ? 'bg-gradient-to-br from-red-600 to-red-950 shadow-[0_0_40px_rgba(239,68,68,0.8)] animate-in zoom-in' : ''}
-                        ${isRevealed && cell.type === 'SHIELD' ? 'bg-gradient-to-br from-emerald-500 to-emerald-800 shadow-[0_0_40px_rgba(16,185,129,0.8)] animate-in zoom-in' : ''}
-                        ${isRevealed && cell.type === 'RADAR' ? 'bg-gradient-to-br from-purple-500 to-purple-800 shadow-[0_0_40px_rgba(168,85,247,0.8)] animate-in zoom-in' : ''}
-                        ${isRevealed && cell.type === 'EMPTY' ? 'bg-white/5 scale-90 opacity-40' : ''}
+                                       ? `bg-[#070b0f] ${isBeingScanned ? 'border-red-500/50 scale-95 shadow-inner' : 'border-white/[0.03]'} hover:border-white/20 hover:bg-zinc-900 cursor-crosshair`
+                                       : 'border-transparent'}
+                        ${isRevealed && cell.type === 'TREASURE' ? 'bg-gradient-to-br from-blue-500 to-blue-900 shadow-[0_0_20px_rgba(59,130,246,0.4)] animate-in zoom-in' : ''}
+                        ${isRevealed && cell.type === 'BOMB' ? 'bg-gradient-to-br from-red-600 to-red-950 shadow-[0_0_20px_rgba(239,68,68,0.6)] animate-in zoom-in' : ''}
+                        ${isRevealed && cell.type === 'SHIELD' ? 'bg-gradient-to-br from-emerald-500 to-emerald-900 shadow-[0_0_20px_rgba(16,185,129,0.6)] animate-in zoom-in' : ''}
+                        ${isRevealed && cell.type === 'RADAR' ? 'bg-gradient-to-br from-purple-500 to-purple-900 shadow-[0_0_20px_rgba(168,85,247,0.6)] animate-in zoom-in' : ''}
+                        ${isRevealed && cell.type === 'EMPTY' ? 'bg-white/5 opacity-40' : ''}
                       `}
                               >
                                  {!isRevealed && (
-                                    <span className={`text-[12px] md:text-lg font-black transition-colors ${isBeingScanned ? 'text-white' : 'text-white/10'} group-hover:text-white/40`}>{coord}</span>
+                                    <span className={`text-[9px] md:text-sm font-black transition-colors ${isBeingScanned ? 'text-white' : 'text-white/5'} group-hover:text-white/20`}>{coord}</span>
                                  )}
 
                                  {isRevealed && (
                                     <div className="animate-in zoom-in spin-in-180 duration-700 flex items-center justify-center w-full h-full p-2">
-                                       {cell.type === 'TREASURE' && <Gem className="w-8 h-8 md:w-12 md:h-12 text-white drop-shadow-[0_0_15px_white]" />}
-                                       {cell.type === 'BOMB' && <Skull className="w-8 h-8 md:w-12 md:h-12 text-white animate-bounce" />}
-                                       {cell.type === 'SHIELD' && <Shield className="w-8 h-8 md:w-12 md:h-12 text-white drop-shadow-[0_0_15px_white]" />}
-                                       {cell.type === 'RADAR' && <Radio className="w-8 h-8 md:w-12 md:h-12 text-white animate-pulse" />}
-                                       {cell.type === 'EMPTY' && <div className="w-3 h-3 rounded-full bg-white/20"></div>}
+                                       {cell.type === 'TREASURE' && <Gem className="w-6 h-6 md:w-9 md:h-9 text-white" />}
+                                       {cell.type === 'BOMB' && <Skull className="w-6 h-6 md:w-9 md:h-9 text-white animate-bounce" />}
+                                       {cell.type === 'SHIELD' && <Shield className="w-6 h-6 md:w-9 md:h-9 text-white" />}
+                                       {cell.type === 'RADAR' && <Radio className="w-6 h-6 md:w-9 md:h-9 text-white animate-pulse" />}
+                                       {cell.type === 'EMPTY' && <div className="w-2 h-2 rounded-full bg-white/20"></div>}
                                     </div>
                                  )}
 
                                  {isRevealed && cell.finder && cell.type !== 'EMPTY' && (
-                                    <div className="absolute bottom-0 w-full bg-black/70 backdrop-blur-sm py-1 border-t border-white/10">
-                                       <div className="text-[7px] md:text-[9px] text-white font-black text-center truncate italic px-1 uppercase tracking-tighter">
+                                    <div className="absolute bottom-0 w-full bg-black/60 backdrop-blur-sm py-0.5 border-t border-white/5">
+                                       <div className="text-[6px] md:text-[8px] text-white font-bold text-center truncate italic px-1 uppercase tracking-tighter">
                                           {cell.finder}
                                        </div>
                                     </div>
@@ -574,52 +569,49 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                </div>
             </div>
 
-            {/* Floating Legend */}
-            <div className="fixed bottom-10 left-1/2 -translate-x-1/2 flex gap-8 items-center bg-black/60 backdrop-blur-3xl px-12 py-5 rounded-[2.5rem] border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
-               <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-lg bg-blue-600 shadow-[0_0_15px_rgba(59,130,246,0.6)]"></div>
-                  <span className="text-[10px] font-black text-white/50 uppercase tracking-widest italic">Mouse Pad</span>
+            {/* Floating Legend (COMPACT) */}
+            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex gap-6 items-center bg-black/60 backdrop-blur-3xl px-8 py-3 rounded-full border border-white/10 shadow-xl">
+               <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-md bg-blue-600"></div>
+                  <span className="text-[8px] font-black text-white/40 uppercase tracking-widest italic">Mouse Pad</span>
                </div>
-               <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-lg bg-red-600 shadow-[0_0_15px_rgba(239,68,68,0.6)]"></div>
-                  <span className="text-[10px] font-black text-white/50 uppercase tracking-widest italic">Bomb</span>
+               <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-md bg-red-600"></div>
+                  <span className="text-[8px] font-black text-white/40 uppercase tracking-widest italic">Bomb</span>
                </div>
-               <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-lg bg-emerald-600 shadow-[0_0_15px_rgba(16,185,129,0.6)]"></div>
-                  <span className="text-[10px] font-black text-white/50 uppercase tracking-widest italic">Shield</span>
+               <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-md bg-emerald-600"></div>
+                  <span className="text-[8px] font-black text-white/40 uppercase tracking-widest italic">Shield</span>
                </div>
-               <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-lg bg-purple-600 shadow-[0_0_15px_rgba(168,85,247,0.6)]"></div>
-                  <span className="text-[10px] font-black text-white/50 uppercase tracking-widest italic">Radar</span>
+               <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-md bg-purple-600"></div>
+                  <span className="text-[8px] font-black text-white/40 uppercase tracking-widest italic">Radar</span>
                </div>
             </div>
 
-            {/* GAME OVER OVERLAY */}
+            {/* GAME OVER OVERLAY (COMPACTED) */}
             {phase === 'GAME_OVER' && (
-               <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/80 backdrop-blur-2xl animate-in fade-in duration-1000">
-                  <div className="relative mb-8 animate-in zoom-in duration-700">
-                     <div className="absolute -inset-40 bg-red-600/20 blur-[150px] animate-pulse rounded-full"></div>
-                     <Trophy size={200} className="text-yellow-500 relative z-10 drop-shadow-[0_0_60px_rgba(234,179,8,0.6)]" />
+               <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/85 backdrop-blur-2xl animate-in fade-in duration-1000 p-8">
+                  <div className="relative mb-6 animate-in zoom-in duration-700">
+                     <div className="absolute -inset-20 bg-red-600/20 blur-[100px] animate-pulse rounded-full"></div>
+                     <Trophy size={140} className="text-yellow-500 relative z-10 drop-shadow-[0_0_40px_rgba(234,179,8,0.5)]" />
                   </div>
-                  <h3 className="text-9xl font-black italic text-white red-neon-text mb-12">اكتملت المهمة!</h3>
+                  <h3 className="text-7xl md:text-8xl font-black italic text-white red-neon-text mb-8">اكتملت المهمة!</h3>
 
-                  <div className="flex flex-wrap justify-center gap-8">
+                  <div className="flex flex-wrap justify-center gap-6">
                      {winners.map((w, i) => (
-                        <div key={i} className="flex flex-col items-center gap-6 bg-white/5 p-10 rounded-[4rem] border-2 border-yellow-500/40 shadow-2xl animate-in slide-in-from-bottom duration-1000" style={{ animationDelay: `${i * 200}ms` }}>
-                           <div className="relative">
-                              <div className="absolute -inset-4 bg-yellow-500/30 blur-2xl rounded-full animate-pulse"></div>
-                              <div className="w-28 h-28 rounded-[2.5rem] overflow-hidden border-4 border-yellow-500 relative z-10">
-                                 <img src={w.avatar} className="w-full h-full object-cover" />
-                              </div>
+                        <div key={i} className="flex flex-col items-center gap-4 bg-white/5 p-8 rounded-[3rem] border-2 border-yellow-500/30 shadow-2xl animate-in slide-in-from-bottom duration-1000" style={{ animationDelay: `${i * 150}ms` }}>
+                           <div className="w-20 h-20 rounded-[1.8rem] overflow-hidden border-4 border-yellow-500">
+                              <img src={w.avatar} className="w-full h-full object-cover" />
                            </div>
-                           <div className="text-4xl font-black text-white italic drop-shadow-xl">{w.name}</div>
-                           <div className="px-10 py-3 bg-yellow-500 text-black text-lg font-black rounded-full uppercase italic shadow-[0_10px_30px_rgba(234,179,8,0.4)]">MISSION WINNER</div>
+                           <div className="text-2xl font-black text-white italic">{w.name}</div>
+                           <div className="px-6 py-2 bg-yellow-500 text-black text-xs font-black rounded-full uppercase italic">MISSION COMPLETE</div>
                         </div>
                      ))}
                   </div>
 
-                  <button onClick={() => setPhase('SETTINGS')} className="mt-20 text-white/30 hover:text-white font-black text-2xl italic tracking-[0.5em] transition-all hover:scale-110 flex items-center gap-6 group">
-                     <RotateCcw className="group-hover:rotate-180 transition-transform duration-700" size={32} /> العودة للقـيادة
+                  <button onClick={() => setPhase('SETTINGS')} className="mt-16 text-white/30 hover:text-white font-black text-lg italic tracking-[0.4em] transition-all hover:scale-110 flex items-center gap-4 group">
+                     <RotateCcw className="group-hover:rotate-180 transition-transform duration-700" size={24} /> العودة للقـيادة
                   </button>
                </div>
             )}
@@ -633,7 +625,7 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
           text-shadow: 0 0 20px rgba(255,0,0,0.6), 0 0 40px rgba(255,0,0,0.3);
         }
         @keyframes ping-slow {
-          75%, 100% { transform: scale(1.8); opacity: 0; }
+          75%, 100% { transform: scale(1.6); opacity: 0; }
         }
         .animate-ping-slow { animation: ping-slow 5s cubic-bezier(0, 0, 0.2, 1) infinite; }
         .animate-spin-slow { animation: spin 15s linear infinite; }
