@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "deploy": "git add . && git commit -m \"Deploy to main\" --allow-empty && git pull origin main --rebase && git push origin main",
+    "deploy": "git add . && git commit -m \"Deploy to main\" --allow-empty && (git pull origin main --rebase || true) && git push -u origin main",
     "preview": "vite preview"
   },
   "dependencies": {
