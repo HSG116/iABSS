@@ -572,39 +572,70 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                           </div>
                         </div>
 
-                        {/* Middle: Standings Leaderboard (Top 3 Overall) */}
-                        <div className="lg:col-span-12 bg-white/5 rounded-[3rem] p-10 border border-white/10 backdrop-blur-3xl">
+                        {/* Middle: Standings Leaderboard (Top 30 Overall) */}
+                        <div className="lg:col-span-12 bg-white/5 rounded-[3rem] p-8 border border-white/10 backdrop-blur-3xl relative overflow-hidden">
+                          <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/5 blur-3xl rounded-full"></div>
                           <h3 className="text-white/40 font-black text-xl uppercase tracking-[0.5em] mb-8 italic flex items-center justify-center gap-4">
                             <Star size={20} className="text-yellow-500" />
-                            المراكز الثلاثة الأولى حالياً
+                            ترتيب المتصدرين حالياً (TOP 30)
                             <Star size={20} className="text-yellow-500" />
                           </h3>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                          {/* Prominent Top 3 */}
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
                             {[0, 1, 2].map(rank => {
                               const player = winnersList[rank];
                               const colors = ['#FFD700', '#C0C0C0', '#CD7F32'];
                               if (!player) return (
-                                <div key={rank} className="bg-black/40 border border-white/5 rounded-3xl p-6 opacity-30 flex items-center justify-center italic text-white/50">
+                                <div key={rank} className="bg-black/40 border border-white/5 rounded-3xl p-6 opacity-30 flex items-center justify-center italic text-white/50 border-dashed">
                                   {rank + 1} - بانتظار البطل
                                 </div>
                               );
                               return (
-                                <div key={rank} className="bg-white/5 border-2 rounded-3xl p-6 flex items-center gap-6 relative overflow-hidden group hover:scale-[1.03] transition-all" style={{ borderColor: `${colors[rank]}30` }}>
-                                  <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-white/5 to-transparent rounded-bl-[2rem]"></div>
-                                  <div className="text-5xl font-black italic opacity-20 absolute left-4" style={{ color: colors[rank] }}>#{rank + 1}</div>
-                                  <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 z-10" style={{ borderColor: colors[rank] }}>
+                                <div key={rank} className="bg-white/5 border-2 rounded-3xl p-6 flex items-center gap-6 relative overflow-hidden group hover:scale-[1.03] transition-all shadow-xl" style={{ borderColor: `${colors[rank]}40` }}>
+                                  <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-white/10 to-transparent rounded-bl-[2rem]"></div>
+                                  <div className="text-6xl font-black italic opacity-10 absolute left-4 select-none pointer-events-none" style={{ color: colors[rank] }}>#{rank + 1}</div>
+                                  <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 z-10 shadow-lg" style={{ borderColor: colors[rank] }}>
                                     {player.avatar ? <img src={player.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-white/20">{player.user.charAt(0)}</div>}
                                   </div>
                                   <div className="z-10">
-                                    <div className="text-2xl font-black text-white truncate">{player.user}</div>
-                                    <div className="text-sm font-bold opacity-60 flex gap-4 uppercase font-mono">
+                                    <div className="text-2xl font-black text-white truncate max-w-[150px]">{player.user}</div>
+                                    <div className="text-sm font-bold opacity-80 flex gap-3 uppercase font-mono">
                                       <span className="text-kick-green">{player.winCount} Wins</span>
-                                      <span>{player.averageTime.toFixed(2)}s</span>
+                                      <span className="text-white/40">|</span>
+                                      <span className="text-blue-400">{player.averageTime.toFixed(2)}s</span>
                                     </div>
                                   </div>
                                 </div>
                               );
                             })}
+                          </div>
+
+                          {/* Rankings 4 - 30 (Compact Scrollable Grid) */}
+                          <div className="max-h-72 overflow-y-auto custom-scrollbar pr-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                            {Array.from({ length: 27 }).map((_, i) => {
+                              const rank = i + 3;
+                              const player = winnersList[rank];
+                              if (!player) return null;
+                              return (
+                                <div key={rank} className="bg-white/5 rounded-2xl p-4 flex items-center gap-4 border border-white/5 hover:bg-white/10 transition-all group relative overflow-hidden">
+                                  <div className="absolute inset-0 bg-gradient-to-r from-green-500/0 via-green-500/0 to-green-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                  <span className="text-white/20 font-black text-sm w-6">#{rank + 1}</span>
+                                  <div className="w-10 h-10 rounded-xl overflow-hidden border border-white/20 flex-shrink-0">
+                                    {player.avatar ? <img src={player.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-xs">{player.user.charAt(0)}</div>}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <div className="text-sm font-black text-white truncate">{player.user}</div>
+                                    <div className="text-[10px] font-bold text-kick-green uppercase">{player.winCount} Wins</div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                            {winnersList.length <= 3 && (
+                              <div className="col-span-full py-10 text-center text-white/10 font-black text-xl italic uppercase tracking-widest border-2 border-dashed border-white/5 rounded-3xl">
+                                No further legends recorded yet
+                              </div>
+                            )}
                           </div>
                         </div>
 
