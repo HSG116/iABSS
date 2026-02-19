@@ -75,3 +75,15 @@ export interface Song {
   title: string;
   url: string;
 }
+
+export interface Game {
+  id: string;
+  title: string;
+  icon_name: string;
+  view_id: ViewState;
+  is_primary: boolean;
+  has_obs: boolean;
+  is_coming_soon: boolean;
+  coming_soon_text: string;
+  position: number;
+}

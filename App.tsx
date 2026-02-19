@@ -36,10 +36,11 @@ import {
   PaintBucket, Sparkles, ShieldCheck, Zap, Armchair,
   Maximize2, MonitorOff, CheckCircle2, AlertTriangle,
   Crown, Medal, Loader2, RefreshCw, ChevronRight, Video,
-  Sword, Globe, Brain, Vote, Bomb, Type, Footprints, Flame, Smile
+  Sword, Globe, Brain, Vote, Bomb, Type, Footprints, Flame, Smile,
+  ArrowUp, ArrowDown, Edit2, Save
 } from 'lucide-react';
 import { chatService } from './services/chatService';
-import { supabase, leaderboardService } from './services/supabase';
+import { supabase, leaderboardService, gamesService } from './services/supabase';
 import { OBSLinksModal } from './components/OBSLinksModal';
 import { SponsorsWidget } from './components/SponsorsWidget';
 import TecshIcon from './components/TecsIcon';
@@ -134,6 +135,45 @@ const App: React.FC = () => {
 
 
   const [activeAnnouncement, setActiveAnnouncement] = useState<string | null>(null);
+
+  // Games Management State
+  const [games, setGames] = useState<any[]>([]);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isSavingGames, setIsSavingGames] = useState(false);
+
+  const loadGames = async () => {
+    const { data } = await gamesService.getAllGames();
+    if (data && data.length > 0) {
+      setGames(data);
+    }
+  };
+
+  useEffect(() => {
+    loadGames();
+  }, []);
+
+  const moveGame = (index: number, direction: 'up' | 'down') => {
+    const newGames = [...games];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= newGames.length) return;
+
+    [newGames[index], newGames[targetIndex]] = [newGames[targetIndex], newGames[index]];
+
+    // Update positions
+    const updatedGames = newGames.map((g, i) => ({ ...g, position: i + 1 }));
+    setGames(updatedGames);
+  };
+
+  const saveGamesOrder = async () => {
+    setIsSavingGames(true);
+    const { error } = await gamesService.updateAllPositions(
+      games.map(g => ({ id: g.id, position: g.position }))
+    );
+    if (!error) {
+      setIsEditMode(false);
+    }
+    setIsSavingGames(false);
+  };
 
 
 

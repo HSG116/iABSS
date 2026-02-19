@@ -248,3 +248,30 @@ export const leaderboardService = {
     return await supabase.from('leaderboard').delete().neq('username', 'SYSTEM_ADMIN');
   }
 };
+
+export const gamesService = {
+  async getAllGames() {
+    if (!isConfigured) return { data: [], error: null };
+    return await supabase
+      .from('games')
+      .select('*')
+      .order('position', { ascending: true });
+  },
+  async updateGamePosition(id: string, position: number) {
+    if (!isConfigured) return { error: null };
+    return await supabase
+      .from('games')
+      .update({ position })
+      .eq('id', id);
+  },
+  async updateAllPositions(games: { id: string, position: number }[]) {
+    if (!isConfigured) return { error: null };
+    // We'll use a transaction style or multiple updates
+    // Supabase JS doesn't have a built-in batch update for different values easily without RPC
+    // But we can do it with a loop for now or a single upsert if we have IDs
+    const { error } = await supabase
+      .from('games')
+      .upsert(games);
+    return { error };
+  }
+};
