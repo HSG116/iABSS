@@ -22,22 +22,11 @@ interface FawazirGameProps {
   isOBS?: boolean;
 }
 
-interface GameSettings {
-  winMode: 'SPEED' | 'POINTS';
-  roundsCount: number;
-  timerDuration: number;
-  gameOverOnMiss: boolean;
-  backgroundId: string;
-  soundEnabled: boolean;
-  autoNext: boolean;
-  winnerDuration: number;
-}
-
 interface PlayerStats {
   user: string;
   avatar: string;
   winCount: number;
-  totalTime: number; // in milliseconds
+  totalTime: number; // in seconds
   averageTime: number;
 }
 
@@ -152,14 +141,16 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
     if (gameState === 'PLAYING' && timer > 0) {
       interval = window.setInterval(() => setTimer(prev => prev - 1), 1000);
     } else if (timer === 0 && gameState === 'PLAYING') {
-      handleRoundEnd(null);
+      // Don't auto-end if streamer needs to click reveal, but the timer is stopped
+      if (settings.autoNext) {
+        handleRoundEnd(null);
+      }
     }
     return () => clearInterval(interval);
   }, [gameState, timer]);
 
   const playSound = (type: 'correct' | 'wrong' | 'timer' | 'win') => {
     if (!settings.soundEnabled) return;
-    // Sound implementation placeholder - could use Audio objects if assets were provided
   };
 
   const normalizeArabic = (text: string) => {
@@ -212,9 +203,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
           chatService.fetchKickAvatar(username).then(av => {
             if (av) {
               const uLower = username.toLowerCase();
-              setAvatarCache(prev => ({ ...prev, [uLower]: av }));
               setRoundWinner(prev => (prev && prev.user.toLowerCase() === uLower) ? { ...prev, avatar: av } : prev);
-              setRoundWinners(prev => prev.map(w => w.user.toLowerCase() === uLower ? { ...w, avatar: av } : w));
               setWinnersList(prev => prev.map(w => w.user.toLowerCase() === uLower ? { ...w, avatar: av } : w));
             }
           });
@@ -274,7 +263,6 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
       });
     }
 
-    // Auto transition disabled or controlled by winnerDuration if autoNext is true
     if (settingsRef.current.autoNext) {
       setTimeout(nextRound, settingsRef.current.winnerDuration * 1000);
     }
@@ -308,7 +296,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
   if (gameState === 'SUMMARY') {
     const top3 = winnersList.slice(0, 3);
     return (
-      <div className="flex-1 w-full flex flex-col items-center justify-center animate-in zoom-in duration-700 p-4 md:p-8 bg-black/90 backdrop-blur-3xl overflow-y-auto">
+      <div className="flex-1 w-full flex flex-col items-center justify-center animate-in zoom-in duration-700 p-4 md:p-8 bg-black/90 backdrop-blur-3xl overflow-y-auto min-h-screen">
         <div className="w-full max-w-6xl relative">
           {/* Header */}
           <div className="text-center mb-16 relative">
@@ -337,7 +325,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                       <h3 className="text-3xl font-black text-white truncate mb-4">{top3[1].user}</h3>
                       <div className="flex flex-col gap-3">
                         <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                          <span className="block text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">الإجابات</span>
+                          <span className="block text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">الجولات الفائزة</span>
                           <span className="text-2xl font-black text-white italic">{top3[1].winCount}</span>
                         </div>
                         <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
@@ -364,7 +352,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                       <h3 className="text-4xl font-black text-white truncate mb-6 gold-glow-text">{top3[0].user}</h3>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="bg-[#FFD700]/10 p-4 rounded-3xl border border-[#FFD700]/20">
-                          <span className="block text-[10px] text-[#FFD700] font-black uppercase tracking-widest mb-1">الإجابات</span>
+                          <span className="block text-[10px] text-[#FFD700] font-black uppercase tracking-widest mb-1">الجولات</span>
                           <span className="text-3xl font-black text-white italic">{top3[0].winCount}</span>
                         </div>
                         <div className="bg-[#FFD700]/10 p-4 rounded-3xl border border-[#FFD700]/20">
@@ -389,7 +377,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                       <h3 className="text-3xl font-black text-white truncate mb-4">{top3[2].user}</h3>
                       <div className="flex flex-col gap-3">
                         <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                          <span className="block text-[10px] text-orange-700 font-black uppercase tracking-widest mb-1">الإجابات</span>
+                          <span className="block text-[10px] text-orange-700 font-black uppercase tracking-widest mb-1">الجولات الفائزة</span>
                           <span className="text-2xl font-black text-white italic">{top3[2].winCount}</span>
                         </div>
                         <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
@@ -520,8 +508,182 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
         ) : (
           <div className={`flex-1 w-full flex flex-col items-center justify-center mb-24 relative ${gameState === 'ROUND_WIN' ? '' : 'backdrop-blur-2xl'}`}>
 
+            {gameState === 'ROUND_WIN' && (
+              <div className="absolute inset-0 z-[100] flex items-center justify-center animate-in fade-in zoom-in duration-1000">
+                {/* Background Light Effects */}
+                <div className="absolute top-0 left-1/4 w-96 h-96 bg-green-500/20 blur-[150px] animate-pulse"></div>
+                <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500/20 blur-[150px] animate-pulse delay-700"></div>
 
-            <div className={`w-full max-w-5xl transition-all duration-700`}>
+                <div className="text-center relative max-w-7xl w-full mx-6 p-1 bg-gradient-to-b from-white/10 to-transparent rounded-[5rem] shadow-[0_0_100px_rgba(0,0,0,1)] overflow-visible">
+                  <div className="bg-[#050505] rounded-[4.9rem] p-12 relative overflow-hidden">
+                    {/* Animated Decorative Lines */}
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-green-500 to-transparent animate-shimmer"></div>
+
+                    {/* Header: Dynamic Banner */}
+                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-full max-w-md px-12 py-4 bg-green-600 rounded-full flex items-center justify-center shadow-[0_15px_50px_rgba(22,163,74,0.5)] z-[110] border-t-4 border-white/20 animate-bounce">
+                      <span className="text-white font-black text-4xl italic tracking-[0.2em] uppercase drop-shadow-lg">VICTORY ACHIEVED!</span>
+                    </div>
+
+                    {roundWinners.length > 0 ? (
+                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 mt-12">
+
+                        {/* MVP / Round Winners Section */}
+                        <div className="lg:col-span-12 flex flex-col items-center mb-4">
+                          {settings.winMode === 'SPEED' ? (
+                            <>
+                              <div className="relative">
+                                <div className="absolute inset-0 bg-yellow-500/30 blur-[100px] rounded-full animate-pulse scale-150"></div>
+                                <div className="relative z-10 flex flex-col items-center">
+                                  <Trophy size={140} className="text-yellow-500 mb-6 animate-float drop-shadow-[0_0_60px_rgba(234,179,8,1)]" fill="currentColor" />
+                                  <div className="bg-gradient-to-r from-yellow-500 to-amber-700 text-black px-10 py-2 rounded-2xl font-black text-xl italic shadow-2xl skew-x-[-12deg] mb-8">
+                                    MVP OF THE ROUND
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-10 animate-in slide-in-from-bottom-20 duration-1000">
+                                <div className="w-56 h-56 rounded-[4rem] border-8 border-green-500 shadow-[0_0_60px_rgba(34,197,94,0.5)] overflow-hidden bg-zinc-900 group">
+                                  {roundWinners[0].avatar ? (
+                                    <img src={roundWinners[0].avatar} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-green-500 font-black text-8xl">{roundWinners[0].user.charAt(0)}</div>
+                                  )}
+                                </div>
+                                <div className="text-right">
+                                  <h2 className="text-8xl font-black text-white italic tracking-tighter green-neon-text mb-4">{roundWinners[0].user}</h2>
+                                  <div className="flex gap-4">
+                                    <div className="bg-green-500 text-black px-6 py-3 rounded-2xl font-black text-2xl italic flex items-center gap-3">
+                                      <Clock size={24} /> {roundWinners[0].responseTime.toFixed(3)}s
+                                    </div>
+                                    <div className="bg-white/10 text-white px-6 py-3 rounded-2xl font-black text-2xl italic border border-white/20">
+                                      Total Wins: {roundWinners[0].winCountBefore + 1}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </>
+                          ) : (
+                            <div className="w-full flex flex-col items-center">
+                              <h3 className="text-green-500 font-black tracking-[0.6em] text-3xl uppercase mb-12 italic drop-shadow-[0_0_20px_rgba(34,197,94,0.5)]">قائمة الرابحين في هذه الجولة</h3>
+                              <div className="flex flex-wrap justify-center gap-10 mb-12">
+                                {roundWinners.slice(0, 15).map((w, idx) => (
+                                  <div key={idx} className="flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-500" style={{ animationDelay: `${idx * 100}ms` }}>
+                                    <div className="w-32 h-32 rounded-[2.5rem] border-4 border-green-500 overflow-hidden shadow-[0_0_40px_rgba(34,197,94,0.4)] bg-black relative">
+                                      {w.avatar ? <img src={w.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-white/20 font-black text-5xl">{w.user.charAt(0)}</div>}
+                                      <div className="absolute -bottom-2 -right-2 bg-green-500 text-black w-10 h-10 rounded-full flex items-center justify-center font-black border-2 border-black text-xl shadow-lg">✓</div>
+                                    </div>
+                                    <div className="text-center">
+                                      <span className="text-white font-black text-2xl italic drop-shadow-md block">{w.user}</span>
+                                      <span className="text-green-500 font-mono text-sm font-bold italic">{w.responseTime.toFixed(3)}s</span>
+                                    </div>
+                                  </div>
+                                ))}
+                                {roundWinners.length > 15 && (
+                                  <div className="w-32 h-32 rounded-[2.5rem] bg-green-500/20 border-4 border-green-500/40 flex items-center justify-center text-green-400 font-black text-4xl backdrop-blur-md">
+                                    +{roundWinners.length - 15}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="text-4xl font-black text-white italic drop-shadow-lg"><span className="text-green-500">{roundWinners.length}</span> لاعب حـصدوا النقاط بنجاح</div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Middle: Standings Leaderboard (Top 30 Overall) */}
+                        <div className="lg:col-span-12 bg-white/5 rounded-[3rem] p-8 border border-white/10 backdrop-blur-3xl relative overflow-hidden">
+                          <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/5 blur-3xl rounded-full"></div>
+                          <h3 className="text-white/40 font-black text-xl uppercase tracking-[0.5em] mb-8 italic flex items-center justify-center gap-4">
+                            <Star size={20} className="text-yellow-500" />
+                            ترتيب المتصدرين حالياً (TOP 30)
+                            <Star size={20} className="text-yellow-500" />
+                          </h3>
+
+                          {/* Prominent Top 3 */}
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                            {[0, 1, 2].map(rank => {
+                              const player = winnersList[rank];
+                              const colors = ['#FFD700', '#C0C0C0', '#CD7F32'];
+                              if (!player) return (
+                                <div key={rank} className="bg-black/40 border border-white/5 rounded-3xl p-6 opacity-30 flex items-center justify-center italic text-white/50 border-dashed">
+                                  {rank + 1} - بانتظار البطل
+                                </div>
+                              );
+                              return (
+                                <div key={rank} className="bg-white/5 border-2 rounded-3xl p-6 flex items-center gap-6 relative overflow-hidden group hover:scale-[1.03] transition-all shadow-xl" style={{ borderColor: `${colors[rank]}40` }}>
+                                  <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-white/10 to-transparent rounded-bl-[2rem]"></div>
+                                  <div className="text-6xl font-black italic opacity-10 absolute left-4 select-none pointer-events-none" style={{ color: colors[rank] }}>#{rank + 1}</div>
+                                  <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 z-10 shadow-lg" style={{ borderColor: colors[rank] }}>
+                                    {player.avatar ? <img src={player.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-white/20">{player.user.charAt(0)}</div>}
+                                  </div>
+                                  <div className="z-10">
+                                    <div className="text-2xl font-black text-white truncate max-w-[150px]">{player.user}</div>
+                                    <div className="text-sm font-bold opacity-80 flex gap-3 uppercase font-mono">
+                                      <span className="text-kick-green">{player.winCount} Wins</span>
+                                      <span className="text-white/40">|</span>
+                                      <span className="text-blue-400">{player.averageTime.toFixed(2)}s</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+
+                          {/* Rankings 4 - 30 (Compact Scrollable Grid) */}
+                          <div className="max-h-72 overflow-y-auto custom-scrollbar pr-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                            {Array.from({ length: 27 }).map((_, i) => {
+                              const rank = i + 3;
+                              const player = winnersList[rank];
+                              if (!player) return null;
+                              return (
+                                <div key={rank} className="bg-white/5 rounded-2xl p-4 flex items-center gap-4 border border-white/5 hover:bg-white/10 transition-all group relative overflow-hidden">
+                                  <div className="absolute inset-0 bg-gradient-to-r from-green-500/0 via-green-500/0 to-green-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                  <span className="text-white/20 font-black text-sm w-6">#{rank + 1}</span>
+                                  <div className="w-10 h-10 rounded-xl overflow-hidden border border-white/20 flex-shrink-0">
+                                    {player.avatar ? <img src={player.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-xs">{player.user.charAt(0)}</div>}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <div className="text-sm font-black text-white truncate">{player.user}</div>
+                                    <div className="text-[10px] font-bold text-kick-green uppercase">{player.winCount} Wins</div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                            {winnersList.length <= 3 && (
+                              <div className="col-span-full py-10 text-center text-white/10 font-black text-xl italic uppercase tracking-widest border-2 border-dashed border-white/5 rounded-3xl">
+                                No further legends recorded yet
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Bottom: Action Group */}
+                        <div className="lg:col-span-12 flex justify-center mt-10">
+                          <button onClick={nextRound} className="group relative px-24 py-8 bg-white text-black font-black rounded-[3rem] text-4xl shadow-[0_20px_80px_rgba(255,255,255,0.2)] hover:scale-105 active:scale-95 transition-all flex items-center gap-6 italic overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-black/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                            الجولة التالية <ArrowRight size={40} className="group-hover:translate-x-3 transition-transform" />
+                          </button>
+                        </div>
+
+                      </div>
+                    ) : (
+                      <div className="py-24 flex flex-col items-center">
+                        <div className="w-48 h-48 rounded-full border-8 border-red-600 flex items-center justify-center mb-12 bg-red-600/10 animate-pulse shadow-[0_0_100px_rgba(220,38,38,0.5)]">
+                          <Skull size={100} className="text-red-600" />
+                        </div>
+                        <h2 className="text-8xl font-black text-red-500 italic uppercase tracking-tighter mb-6 red-neon-text">TIME OVER</h2>
+                        <p className="text-white/40 font-black text-2xl uppercase tracking-[1em] mb-16">No Legends Found</p>
+
+                        <button onClick={nextRound} className="group px-16 py-6 bg-white/5 border-2 border-white/10 hover:bg-white/20 text-white font-black rounded-3xl text-3xl transition-all flex items-center gap-6">
+                          المتابعة للجولة القادمة <ArrowRight className="group-hover:translate-x-2 transition-transform" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className={`w-full max-w-5xl transition-all duration-700 ${gameState === 'ROUND_WIN' ? 'blur-2xl opacity-20 scale-95' : 'scale-100 opacity-100'}`}>
               <div className="relative overflow-visible p-10 md:p-16">
                 {/* --- Integrated Status Bar --- */}
                 <div className="absolute -top-6 inset-x-12 flex items-center justify-between z-20">
@@ -554,13 +716,11 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                 </div>
 
                 {/* Question Section */}
-                <div className="text-center mb-12 mt-4 px-6 relative z-10 animate-in slide-in-from-top-10 duration-700">
-                  <div className="inline-block bg-red-600/10 border border-red-600/20 px-4 py-1 rounded-full text-red-500 font-bold text-xs uppercase tracking-widest mb-4">Tactical Question</div>
+                <div className="text-center mb-12 mt-4 px-6 relative z-10">
                   <h2 className="text-5xl md:text-7xl font-black text-white leading-tight italic tracking-tighter drop-shadow-[0_10px_30px_rgba(0,0,0,1)]">
                     {questions[currentIndex]?.text}
                   </h2>
                 </div>
-
 
                 {/* Options Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full relative z-10">
@@ -600,15 +760,14 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                   })}
                 </div>
 
-                {gameState === 'ROUND_WIN' && (
-                  <div className="absolute bottom-6 right-10 z-[120]">
-                    <button
-                      onClick={nextRound}
-                      className="group relative px-12 py-6 bg-white text-black font-black rounded-[3rem] text-2xl shadow-[0_10px_40px_rgba(255,255,255,0.2)] hover:scale-105 active:scale-95 transition-all flex items-center gap-4 italic overflow-hidden"
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-black/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-                      التالي <ArrowRight size={28} className="group-hover:translate-x-2 transition-transform" />
-                    </button>
+                {/* Streamer Manual Controls */}
+                {!isOBS && (
+                  <div className="mt-12 flex flex-col items-center gap-6 relative z-50">
+                    {gameState === 'PLAYING' && timer === 0 && (
+                      <button onClick={() => handleRoundEnd(null)} className="group px-16 py-6 bg-red-600 hover:bg-red-500 text-white font-black rounded-full text-3xl shadow-[0_0_50px_rgba(220,38,38,0.5)] animate-pulse transition-all flex items-center gap-4">
+                        <Eye size={32} /> اعـلان الـفـائزيـن
+                      </button>
+                    )}
                   </div>
                 )}
 
