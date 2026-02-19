@@ -110,20 +110,20 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onChangeV
         </div>
 
         {/* Top Section: Chat Content */}
-        <div className="flex-[1.5] min-h-0 overflow-hidden flex flex-col">
+        <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
           <ChatWidget lang="ar" />
         </div>
 
         {/* Bottom Section: Game Controls */}
         {!isHome && (
-          <div className="flex-1 min-h-0 border-t-2 border-white/10 bg-gradient-to-b from-black/60 to-red-950/10 backdrop-blur-3xl flex flex-col relative">
+          <div className="flex-[1.2] min-h-0 border-t-2 border-white/10 bg-gradient-to-b from-black/60 to-red-950/10 backdrop-blur-3xl flex flex-col relative">
             <div className="p-5 border-b border-white/10 flex items-center gap-4 bg-black/40">
               <div className="p-2 bg-red-600 rounded-lg shadow-[0_0_15px_rgba(255,0,0,0.4)]">
                 <Settings2 size={20} className="text-white animate-spin-slow" />
               </div>
               <span className="text-sm font-black text-white uppercase tracking-[0.2em]">إعدادات الـمـيـدان</span>
             </div>
-            <div id="game-sidebar-portal" className="flex-1 overflow-y-auto custom-scrollbar p-6">
+            <div id="game-sidebar-portal" className="flex-1 overflow-y-auto custom-scrollbar">
               {/* Game-specific controls teleported here */}
             </div>
             <div className="absolute bottom-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent via-red-600 to-transparent shadow-[0_0_20px_red]"></div>
