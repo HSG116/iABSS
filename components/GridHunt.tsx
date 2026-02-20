@@ -60,6 +60,7 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
    const [winner, setWinner] = useState<{ name: string, avatar?: string } | null>(null);
    const [scoreBoard, setScoreBoard] = useState<{ name: string, score: number, avatar?: string, attempts: number }[]>([]);
    const [lastAction, setLastAction] = useState<{ text: string, type: 'good' | 'bad' | 'neutral' } | null>(null);
+   const [hoveredCell, setHoveredCell] = useState<{ r: number, c: number } | null>(null);
 
    const phaseRef = useRef(phase);
    const gridRef = useRef(grid);
@@ -108,7 +109,7 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
 
          if (currentPhase !== 'PLAYING') return;
 
-         const match = content.match(/^([A-J])\s*(\d+)$/);
+         const match = content.match(/^([A-Z])\s*(\d+)$/);
          if (match) {
             const colChar = match[1];
             const rowNum = parseInt(match[2]);
@@ -189,11 +190,24 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                {/* Central Settings Panel */}
                <div className="bg-zinc-900/90 backdrop-blur-3xl p-8 rounded-[2.5rem] border-2 border-white/10 shadow-2xl space-y-6">
                   <div className="space-y-4">
-                     <div className="space-y-2">
-                        <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest pl-2 italic">نظام الدخول</label>
-                        <div className="grid grid-cols-1 gap-2">
-                           <button onClick={() => setSettings({ ...settings, entryMode: 'OPEN' })} className={`py-3 rounded-xl border-2 transition-all font-black text-[10px] ${settings.entryMode === 'OPEN' ? 'bg-red-600 border-red-400 text-white shadow-xl' : 'bg-black/40 border-white/5 text-gray-500'}`}>دخل مفتوح</button>
-                           <button onClick={() => setSettings({ ...settings, entryMode: 'WAITING' })} className={`py-3 rounded-xl border-2 transition-all font-black text-[10px] ${settings.entryMode === 'WAITING' ? 'bg-red-600 border-red-400 text-white shadow-xl' : 'bg-black/40 border-white/5 text-gray-500'}`}>شاشة انتظار</button>
+                     <div className="space-y-3">
+                        <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest pl-2 italic">حجم الخريطة (GRID SIZE)</label>
+                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+                           {[10, 15, 20, 25, 30].map(size => (
+                              <button
+                                 key={size}
+                                 onClick={() => setSettings({ ...settings, rows: size, cols: size })}
+                                 className={`py-3 rounded-xl border-2 transition-all font-black text-[12px] ${settings.rows === size ? 'bg-red-600 border-red-400 text-white shadow-xl scale-105' : 'bg-black/40 border-white/5 text-gray-500 hover:border-red-500/30'}`}
+                              >
+                                 {size}x{size}
+                              </button>
+                           ))}
+                           <button
+                              onClick={() => setSettings({ ...settings, rows: 5, cols: 5 })}
+                              className={`py-3 rounded-xl border-2 transition-all font-black text-[12px] ${settings.rows === 5 ? 'bg-red-600 border-red-400 text-white shadow-xl scale-105' : 'bg-black/40 border-white/5 text-gray-500 hover:border-red-500/30'}`}
+                           >
+                              5x5 (Mini)
+                           </button>
                         </div>
                      </div>
 
@@ -267,7 +281,7 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                      {scoreBoard.sort((a, b) => b.attempts - a.attempts).map((p, i) => (
                         <div key={i} className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/5">
                            <div className="flex items-center gap-3">
-                              <div className="w-6 h-6 rounded-lg overflow-hidden border border-white/10"><img src={p.avatar} className="w-full h-full object-cover" /></div>
+                              <div className="w-6 h-6 rounded-lg overflow-hidden border-2 border-white/10"><img src={p.avatar} className="w-full h-full object-cover" /></div>
                               <span className="text-[9px] font-bold text-gray-400 truncate max-w-[100px]">{p.name}</span>
                            </div>
                            <div className={`text-[9px] font-mono font-black border px-2 py-0.5 rounded-lg ${p.attempts >= settings.maxAttempts ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-white/5 text-gray-600'}`}>{p.attempts}/{settings.maxAttempts || '∞'}</div>
@@ -308,24 +322,60 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                <div className="relative bg-zinc-950/80 p-6 md:p-8 rounded-[3rem] border-4 border-white/5 shadow-[0_40px_100px_rgba(0,0,0,0.8)]">
 
                   {/* Unified Grid with Labels */}
-                  <div className={`grid gap-1 md:gap-1.5`} style={{
-                     gridTemplateColumns: `30px repeat(${settings.cols}, ${isOBS ? '30px' : '40px'})`,
-                     gridTemplateRows: `30px repeat(${settings.rows}, ${isOBS ? '30px' : '40px'})`
+                  <div className={`grid gap-1 md:gap-1.5 relative`} style={{
+                     gridTemplateColumns: `35px repeat(${settings.cols}, ${settings.cols > 15 || isOBS ? '25px' : '40px'})`,
+                     gridTemplateRows: `35px repeat(${settings.rows}, ${settings.cols > 15 || isOBS ? '25px' : '40px'})`
                   }}>
+                     {/* Scanner Highlights */}
+                     {hoveredCell && (
+                        <>
+                           <div
+                              className="absolute bg-white/5 pointer-events-none z-0 transition-all duration-150"
+                              style={{
+                                 top: 35 + hoveredCell.r * (settings.cols > 15 || isOBS ? 25 + 4 : 40 + 4), // Approximate gap
+                                 left: 35,
+                                 right: 0,
+                                 height: (settings.cols > 15 || isOBS ? 25 : 40),
+                                 borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+                                 borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                              }}
+                           />
+                           <div
+                              className="absolute bg-white/5 pointer-events-none z-0 transition-all duration-150"
+                              style={{
+                                 left: 35 + hoveredCell.c * (settings.cols > 15 || isOBS ? 25 + 4 : 40 + 4),
+                                 top: 35,
+                                 bottom: 0,
+                                 width: (settings.cols > 15 || isOBS ? 25 : 40),
+                                 borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
+                                 borderRight: '1px solid rgba(255, 255, 255, 0.1)',
+                              }}
+                           />
+                        </>
+                     )}
 
                      {/* Corner */}
                      <div className="flex items-center justify-center opacity-10"><Target size={14} className="text-white" /></div>
 
-                     {/* Column Labels (A-J) */}
-                     {COL_LABELS.map(c => (
-                        <div key={c} className="flex items-center justify-center font-black text-sm md:text-xl text-zinc-700 italic">{c}</div>
+                     {/* Column Labels (A-Z) */}
+                     {COL_LABELS.map((c, i) => (
+                        <div
+                           key={c}
+                           className={`flex items-center justify-center font-black text-sm md:text-xl italic transition-all duration-300 rounded-lg ${hoveredCell?.c === i ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.5)]' : 'text-red-500/80'}`}
+                        >
+                           {c}
+                        </div>
                      ))}
 
                      {/* Rows (Label + Cells) */}
                      {ROW_LABELS.map((r, rIdx) => (
                         <React.Fragment key={r}>
                            {/* Row Label */}
-                           <div className="flex items-center justify-center font-black text-sm md:text-xl text-zinc-700 italic">{r}</div>
+                           <div
+                              className={`flex items-center justify-center font-black text-sm md:text-xl italic transition-all duration-300 rounded-lg ${hoveredCell?.r === rIdx ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.5)]' : 'text-red-500/80'}`}
+                           >
+                              {r}
+                           </div>
 
                            {/* Grid Cells for this row */}
                            {COL_LABELS.map((c, cIdx) => {
@@ -338,16 +388,18 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                                  <div
                                     id={`cell-${idx}`}
                                     key={idx}
+                                    onMouseEnter={() => setHoveredCell({ r: rIdx, c: cIdx })}
+                                    onMouseLeave={() => setHoveredCell(null)}
                                     className={`
-                          rounded-lg border-[1px] md:border-2 flex items-center justify-center transition-all duration-500 relative overflow-hidden group
-                          ${!isRevealed ? 'bg-[#05070a] border-white/5 hover:border-red-500/40 hover:bg-zinc-900 cursor-crosshair' : 'border-transparent'}
-                          ${isRevealed && cell.type === 'TREASURE' ? 'bg-gradient-to-br from-blue-700/80 to-blue-950 shadow-lg' : ''}
-                          ${isRevealed && cell.type === 'BOMB' ? 'bg-gradient-to-br from-red-600 to-red-950 opacity-80' : ''}
-                        `}
+                           rounded-lg border-[1px] md:border-2 flex items-center justify-center transition-all duration-500 relative overflow-hidden group z-10
+                           ${!isRevealed ? 'bg-[#05070a] border-white/5 hover:border-red-500 hover:bg-zinc-900 cursor-crosshair' : 'border-transparent'}
+                           ${isRevealed && cell.type === 'TREASURE' ? 'bg-gradient-to-br from-blue-700/80 to-blue-950 shadow-lg' : ''}
+                           ${isRevealed && cell.type === 'BOMB' ? 'bg-gradient-to-br from-red-600 to-red-950 opacity-80' : ''}
+                         `}
                                  >
                                     {!isRevealed && (
                                        settings.showCellCoordinates ? (
-                                          <span className="text-[8px] md:text-[10px] font-black text-white/10 group-hover:text-red-500/40 transition-colors uppercase italic pointer-events-none">{coord}</span>
+                                          <span className={`text-[8px] md:text-[10px] font-black transition-colors uppercase italic pointer-events-none drop-shadow-lg ${hoveredCell?.r === rIdx && hoveredCell?.c === cIdx ? 'text-white scale-125' : 'text-white/40 group-hover:text-red-500'}`}>{coord}</span>
                                        ) : (
                                           <div className="w-1 h-1 rounded-full bg-white/5 group-hover:bg-red-500/20 transition-all"></div>
                                        )
