@@ -134,7 +134,10 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
       .replace(/[أإآ]/g, 'ا')
       .replace(/ة/g, 'ه')
       .replace(/ى/g, 'ي')
-      .replace(/[\u064B-\u0652]/g, '');
+      .replace(/[ؤئ]/g, 'ء')
+      .replace(/[\u064B-\u0652]/g, '') // Remove Harakat
+      .replace(/\s+/g, ' ') // Normalize spaces
+      .trim();
   };
 
   useEffect(() => {
@@ -152,9 +155,8 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
       const normalizedUser = normalizeArabic(msg.content);
       const normalizedCorrect = normalizeArabic(rawCorrectText);
 
-      const isExactMatch = normalizedUser === normalizedCorrect;
-      const isPartialMatch = (normalizedUser.length >= 3) && (normalizedUser.includes(normalizedCorrect) || normalizedCorrect.includes(normalizedUser));
-      const isTextMatch = isExactMatch || isPartialMatch;
+      // Strict match after robust normalization
+      const isTextMatch = normalizedUser === normalizedCorrect;
 
       if (isTextMatch) {
         const responseTime = (Date.now() - roundStartTimeRef.current) / 1000;
@@ -182,7 +184,11 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
         if (settingsRef.current.winMode === 'SPEED') {
           handleRoundEnd(winnerObj);
         } else {
-          setRoundWinners(prev => [...prev, winnerObj]);
+          setRoundWinners(prev => {
+            const next = [...prev, winnerObj];
+            // Sort by speed immediately for precise round rankings
+            return next.sort((a, b) => a.responseTime - b.responseTime);
+          });
         }
       }
     });
@@ -191,15 +197,21 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
 
   const handleRoundEnd = async (singleWinner: RoundWinnerInfo | null) => {
     if (gameStateRef.current !== 'PLAYING') return;
-    const winners = settingsRef.current.winMode === 'SPEED' ? (singleWinner ? [singleWinner] : []) : roundWinners;
+
+    // In speed mode, we only take the first person. In points mode, we take everyone who answered.
+    const winners = settingsRef.current.winMode === 'SPEED'
+      ? (singleWinner ? [singleWinner] : [])
+      : [...roundWinners].sort((a, b) => a.responseTime - b.responseTime);
 
     setGameState('ROUND_WIN');
     setRoundWinners(winners);
     setRoundWinner(winners.length > 0 ? winners[0] : null);
 
     if (winners.length > 0) {
-      winners.forEach(async (w) => {
-        await leaderboardService.recordWin(w.user, w.avatar, 50);
+      // Awarding points based on rank in the round for fairness
+      winners.forEach(async (w, index) => {
+        const points = index === 0 ? 100 : index === 1 ? 50 : 25; // First gets more
+        await leaderboardService.recordWin(w.user, w.avatar, points);
       });
 
       setWinnersList(prev => {
@@ -225,6 +237,8 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
             });
           }
         });
+
+        // GLOBAL RANKING: Rounds Won (Primary), Avg Speed (Secondary)
         return newList.sort((a, b) => {
           if (b.winCount !== a.winCount) return b.winCount - a.winCount;
           return a.averageTime - b.averageTime;
@@ -525,8 +539,18 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                       <span className="text-white font-black text-3xl italic tracking-[0.2em] uppercase drop-shadow-lg">ROUND OVER</span>
                     </div>
 
+                    {/* Correct Answer Display - NEW */}
+                    <div className="mt-12 mb-8 animate-in slide-in-from-top duration-700">
+                      <p className="text-gray-500 font-bold text-xs tracking-widest uppercase mb-2">الإجابة الصحيحة هي:</p>
+                      <div className="inline-block bg-white/10 px-12 py-4 rounded-[2rem] border-2 border-green-500/50 shadow-[0_0_30px_rgba(34,197,94,0.2)]">
+                        <span className="text-4xl md:text-5xl font-black text-green-500 italic drop-shadow-sm">
+                          {questions[currentIndex]?.options[questions[currentIndex]?.correctIndex]}
+                        </span>
+                      </div>
+                    </div>
+
                     {roundWinners.length > 0 ? (
-                      <div className="flex flex-col items-center mt-12">
+                      <div className="flex flex-col items-center">
                         {settings.winMode === 'SPEED' ? (
                           <div className="w-full flex flex-col items-center">
                             <div className="relative mb-8">
@@ -573,21 +597,17 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                         <div className="w-full bg-white/[0.03] rounded-[3rem] p-8 border border-white/10 backdrop-blur-xl relative overflow-hidden mb-10">
                           <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/5 blur-3xl rounded-full"></div>
                           <div className="flex flex-col md:flex-row items-center justify-between mb-8 px-4 gap-4">
-                            <h4 className="text-white/40 font-black text-sm uppercase tracking-[0.5em] italic">TOP PERFORMANCE RANKING</h4>
+                            <h4 className="text-white/40 font-black text-sm uppercase tracking-[0.5em] italic">ROUND PERFORMANCE</h4>
                             <div className="flex gap-4">
                               <div className="bg-red-600/20 px-4 py-2 rounded-xl border border-red-500/30 flex items-center gap-3 shadow-[0_0_20px_rgba(220,38,38,0.2)]">
-                                <span className="text-[10px] text-red-500 font-black uppercase">AVG SPEED:</span>
+                                <span className="text-[10px] text-red-500 font-black uppercase">ROUND AVG:</span>
                                 <span className="text-2xl font-black text-white italic font-mono">{(roundWinners.reduce((acc, curr) => acc + curr.responseTime, 0) / (roundWinners.length || 1)).toFixed(3)}s</span>
-                              </div>
-                              <div className="bg-white/5 px-4 py-2 rounded-xl border border-white/10 flex items-center gap-3 shadow-lg">
-                                <span className="text-[10px] text-white/40 font-black uppercase">PARTICIPANTS:</span>
-                                <span className="text-2xl font-black text-white italic font-mono">{roundWinners.length}</span>
                               </div>
                             </div>
                           </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                            {winnersList.slice(0, 3).map((player, idx) => (
+                            {roundWinners.slice(0, 3).map((player, idx) => (
                               <div key={idx} className={`p-4 rounded-3xl flex items-center gap-4 border transition-all bg-black/40 relative overflow-hidden group hover:scale-[1.02] shadow-2xl ${idx === 0 ? 'border-yellow-500/50 shadow-yellow-500/10' : 'border-white/5'}`}>
                                 <div className="absolute top-0 right-0 w-12 h-12 bg-gradient-to-bl from-white/10 to-transparent rounded-bl-2xl opacity-10"></div>
                                 <span className={`text-3xl font-black italic ${idx === 0 ? 'text-yellow-500' : 'text-white/20'}`}>#{idx + 1}</span>
@@ -597,9 +617,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                                 <div className="min-w-0">
                                   <div className="text-lg font-black text-white truncate">{player.user}</div>
                                   <div className="flex gap-2">
-                                    <div className="text-[10px] font-bold text-red-500">{player.winCount} WINS</div>
-                                    <div className="text-white/20 text-[10px]">|</div>
-                                    <div className="text-[10px] font-bold text-blue-400">{player.averageTime.toFixed(3)}s</div>
+                                    <div className="text-[10px] font-bold text-blue-400">TIME: {player.responseTime.toFixed(3)}s</div>
                                   </div>
                                 </div>
                               </div>
@@ -607,7 +625,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                           </div>
 
                           <div className="max-h-64 overflow-y-auto custom-scrollbar pr-4 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                            {winnersList.slice(3, 33).map((player, i) => (
+                            {roundWinners.slice(3, 33).map((player, i) => (
                               <div key={i} className="bg-black/40 rounded-2xl p-3 flex items-center gap-3 border border-white/5 hover:bg-white/10 transition-all group relative overflow-hidden">
                                 <span className="text-white/10 font-black text-[10px] italic">#{i + 4}</span>
                                 <div className="w-10 h-10 rounded-xl overflow-hidden border border-white/10 flex-shrink-0">
@@ -615,7 +633,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                                 </div>
                                 <div className="min-w-0">
                                   <div className="text-xs font-black text-white truncate">{player.user}</div>
-                                  <div className="text-[8px] font-bold text-red-500">{player.winCount} WINS</div>
+                                  <div className="text-[8px] font-bold text-blue-400">{player.responseTime.toFixed(2)}s</div>
                                 </div>
                               </div>
                             ))}

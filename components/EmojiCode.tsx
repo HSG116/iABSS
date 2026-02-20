@@ -40,13 +40,14 @@ type GamePhase = 'SETUP' | 'LOBBY' | 'LOADING' | 'QUESTION' | 'ANSWERED' | 'BETW
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 
 const normalizeArabic = (text: string) => {
-    return text
-        .replace(/[\u064B-\u065F]/g, '') // Remove tashkeel
-        .replace(/[إأآء]/g, 'ا')
-        .replace(/ؤ/g, 'و')
-        .replace(/ئ/g, 'ي')
+    if (!text) return "";
+    return text.trim().toLowerCase()
+        .replace(/[أإآ]/g, 'ا')
         .replace(/ة/g, 'ه')
         .replace(/ى/g, 'ي')
+        .replace(/[ؤئ]/g, 'ء')
+        .replace(/[\u064B-\u0652]/g, '') // Remove Harakat
+        .replace(/\s+/g, ' ') // Normalize spaces
         .trim();
 };
 
@@ -169,8 +170,11 @@ export const EmojiCode: React.FC<EmojiCodeProps> = ({ onHome, isOBS }) => {
                 const puzzle = currentPuzzleRef.current;
                 const normalizedContent = normalizeArabic(content);
                 const isCorrect = puzzle.answers.some(a => {
-                    const normalizedAnswer = normalizeArabic(a.toLowerCase());
-                    return normalizedContent === normalizedAnswer || normalizedContent.includes(normalizedAnswer);
+                    const normalizedAnswer = normalizeArabic(a);
+                    const isExact = normalizedContent === normalizedAnswer;
+                    const isUserInside = normalizedAnswer.includes(normalizedContent) && normalizedContent.length >= 3;
+                    const isAnswerInside = normalizedContent.includes(normalizedAnswer) && normalizedAnswer.length >= 2;
+                    return isExact || isUserInside || isAnswerInside;
                 });
 
                 if (isCorrect) {
