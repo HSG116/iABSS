@@ -39,6 +39,7 @@ import {
   Sword, Globe, Brain, Vote, Bomb, Type, Footprints, Flame, Smile,
   ArrowUp, ArrowDown, Edit2, Save, Eye, EyeOff, Maximize, Minimize
 } from 'lucide-react';
+import { getAssetUrl } from './utils/assets';
 import { chatService } from './services/chatService';
 import { supabase, leaderboardService, gamesService } from './services/supabase';
 import { OBSLinksModal } from './components/OBSLinksModal';
@@ -100,7 +101,7 @@ const ProAvatar = ({ url, username, frameUrl, size = "w-14 h-14" }: { url?: stri
       </div>
       {frameUrl && (
         <div className="absolute inset-0 z-10 pointer-events-none scale-110">
-          <img src={frameUrl} className="w-full h-full object-contain" alt="" />
+          <img src={getAssetUrl(frameUrl)} className="w-full h-full object-contain" alt="" />
         </div>
       )}
     </div>

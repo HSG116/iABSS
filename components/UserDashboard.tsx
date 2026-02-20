@@ -6,6 +6,7 @@ import {
     ArrowRight, Box, Palette, Image as ImageIcon
 } from 'lucide-react';
 import { supabase } from '../services/supabase';
+import { getAssetUrl } from '../utils/assets';
 
 interface UserDashboardProps {
     userData: {
@@ -89,7 +90,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ userData }) => {
                             )}
                         </div>
                         {activeFrame && (
-                            <img src={activeFrame} className="absolute inset-0 w-full h-full object-contain pointer-events-none scale-125" alt="Frame" />
+                            <img src={getAssetUrl(activeFrame)} className="absolute inset-0 w-full h-full object-contain pointer-events-none scale-125" alt="Frame" />
                         )}
                     </div>
                     <div className="overflow-hidden">
@@ -305,7 +306,7 @@ const Store = ({ userId, kickUsername, points, onPurchase }: any) => {
                                 <div className="w-20 h-20 bg-zinc-800 rounded-2xl overflow-hidden border border-white/10 relative">
                                     <User size={40} className="m-auto mt-5 text-zinc-700" />
                                     {item.image_url && (
-                                        <img src={item.image_url} className="absolute inset-0 w-full h-full object-contain scale-125" alt="" />
+                                        <img src={getAssetUrl(item.image_url)} className="absolute inset-0 w-full h-full object-contain scale-125" alt="" />
                                     )}
                                 </div>
 
@@ -444,7 +445,7 @@ const Locker = ({ userId, onEquipChanged }: any) => {
                                 <div className="w-20 h-20 bg-zinc-800 rounded-2xl overflow-hidden border border-white/10 relative">
                                     <User size={40} className="m-auto mt-5 text-zinc-700" />
                                     {inv.store_items.image_url && (
-                                        <img src={inv.store_items.image_url} className="absolute inset-0 w-full h-full object-contain scale-125" alt="" />
+                                        <img src={getAssetUrl(inv.store_items.image_url)} className="absolute inset-0 w-full h-full object-contain scale-125" alt="" />
                                     )}
                                 </div>
 
