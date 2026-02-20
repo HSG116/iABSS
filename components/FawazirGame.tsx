@@ -48,6 +48,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
   const [backgroundImage, setBackgroundImage] = useState<string>('');
   const [avatarCache, setAvatarCache] = useState<Record<string, string>>({});
   const [roundStartTime, setRoundStartTime] = useState<number>(0);
+  const [usedQuestionIds, setUsedQuestionIds] = useState<Set<number>>(new Set());
 
   const [settings, setSettings] = useState<GameSettings>({
     winMode: 'SPEED',
@@ -77,11 +78,22 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
     winnersListRef.current = winnersList;
   }, [questions, currentIndex, gameState, settings, roundStartTime, winnersList]);
 
+  // Keep track of used questions across sessions
+  const usedIdsRef = useRef<Set<number>>(new Set());
+
   useEffect(() => {
-    const filtered = QUESTIONS_DB.filter(q => q.category === category);
-    const shuffled = [...filtered].sort(() => Math.random() - 0.5);
+    // Filter out used questions if possible, otherwise reset
+    let available = QUESTIONS_DB.filter(q => q.category === category && !usedIdsRef.current.has(q.id));
+
+    // If we ran out of new questions, reset the tracker for this category
+    if (available.length < settings.roundsCount) {
+      usedIdsRef.current.clear();
+      available = QUESTIONS_DB.filter(q => q.category === category);
+    }
+
+    const shuffled = [...available].sort(() => Math.random() - 0.5);
     setQuestions(shuffled);
-  }, [category]);
+  }, [category, settings.roundsCount]);
 
   useEffect(() => {
     const bg = AVAILABLE_BACKGROUNDS.find(b => b.id === settings.backgroundId);
@@ -100,8 +112,20 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
   }, [roundWinner]);
 
   const startGame = () => {
-    const gameQuestions = questions.slice(0, settings.roundsCount);
-    if (gameQuestions.length === 0) return;
+    // Re-filter to ensure we don't pick already used questions from the current set
+    const available = questions.filter(q => !usedIdsRef.current.has(q.id));
+    const gameQuestions = available.slice(0, settings.roundsCount);
+
+    if (gameQuestions.length === 0) {
+      // If none available (shouldn't happen with the reset logic), just take what we have
+      const fallback = QUESTIONS_DB.filter(q => q.category === category).slice(0, settings.roundsCount);
+      setQuestions(fallback);
+      gameQuestions.push(...fallback);
+    }
+
+    // Mark these as used immediately
+    gameQuestions.forEach(q => usedIdsRef.current.add(q.id));
+
     setWinnersList([]);
     setCurrentIndex(0);
     setRoundWinners([]);
@@ -155,8 +179,14 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
       const normalizedUser = normalizeArabic(msg.content);
       const normalizedCorrect = normalizeArabic(rawCorrectText);
 
-      // Strict match after robust normalization
-      const isTextMatch = normalizedUser === normalizedCorrect;
+      // Flexible match: Exact OR user wrote half/part of the answer
+      const isExactMatch = normalizedUser === normalizedCorrect;
+      // Partial: "أبو بكر" matches "أبو بكر الصديق"
+      // We check if normalizedCorrect contains the user's answer
+      // AND ensure the user's answer is long enough to avoid spam/accidents (min 3 chars)
+      const isPartialMatch = normalizedCorrect.includes(normalizedUser) && normalizedUser.length >= 3;
+
+      const isTextMatch = isExactMatch || isPartialMatch;
 
       if (isTextMatch) {
         const responseTime = (Date.now() - roundStartTimeRef.current) / 1000;
@@ -175,6 +205,9 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
           chatService.fetchKickAvatar(username).then(av => {
             if (av) {
               const uLower = username.toLowerCase();
+              setAvatarCache(prev => ({ ...prev, [uLower]: av }));
+              // Update current winners if they are on screen
+              setRoundWinners(prev => prev.map(w => w.user.toLowerCase() === uLower ? { ...w, avatar: av } : w));
               setRoundWinner(prev => (prev && prev.user.toLowerCase() === uLower) ? { ...prev, avatar: av } : prev);
               setWinnersList(prev => prev.map(w => w.user.toLowerCase() === uLower ? { ...w, avatar: av } : w));
             }
