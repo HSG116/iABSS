@@ -28,6 +28,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   const [statusMsg, setStatusMsg] = useState('');
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [statType, setStatType] = useState<'points' | 'credits'>('points');
 
   // Ban tool states
   const [banReason, setBanReason] = useState('مخالفة قوانين الدردشة');
@@ -126,15 +127,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
         // Fetch leaderboard data to merge stats (Score/Wins)
         const rankedData = await leaderboardService.getAllRankedPlayers();
 
-        // Create a map for fast lookup
+        // Create a map for fast lookup (lowercase keys)
         const statsMap = new Map();
         rankedData.forEach((p: any) => {
-          statsMap.set(p.username, { score: p.score, wins: p.wins });
+          statsMap.set(p.username?.toLowerCase(), { score: p.score, wins: p.wins });
         });
 
         // Merge and Sort
         const merged = allProfiles.map((p: any) => {
-          const stats = statsMap.get(p.username) || { score: 0, wins: 0 };
+          const stats = statsMap.get(p.username?.toLowerCase()) || { score: 0, wins: 0 };
           return { ...p, ...stats };
         });
 
@@ -172,7 +173,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   const handleAdjustStats = async (isAdding: boolean) => {
     if (!targetUser) return showStatus('يرجى إدخال اسم المستخدم', true);
     const amount = isAdding ? pointDelta : -pointDelta;
-    const { error } = await leaderboardService.adjustPlayerStats(targetUser, amount, isAdding ? 1 : 0);
+
+    let error;
+    if (statType === 'points') {
+      const res = await leaderboardService.adjustPlayerStats(targetUser, amount, isAdding ? 1 : 0);
+      error = res.error;
+    } else {
+      const res = await adminService.adjustCredits(targetUser, amount);
+      error = res.error;
+    }
+
     if (error) showStatus('حدث خطأ', true);
     else {
       showStatus(`تم تحديث رصيد ${targetUser}`);
@@ -420,16 +430,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     <h3 className="text-xl font-black italic mb-6 text-blue-500 flex items-center gap-2 truncate pr-10">Infecting: {targetUser}</h3>
                     <div className="space-y-6">
                       <div className="space-y-3">
-                        <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Injection Quantity</label>
-                        <div className="grid grid-cols-4 gap-2">
-                          {[100, 500, 1000, 5000].map(v => (
-                            <button key={v} onClick={() => setPointDelta(v)} className={`py-2 rounded-xl text-[10px] font-black transition-all ${pointDelta === v ? 'bg-blue-600 text-white' : 'bg-white/5 text-zinc-500'}`}>{v}</button>
-                          ))}
+                        <div className="flex gap-2 p-1 bg-white/5 rounded-xl border border-white/10">
+                          <button onClick={() => setStatType('points')} className={`flex-1 py-2 text-[10px] font-black rounded-lg transition-all ${statType === 'points' ? 'bg-blue-600 text-white' : 'text-zinc-500'}`}>POINTS (نقاط)</button>
+                          <button onClick={() => setStatType('credits')} className={`flex-1 py-2 text-[10px] font-black rounded-lg transition-all ${statType === 'credits' ? 'bg-kick-green text-black' : 'text-zinc-500'}`}>CURRENCY (أرصدة)</button>
                         </div>
                         <input type="number" value={pointDelta} onChange={(e) => setPointDelta(Number(e.target.value))} className="w-full bg-black border border-white/10 rounded-xl p-3 text-center text-white font-black" />
                       </div>
                       <div className="flex gap-4">
-                        <button onClick={() => handleAdjustStats(true)} className="flex-1 py-5 bg-blue-600 text-white font-black rounded-2xl shadow-xl active:scale-95 transition-all">Add Points</button>
+                        <button onClick={() => handleAdjustStats(true)} className={`flex-1 py-5 font-black rounded-2xl shadow-xl active:scale-95 transition-all ${statType === 'points' ? 'bg-blue-600 text-white' : 'bg-kick-green text-black'}`}>
+                          {statType === 'points' ? 'Add Points' : 'Add Credits'}
+                        </button>
                         <button onClick={() => handleAdjustStats(false)} className="px-5 py-5 bg-red-600/10 text-red-500 border border-red-500/20 rounded-2xl"><UserMinus size={20} /></button>
                       </div>
                     </div>

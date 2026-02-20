@@ -42,7 +42,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ userData }) => {
             const { data } = await supabase
                 .from('leaderboard')
                 .select('score')
-                .eq('username', username)
+                .ilike('username', username)
                 .maybeSingle();
 
             if (data) {

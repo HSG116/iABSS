@@ -54,10 +54,10 @@ export const adminService = {
   },
   async adjustCredits(username: string, amount: number) {
     if (!isConfigured) return { error: null };
-    const { data: profile } = await supabase.from('profiles').select('credits').eq('username', username).single();
+    const { data: profile } = await supabase.from('profiles').select('credits').ilike('username', username).maybeSingle();
     if (profile) {
       const newCredits = Math.max(0, (profile.credits || 0) + amount);
-      const { error } = await supabase.from('profiles').update({ credits: newCredits }).eq('username', username);
+      const { error } = await supabase.from('profiles').update({ credits: newCredits }).ilike('username', username);
       if (!error) await this.logAction('SYSTEM', 'CREDITS_ADJUST', { username, amount, final: newCredits });
       return { error };
     }
@@ -215,12 +215,12 @@ export const leaderboardService = {
   },
   async recordWin(username: string, avatarUrl: string, points: number = 10) {
     if (!isConfigured || !username || username === 'Unknown') return;
-    const { data: profile } = await supabase.from('profiles').select('*').eq('username', username).maybeSingle();
+    const { data: profile } = await supabase.from('profiles').select('*').ilike('username', username).maybeSingle();
     if (!profile) {
       await supabase.from('profiles').insert([{ username, avatar_url: avatarUrl }]);
     } else if (profile.is_banned) return;
 
-    const { data: existing } = await supabase.from('leaderboard').select('*').eq('username', username).maybeSingle();
+    const { data: existing } = await supabase.from('leaderboard').select('*').ilike('username', username).maybeSingle();
     if (existing) {
       await supabase.from('leaderboard').update({ wins: (existing.wins || 0) + 1, score: (existing.score || 0) + points, last_win_at: new Date().toISOString() }).eq('id', existing.id);
     } else {
@@ -229,7 +229,7 @@ export const leaderboardService = {
   },
   async adjustPlayerStats(username: string, scoreDelta: number, winsDelta: number) {
     if (!isConfigured) return { error: null };
-    const { data: existing } = await supabase.from('leaderboard').select('*').eq('username', username).maybeSingle();
+    const { data: existing } = await supabase.from('leaderboard').select('*').ilike('username', username).maybeSingle();
     if (existing) {
       return await supabase.from('leaderboard').update({ score: Math.max(0, (existing.score || 0) + scoreDelta), wins: Math.max(0, (existing.wins || 0) + winsDelta) }).eq('id', existing.id);
     } else {
