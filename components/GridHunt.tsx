@@ -361,7 +361,7 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                      {COL_LABELS.map((c, i) => (
                         <div
                            key={c}
-                           className={`flex items-center justify-center font-black text-sm md:text-xl italic transition-all duration-300 rounded-lg ${hoveredCell?.c === i ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.5)]' : 'text-red-500/80'}`}
+                           className={`flex items-center justify-center font-black text-sm md:text-xl italic transition-all duration-300 rounded-lg ${hoveredCell?.c === i ? 'bg-red-600 text-white shadow-[0_0_20px_rgba(220,38,38,0.8)] scale-110' : 'text-red-500/90 drop-shadow-[0_0_8px_rgba(239,68,68,0.4)]'}`}
                         >
                            {c}
                         </div>
@@ -372,7 +372,7 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                         <React.Fragment key={r}>
                            {/* Row Label */}
                            <div
-                              className={`flex items-center justify-center font-black text-sm md:text-xl italic transition-all duration-300 rounded-lg ${hoveredCell?.r === rIdx ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.5)]' : 'text-red-500/80'}`}
+                              className={`flex items-center justify-center font-black text-sm md:text-xl italic transition-all duration-300 rounded-lg ${hoveredCell?.r === rIdx ? 'bg-red-600 text-white shadow-[0_0_20px_rgba(220,38,38,0.8)] scale-110' : 'text-red-500/90 drop-shadow-[0_0_8px_rgba(239,68,68,0.4)]'}`}
                            >
                               {r}
                            </div>
@@ -399,7 +399,7 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                                  >
                                     {!isRevealed && (
                                        settings.showCellCoordinates ? (
-                                          <span className={`text-[8px] md:text-[10px] font-black transition-colors uppercase italic pointer-events-none drop-shadow-lg ${hoveredCell?.r === rIdx && hoveredCell?.c === cIdx ? 'text-white scale-125' : 'text-white/40 group-hover:text-red-500'}`}>{coord}</span>
+                                          <span className={`text-[12px] md:text-[18px] font-black transition-all uppercase italic pointer-events-none drop-shadow-[0_2px_10px_rgba(0,0,0,1)] ${hoveredCell?.r === rIdx && hoveredCell?.c === cIdx ? 'text-white scale-[1.7] z-20 brightness-150' : 'text-white/60 group-hover:text-red-500'}`}>{coord}</span>
                                        ) : (
                                           <div className="w-1 h-1 rounded-full bg-white/5 group-hover:bg-red-500/20 transition-all"></div>
                                        )
