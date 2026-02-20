@@ -22,6 +22,7 @@ type DashboardView = 'OVERVIEW' | 'STORE' | 'LOCKER' | 'RANKINGS' | 'SETTINGS';
 export const UserDashboard: React.FC<UserDashboardProps> = ({ userData }) => {
     const [activeView, setActiveView] = useState<DashboardView>('OVERVIEW');
     const [points, setPoints] = useState(userData.points || 0);
+    const [activeFrame, setActiveFrame] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
     // Sidebar items
@@ -34,32 +35,37 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ userData }) => {
     ];
 
     useEffect(() => {
-        // Fetch latest points from Leaderboard Table (score column)
-        const fetchPoints = async () => {
+        const fetchUserData = async () => {
             const username = (userData.kick_username || (userData as any).kickUsername)?.toLowerCase();
             if (!username) return;
 
-            const { data } = await supabase
+            // 1. Fetch points
+            const { data: lbData } = await supabase
                 .from('leaderboard')
                 .select('score')
                 .ilike('username', username)
                 .maybeSingle();
 
-            if (data) {
-                setPoints(data.score || 0);
-            } else {
-                // If user not in leaderboard, they have 0 points
-                setPoints(0);
-            }
+            if (lbData) setPoints(lbData.score || 0);
+            else setPoints(0);
+
+            // 2. Fetch active frame
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('active_frame_url')
+                .ilike('username', username)
+                .maybeSingle();
+
+            if (profile) setActiveFrame(profile.active_frame_url);
         };
-        fetchPoints();
+        fetchUserData();
     }, [userData]);
 
     const renderView = () => {
         switch (activeView) {
             case 'OVERVIEW': return <Overview userData={{ ...userData, points }} />;
             case 'STORE': return <Store userId={userData.id} kickUsername={userData.kick_username || (userData as any).kickUsername} points={points} onPurchase={(newPoints) => setPoints(newPoints)} />;
-            case 'LOCKER': return <Locker userId={userData.id} />;
+            case 'LOCKER': return <Locker userId={userData.id} onEquipChanged={(frame: string | null) => setActiveFrame(frame)} />;
             case 'RANKINGS': return <Rankings />;
             case 'SETTINGS': return <SettingsSection userData={userData} />;
             default: return <Overview userData={{ ...userData, points }} />;
@@ -72,13 +78,18 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ userData }) => {
             <aside className="w-full md:w-72 bg-zinc-950/50 border-b md:border-b-0 md:border-l border-white/5 p-6 flex flex-col gap-8">
                 {/* Profile Brief */}
                 <div className="flex items-center gap-4 p-4 bg-white/5 rounded-3xl border border-white/10">
-                    <div className="w-12 h-12 rounded-2xl overflow-hidden border border-red-500/30 bg-black flex-shrink-0">
-                        {userData.avatar ? (
-                            <img src={userData.avatar} className="w-full h-full object-cover" alt="" />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-700">
-                                <User size={24} />
-                            </div>
+                    <div className="relative w-14 h-14 flex-shrink-0">
+                        <div className="w-12 h-12 m-1 rounded-2xl overflow-hidden border border-red-500/30 bg-black">
+                            {userData.avatar ? (
+                                <img src={userData.avatar} className="w-full h-full object-cover" alt="" />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-gray-700">
+                                    <User size={24} />
+                                </div>
+                            )}
+                        </div>
+                        {activeFrame && (
+                            <img src={activeFrame} className="absolute inset-0 w-full h-full object-contain pointer-events-none scale-125" alt="Frame" />
                         )}
                     </div>
                     <div className="overflow-hidden">
@@ -290,21 +301,24 @@ const Store = ({ userId, kickUsername, points, onPurchase }: any) => {
                         <div className="absolute -top-10 -right-10 w-32 h-32 bg-red-600/5 blur-3xl rounded-full group-hover:bg-red-600/10 transition-all"></div>
 
                         <div className="relative mb-6">
-                            <div className="w-full aspect-square bg-black/60 rounded-3xl border border-white/5 flex items-center justify-center relative overflow-hidden">
-                                {item.type === 'FRAME' && (
+                            <div className="w-full aspect-square bg-black/60 rounded-3xl border border-white/5 flex items-center justify-center relative overflow-hidden group-hover:bg-black/40 transition-colors">
+                                <div className="w-20 h-20 bg-zinc-800 rounded-2xl overflow-hidden border border-white/10 relative">
+                                    <User size={40} className="m-auto mt-5 text-zinc-700" />
+                                    {item.image_url && (
+                                        <img src={item.image_url} className="absolute inset-0 w-full h-full object-contain scale-125" alt="" />
+                                    )}
+                                </div>
+
+                                {item.type === 'FRAME' && !item.image_url && (
                                     <div className="w-24 h-24 rounded-2xl border-4" style={item.config}>
-                                        <div className="w-full h-full flex items-center justify-center text-white/20"><User size={40} /></div>
                                     </div>
                                 )}
-                                {item.type === 'BADGE' && (
-                                    <div style={{ color: item.config.color || '#ffd700' }}>
-                                        {item.config.icon === 'Crown' ? <Crown size={60} className="drop-shadow-lg" /> : <Trophy size={60} className="drop-shadow-lg" />}
-                                    </div>
-                                )}
-                                {item.type === 'EFFECT' && (
-                                    <div className="relative">
-                                        <Sparkles size={60} className="text-blue-400 animate-pulse" />
-                                        <div className="absolute inset-0 blur-xl bg-blue-500/20 rounded-full"></div>
+
+                                {item.config?.showUsername && (
+                                    <div className="absolute bottom-2 left-0 right-0 text-center">
+                                        <div className="bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded text-[8px] font-black text-white inline-block border border-white/10">
+                                            {kickUsername}
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -336,7 +350,7 @@ const Store = ({ userId, kickUsername, points, onPurchase }: any) => {
     );
 };
 
-const Locker = ({ userId }: any) => {
+const Locker = ({ userId, onEquipChanged }: any) => {
     const [ownedItems, setOwnedItems] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -377,10 +391,24 @@ const Locker = ({ userId }: any) => {
             }
 
             // 2. Toggle the selected item
+            const newStatus = !currentStatus;
             await supabase
                 .from('user_inventory')
-                .update({ is_equipped: !currentStatus })
+                .update({ is_equipped: newStatus })
                 .eq('id', inventoryId);
+
+            // 3. If it's a FRAME, update profiles.active_frame_url
+            if (itemType === 'FRAME') {
+                const { data: itemData } = await supabase
+                    .from('store_items')
+                    .select('image_url')
+                    .eq('id', (ownedItems.find(i => i.id === inventoryId))?.item_id)
+                    .single();
+
+                const frameUrl = newStatus ? itemData?.image_url : null;
+                await supabase.from('profiles').update({ active_frame_url: frameUrl }).eq('id', userId);
+                if (onEquipChanged) onEquipChanged(frameUrl);
+            }
 
             // Refresh
             const { data } = await supabase
@@ -413,11 +441,18 @@ const Locker = ({ userId }: any) => {
                     {ownedItems.map((inv) => (
                         <div key={inv.id} className={`bg-white/[0.03] border rounded-[2rem] p-6 transition-all group ${inv.is_equipped ? 'border-green-500/50 shadow-[0_0_30px_rgba(34,197,94,0.1)]' : 'border-white/10'}`}>
                             <div className="w-full aspect-square bg-black/60 rounded-3xl border border-white/5 flex items-center justify-center mb-6 relative overflow-hidden">
-                                {inv.store_items.type === 'FRAME' && (
+                                <div className="w-20 h-20 bg-zinc-800 rounded-2xl overflow-hidden border border-white/10 relative">
+                                    <User size={40} className="m-auto mt-5 text-zinc-700" />
+                                    {inv.store_items.image_url && (
+                                        <img src={inv.store_items.image_url} className="absolute inset-0 w-full h-full object-contain scale-125" alt="" />
+                                    )}
+                                </div>
+
+                                {inv.store_items.type === 'FRAME' && !inv.store_items.image_url && (
                                     <div className="w-24 h-24 rounded-2xl border-4" style={inv.store_items.config}>
-                                        <div className="w-full h-full flex items-center justify-center text-white/20"><User size={40} /></div>
                                     </div>
                                 )}
+
                                 {inv.is_equipped && (
                                     <div className="absolute top-4 right-4 animate-in zoom-in duration-300">
                                         <div className="bg-green-500 text-black px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-green-500/20">

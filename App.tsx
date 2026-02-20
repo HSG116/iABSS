@@ -50,7 +50,7 @@ const ICON_MAP: Record<string, any> = {
 };
 
 // Premium Avatar Component with Auto-Fix for Kick Images
-const ProAvatar = ({ url, username, size = "w-14 h-14" }: { url?: string, username: string, size?: string }) => {
+const ProAvatar = ({ url, username, frameUrl, size = "w-14 h-14" }: { url?: string, username: string, frameUrl?: string, size?: string }) => {
   const [src, setSrc] = React.useState(url);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
 
@@ -76,8 +76,8 @@ const ProAvatar = ({ url, username, size = "w-14 h-14" }: { url?: string, userna
     }
   };
 
-  return (
-    <div className={`${size} rounded-2xl overflow-hidden border-2 border-white/10 group-hover:border-iabs-red transition-all relative flex-shrink-0 bg-zinc-900 shadow-lg`}>
+  <div className={`relative ${size}`}>
+    <div className={`w-[85%] h-[85%] absolute inset-[7.5%] rounded-2xl overflow-hidden border-2 border-white/10 group-hover:border-iabs-red transition-all flex-shrink-0 bg-zinc-900 shadow-lg`}>
       {src ? (
         <img
           src={src}
@@ -97,6 +97,12 @@ const ProAvatar = ({ url, username, size = "w-14 h-14" }: { url?: string, userna
         </div>
       )}
     </div>
+    {frameUrl && (
+      <div className="absolute inset-0 z-10 pointer-events-none scale-110">
+        <img src={frameUrl} className="w-full h-full object-contain" alt="" />
+      </div>
+    )}
+  </div>
   );
 };
 

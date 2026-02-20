@@ -145,7 +145,7 @@ export const leaderboardService = {
     try {
       const { data: lb } = await supabase
         .from('leaderboard')
-        .select('*, profiles(avatar_url, is_banned, credits)')
+        .select('*, profiles(avatar_url, is_banned, credits, active_frame_url)')
         .order('score', { ascending: false });
       const { data: profs } = await supabase
         .from('profiles')
@@ -159,7 +159,8 @@ export const leaderboardService = {
           wins: item.wins || 0,
           avatar_url: item.profiles?.avatar_url || item.avatar_url,
           is_banned: item.profiles?.is_banned,
-          credits: item.profiles?.credits
+          credits: item.profiles?.credits,
+          active_frame_url: item.profiles?.active_frame_url
         };
       });
       (profs || []).forEach(p => {
@@ -168,10 +169,11 @@ export const leaderboardService = {
             ...byUser[p.username],
             credits: p.credits,
             avatar_url: p.avatar_url || byUser[p.username].avatar_url,
-            is_banned: p.is_banned
+            is_banned: p.is_banned,
+            active_frame_url: p.active_frame_url
           };
         } else {
-          byUser[p.username] = { id: p.id, username: p.username, score: 0, wins: 0, avatar_url: p.avatar_url, is_banned: p.is_banned, credits: p.credits };
+          byUser[p.username] = { id: p.id, username: p.username, score: 0, wins: 0, avatar_url: p.avatar_url, is_banned: p.is_banned, credits: p.credits, active_frame_url: p.active_frame_url };
         }
       });
       const combined = Object.values(byUser);
