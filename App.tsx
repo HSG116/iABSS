@@ -76,33 +76,34 @@ const ProAvatar = ({ url, username, frameUrl, size = "w-14 h-14" }: { url?: stri
     }
   };
 
-  <div className={`relative ${size}`}>
-    <div className={`w-[85%] h-[85%] absolute inset-[7.5%] rounded-2xl overflow-hidden border-2 border-white/10 group-hover:border-iabs-red transition-all flex-shrink-0 bg-zinc-900 shadow-lg`}>
-      {src ? (
-        <img
-          src={src}
-          className="w-full h-full object-cover"
-          onError={handleFix}
-          alt={username}
-          referrerPolicy="no-referrer"
-        />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center opacity-20 bg-black/40">
-          <User size={size.includes('w-2') || size.includes('w-3') ? 48 : 24} />
-        </div>
-      )}
-      {isRefreshing && (
-        <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm">
-          <Loader2 className="animate-spin text-white" size={16} />
+  return (
+    <div className={`relative ${size}`}>
+      <div className={`w-[85%] h-[85%] absolute inset-[7.5%] rounded-2xl overflow-hidden border-2 border-white/10 group-hover:border-iabs-red transition-all flex-shrink-0 bg-zinc-900 shadow-lg`}>
+        {src ? (
+          <img
+            src={src}
+            className="w-full h-full object-cover"
+            onError={handleFix}
+            alt={username}
+            referrerPolicy="no-referrer"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center opacity-20 bg-black/40">
+            <User size={size.includes('w-2') || size.includes('w-3') ? 48 : 24} />
+          </div>
+        )}
+        {isRefreshing && (
+          <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm">
+            <Loader2 className="animate-spin text-white" size={16} />
+          </div>
+        )}
+      </div>
+      {frameUrl && (
+        <div className="absolute inset-0 z-10 pointer-events-none scale-110">
+          <img src={frameUrl} className="w-full h-full object-contain" alt="" />
         </div>
       )}
     </div>
-    {frameUrl && (
-      <div className="absolute inset-0 z-10 pointer-events-none scale-110">
-        <img src={frameUrl} className="w-full h-full object-contain" alt="" />
-      </div>
-    )}
-  </div>
   );
 };
 
@@ -579,7 +580,7 @@ const App: React.FC = () => {
                           </td>
                           <td className="p-6">
                             <div className="flex items-center gap-6">
-                              <ProAvatar url={user.avatar_url} username={user.username} />
+                              <ProAvatar url={user.avatar_url} username={user.username} frameUrl={user.active_frame_url} />
                               <span className="font-black text-2xl text-white group-hover:text-iabs-red transition-all group-hover:translate-x-[-4px] tracking-tight">{user.username}</span>
                             </div>
                           </td>

@@ -250,7 +250,7 @@ const Store = ({ userId, kickUsername, points, onPurchase }: any) => {
             const { error: updateError } = await supabase
                 .from('leaderboard')
                 .update({ score: newPoints })
-                .eq('username', kickUsername);
+                .ilike('username', kickUsername);
 
             if (updateError) throw updateError;
 
