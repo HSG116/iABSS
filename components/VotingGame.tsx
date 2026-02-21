@@ -5,6 +5,7 @@ import {
     Monitor, ChevronRight, RotateCcw, Vote as VoteIcon, Zap, Flame, X,
     Award, Eye, EyeOff, Timer, TrendingUp
 } from 'lucide-react';
+import { ProAvatar } from './ProAvatar';
 import { ChatUser } from '../types';
 import { chatService } from '../services/chatService';
 import { supabase } from '../services/supabase';
@@ -716,9 +717,11 @@ export const VotingGame: React.FC<VotingGameProps> = ({ onHome, isOBS }) => {
                                             <div className="mt-2 px-4 py-3 bg-black/40 rounded-xl border border-white/5 flex flex-wrap gap-2 animate-in fade-in slide-in-from-top duration-300">
                                                 {result.voters.map(v => (
                                                     <div key={v.username} className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
-                                                        <div className="w-6 h-6 rounded-full bg-zinc-800 overflow-hidden border border-white/10">
-                                                            {v.avatar ? <img src={v.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-0.5 text-white/30" />}
-                                                        </div>
+                                                        <ProAvatar
+                                                            url={v.avatar}
+                                                            username={v.username}
+                                                            size="w-6 h-6"
+                                                        />
                                                         <span className="text-xs font-bold text-white/70">{v.username}</span>
                                                     </div>
                                                 ))}

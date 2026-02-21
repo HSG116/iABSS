@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { chatService } from '../services/chatService';
 import { ChatUser } from '../types';
 import { Disc, RotateCcw, Skull, User, Target, Zap, Trophy, Flame } from 'lucide-react';
+import { ProAvatar } from './ProAvatar';
 
 interface RussianRouletteProps {
    channelConnected: boolean;
@@ -152,9 +153,11 @@ export const RussianRoulette: React.FC<RussianRouletteProps> = ({ channelConnect
                      {participants.map((p, i) => (
                         <div key={p.username} className={`flex items-center justify-between p-3 rounded-2xl border transition-all ${i === currentTurnIndex && gameState === 'ACTIVE' ? 'bg-red-500/20 border-red-500/50 scale-105 shadow-lg' : 'bg-white/5 border-white/5'}`}>
                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-xl overflow-hidden bg-black border border-white/10">
-                                 {p.avatar ? <img src={p.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center font-black text-white/20">{p.username[0]}</div>}
-                              </div>
+                              <ProAvatar
+                                 url={p.avatar}
+                                 username={p.username}
+                                 size="w-10 h-10"
+                              />
                               <span className="text-sm font-black text-white truncate w-24">{p.username}</span>
                            </div>
                            {i === currentTurnIndex && gameState === 'ACTIVE' && <Flame size={16} className="text-red-500 animate-pulse" />}
@@ -186,13 +189,13 @@ export const RussianRoulette: React.FC<RussianRouletteProps> = ({ channelConnect
                   </h2>
                   <div className="flex items-center justify-center gap-4 mt-8">
                      {Array.from({ length: 6 }).map((_, i) => (
-                        <div key={i} className={`w-16 h-16 rounded-2xl border-4 transition-all duration-500 flex items-center justify-center overflow-hidden rotate-${i * 10} ${participants[i] ? 'bg-red-600 border-red-400 shadow-[0_0_30px_rgba(220,38,38,0.5)] scale-110' : 'bg-transparent border-white/10 opacity-20'}`}>
+                        <div key={i} className={`w-16 h-16 rounded-2xl border-2 transition-all duration-500 flex items-center justify-center rotate-${i * 10} ${participants[i] ? 'bg-red-600 border-red-400 shadow-[0_0_30px_rgba(220,38,38,0.5)] scale-110' : 'bg-transparent border-white/10 opacity-20'}`}>
                            {participants[i] ? (
-                              participants[i].avatar ? (
-                                 <img src={participants[i].avatar} className="w-full h-full object-cover" />
-                              ) : (
-                                 <span className="text-white font-black">{participants[i].username[0]}</span>
-                              )
+                              <ProAvatar
+                                 url={participants[i].avatar}
+                                 username={participants[i].username}
+                                 size="w-16 h-16"
+                              />
                            ) : (
                               <Target size={24} className="text-white/20" />
                            )}
@@ -210,13 +213,11 @@ export const RussianRoulette: React.FC<RussianRouletteProps> = ({ channelConnect
                   <div className="text-xs font-black text-red-500 uppercase tracking-[1em] mb-4 animate-pulse">Current Target</div>
                   <div className="relative group mb-12">
                      <div className="absolute -inset-4 bg-red-600/20 blur-2xl rounded-full group-hover:bg-red-500/30 transition-all"></div>
-                     <div className="relative w-40 h-40 rounded-3xl overflow-hidden border-4 border-red-600 shadow-2xl rotate-3 group-hover:rotate-0 transition-transform duration-500">
-                        {participants[currentTurnIndex].avatar ? (
-                           <img src={participants[currentTurnIndex].avatar} className="w-full h-full object-cover" />
-                        ) : (
-                           <div className="w-full h-full bg-neutral-900 flex items-center justify-center text-5xl font-black text-white">{participants[currentTurnIndex].username[0]}</div>
-                        )}
-                     </div>
+                     <ProAvatar
+                        url={participants[currentTurnIndex].avatar}
+                        username={participants[currentTurnIndex].username}
+                        size="w-40 h-40"
+                     />
                      <div className="absolute -bottom-4 -right-4 bg-red-600 text-white px-4 py-1 rounded-lg font-black text-xs shadow-lg">Target #{(currentTurnIndex + 1)}</div>
                   </div>
 

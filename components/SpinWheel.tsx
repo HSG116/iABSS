@@ -12,6 +12,7 @@ import {
    UserMinus, RefreshCcw, Loader2, User
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { ProAvatar } from './ProAvatar';
 
 interface SpinWheelProps {
    channelConnected: boolean;
@@ -371,13 +372,11 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({ channelConnected, onHome }
                         ) : (
                            [...participants].reverse().map((p, i) => (
                               <div key={i} className="flex items-center gap-3 p-2.5 rounded-2xl transition-all border border-white/5 bg-black/20 hover:bg-white/5 group animate-in slide-in-from-right duration-300">
-                                 <div className="w-8 h-8 rounded-xl overflow-hidden border border-white/10 flex-shrink-0 flex items-center justify-center bg-black/40">
-                                    {p.avatar ? (
-                                       <img src={p.avatar} className="w-full h-full object-cover" alt="" />
-                                    ) : (
-                                       <User className="w-5 h-5 text-gray-400" />
-                                    )}
-                                 </div>
+                                 <ProAvatar
+                                    url={p.avatar || ''}
+                                    username={p.username}
+                                    size="w-8 h-8"
+                                 />
                                  <span className="text-[11px] font-black text-white truncate">{p.username}</span>
                               </div>
                            ))
@@ -394,11 +393,11 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({ channelConnected, onHome }
                         <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-1">
                            {history.map((h, i) => (
                               <div key={i} className="w-10 h-10 rounded-xl border border-amber-500/30 overflow-hidden shrink-0 shadow-lg flex items-center justify-center bg-black/40" title={h.username}>
-                                 {h.avatar ? (
-                                    <img src={h.avatar} className="w-full h-full object-cover" alt="" />
-                                 ) : (
-                                    <User className="w-6 h-6 text-gray-400" />
-                                 )}
+                                 <ProAvatar
+                                    url={h.avatar || ''}
+                                    username={h.username}
+                                    size="w-10 h-10"
+                                 />
                               </div>
                            ))}
                         </div>
@@ -522,14 +521,15 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({ channelConnected, onHome }
                         <div className="bg-[#050505] p-10 rounded-[3rem] border-[3px] border-red-600 shadow-[0_0_150px_rgba(255,0,0,0.4)] text-center relative max-w-lg w-full mx-4 overflow-hidden group">
                            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-transparent via-red-600 to-transparent"></div>
 
-                           {config.showAvatars && winner.avatar ? (
-                              <div className="w-32 h-32 rounded-[2rem] border-4 border-red-600 mx-auto mb-6 overflow-hidden shadow-[0_0_60px_rgba(255,0,0,0.5)] relative transform hover:scale-110 transition-transform">
-                                 <img src={winner.avatar} className="w-full h-full object-cover" alt="winner" />
-                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                              </div>
-                           ) : (
-                              <Trophy className="text-yellow-400 mx-auto mb-6 animate-bounce drop-shadow-[0_0_40px_rgba(255,215,0,0.5)]" size={80} fill="currentColor" />
-                           )}
+                           <div className="w-32 h-32 rounded-[2rem] border-4 border-red-600 mx-auto mb-6 overflow-hidden shadow-[0_0_60px_rgba(255,0,0,0.5)] relative transform hover:scale-110 transition-transform">
+                              <ProAvatar
+                                 url={winner.avatar || ''}
+                                 username={winner.username}
+                                 size="w-full h-full"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                           </div>
+
 
                            <div className="text-red-600 font-black uppercase tracking-[0.5em] text-[10px] mb-6 italic flex items-center justify-center gap-4">
                               <span className="w-10 h-px bg-red-600/40"></span> بـطل الـساحة <span className="w-10 h-px bg-red-600/40"></span>

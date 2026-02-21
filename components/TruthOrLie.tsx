@@ -7,6 +7,7 @@ import {
     Settings, RefreshCw, Lock, Zap, User,
     AlertTriangle, Wand2, MonitorPlay, Video, Copy
 } from 'lucide-react';
+import { ProAvatar } from './ProAvatar';
 import { pexelsService } from '../services/pexelsService';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
@@ -732,13 +733,11 @@ export const TruthOrLie: React.FC<TruthOrLieProps> = ({ onHome, isOBS = false })
                                 {votes.slice().reverse().map((v, i) => (
                                     <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5 animate-in slide-in-from-right duration-300">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center bg-black/40">
-                                                {v.avatar_url ? (
-                                                    <img src={v.avatar_url} className="w-full h-full object-cover" alt="" />
-                                                ) : (
-                                                    <User size={12} className="text-gray-400" />
-                                                )}
-                                            </div>
+                                            <ProAvatar
+                                                url={v.avatar_url}
+                                                username={v.username}
+                                                size="w-6 h-6"
+                                            />
                                             <span className="text-zinc-300 text-xs font-medium truncate max-w-[80px]">{v.username}</span>
                                         </div>
                                         <div className={`w-2 h-2 rounded-full ${v.vote === 'truth' ? 'bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.8)]' : 'bg-red-500 shadow-[0_0_5px_rgba(220,38,38,0.8)]'}`}></div>

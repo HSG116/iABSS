@@ -4,6 +4,7 @@ import { Question, ChatUser, GameSettings } from '../types';
 import { QUESTIONS_DB, CATEGORIES } from '../constants';
 import { chatService } from '../services/chatService';
 import { leaderboardService } from '../services/supabase';
+import { ProAvatar } from './ProAvatar';
 
 const logoImage = "https://i.ibb.co/pvCN1NQP/95505180312.png";
 
@@ -671,9 +672,12 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                               <div key={idx} className={`p-4 rounded-3xl flex items-center gap-4 border transition-all bg-black/40 relative overflow-hidden group hover:scale-[1.02] shadow-2xl ${idx === 0 ? 'border-yellow-500/50 shadow-yellow-500/10' : 'border-white/5'}`}>
                                 <div className="absolute top-0 right-0 w-12 h-12 bg-gradient-to-bl from-white/10 to-transparent rounded-bl-2xl opacity-10"></div>
                                 <span className={`text-3xl font-black italic ${idx === 0 ? 'text-yellow-500' : 'text-white/20'}`}>#{idx + 1}</span>
-                                <div className={`w-14 h-14 rounded-2xl overflow-hidden border-2 flex-shrink-0 shadow-xl ${idx === 0 ? 'border-yellow-500 animate-pulse' : 'border-white/10'}`}>
-                                  {player.avatar ? <img src={player.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-[10px]">{player.user.charAt(0)}</div>}
-                                </div>
+                                <ProAvatar
+                                  url={player.avatar}
+                                  username={player.user}
+                                  size="w-14 h-14"
+                                  className={idx === 0 ? 'animate-pulse' : ''}
+                                />
                                 <div className="min-w-0">
                                   <div className="text-lg font-black text-white truncate">{player.user}</div>
                                   <div className="flex gap-2">
@@ -688,9 +692,11 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                             {roundWinners.slice(3, 33).map((player, i) => (
                               <div key={i} className="bg-black/40 rounded-2xl p-3 flex items-center gap-3 border border-white/5 hover:bg-white/10 transition-all group relative overflow-hidden">
                                 <span className="text-white/10 font-black text-[10px] italic">#{i + 4}</span>
-                                <div className="w-10 h-10 rounded-xl overflow-hidden border border-white/10 flex-shrink-0">
-                                  {player.avatar ? <img src={player.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-[8px]">{player.user.charAt(0)}</div>}
-                                </div>
+                                <ProAvatar
+                                  url={player.avatar}
+                                  username={player.user}
+                                  size="w-10 h-10"
+                                />
                                 <div className="min-w-0">
                                   <div className="text-xs font-black text-white truncate">{player.user}</div>
                                   <div className="text-[8px] font-bold text-blue-400">{player.responseTime.toFixed(2)}s</div>

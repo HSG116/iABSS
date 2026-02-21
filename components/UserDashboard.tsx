@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../services/supabase';
 import { getAssetUrl } from '../utils/assets';
+import { ProAvatar } from './ProAvatar';
 
 interface UserDashboardProps {
     userData: {
@@ -79,20 +80,11 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ userData }) => {
             <aside className="w-full md:w-72 bg-zinc-950/50 border-b md:border-b-0 md:border-l border-white/5 p-6 flex flex-col gap-8">
                 {/* Profile Brief */}
                 <div className="flex items-center gap-4 p-4 bg-white/5 rounded-3xl border border-white/10">
-                    <div className="relative w-14 h-14 flex-shrink-0">
-                        <div className="w-12 h-12 m-1 rounded-2xl overflow-hidden border border-red-500/30 bg-black">
-                            {userData.avatar ? (
-                                <img src={userData.avatar} className="w-full h-full object-cover" alt="" />
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center text-gray-700">
-                                    <User size={24} />
-                                </div>
-                            )}
-                        </div>
-                        {activeFrame && (
-                            <img src={getAssetUrl(activeFrame)} className="absolute inset-0 w-full h-full object-contain pointer-events-none scale-125" alt="Frame" />
-                        )}
-                    </div>
+                    <ProAvatar
+                        url={userData.avatar}
+                        username={userData.kick_username || (userData as any).kickUsername}
+                        size="w-14 h-14"
+                    />
                     <div className="overflow-hidden">
                         <div className="text-white font-black text-sm truncate">{userData.display_name}</div>
                         <div className="flex items-center gap-1.5 text-yellow-500 text-[10px] font-bold">
@@ -521,9 +513,11 @@ const Rankings = () => {
                                 </td>
                                 <td className="p-6">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-full bg-zinc-900 border border-white/10 overflow-hidden">
-                                            {player.avatar_url ? <img src={player.avatar_url} className="w-full h-full object-cover" /> : <User size={20} className="m-auto mt-2 text-gray-700" />}
-                                        </div>
+                                        <ProAvatar
+                                            url={player.avatar_url}
+                                            username={player.username}
+                                            size="w-10 h-10"
+                                        />
                                         <span className="text-white font-black group-hover:text-red-500 transition-colors">{player.username}</span>
                                     </div>
                                 </td>

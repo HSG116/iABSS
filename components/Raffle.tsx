@@ -10,6 +10,7 @@ import {
    Trophy, Flame, Shield, Target, Cpu, User
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { ProAvatar } from './ProAvatar';
 
 interface RaffleProps {
    channelConnected: boolean;
@@ -267,13 +268,11 @@ export const Raffle: React.FC<RaffleProps> = ({ channelConnected, onHome }) => {
                      ) : (
                         [...participants].reverse().map((p, i) => (
                            <div key={i} className="flex items-center gap-6 p-5 rounded-[2.2rem] border-2 border-white/5 bg-gradient-to-r from-white/5 to-transparent hover:border-red-600/50 hover:from-white/10 transition-all animate-in slide-in-from-right duration-700 group">
-                              <div className="w-14 h-14 rounded-[1.8rem] overflow-hidden border-2 border-white/10 shrink-0 group-hover:scale-110 transition-transform flex items-center justify-center bg-black/40">
-                                 {p.avatar ? (
-                                    <img src={p.avatar} className="w-full h-full object-cover" />
-                                 ) : (
-                                    <User size={28} className="text-gray-500" />
-                                 )}
-                              </div>
+                              <ProAvatar
+                                 url={p.avatar}
+                                 username={p.username}
+                                 size="w-14 h-14"
+                              />
                               <div className="flex flex-col">
                                  <span className="text-sm font-black text-white group-hover:text-red-500 transition-colors">{p.username}</span>
                                  <span className="text-[8px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Participant Verified</span>
@@ -430,13 +429,11 @@ export const Raffle: React.FC<RaffleProps> = ({ channelConnected, onHome }) => {
                            {reelParticipants.map((p, i) => (
                               <div key={i} className="w-[400px] h-[550px] shrink-0 p-10 flex items-center justify-center">
                                  <div className="w-full h-full bg-gradient-to-tr from-white/10 to-transparent border-[6px] border-white/10 rounded-[6rem] flex flex-col items-center justify-center gap-14 shadow-[inset_0_4px_30px_rgba(255,255,255,0.05)] relative group transition-all duration-700 hover:border-red-600">
-                                    <div className="w-56 h-56 rounded-[5rem] bg-zinc-900 border-[12px] border-red-600/30 p-2 shadow-[0_30px_60px_rgba(0,0,0,0.8)] transform-gpu transition-all duration-1000 group-hover:scale-125 group-hover:border-red-600 group-hover:rotate-6 scale-110 overflow-hidden flex items-center justify-center bg-black/40">
-                                       {p.avatar ? (
-                                          <img src={p.avatar} className="w-full h-full object-cover" alt="av" />
-                                       ) : (
-                                          <User size={120} className="text-gray-500" />
-                                       )}
-                                    </div>
+                                    <ProAvatar
+                                       url={p.avatar}
+                                       username={p.username}
+                                       size="w-56 h-56"
+                                    />
                                     <div className="text-5xl font-black text-white truncate max-w-[320px] italic drop-shadow-[0_10px_20px_black] tracking-tighter uppercase">{p.username}</div>
                                  </div>
                               </div>
@@ -466,17 +463,11 @@ export const Raffle: React.FC<RaffleProps> = ({ channelConnected, onHome }) => {
 
                      <div className="flex flex-col items-center gap-20 relative z-10">
                         {/* AVATAR BOX - FETCHED FROM KICK */}
-                        <div className="w-[550px] h-[550px] rounded-[10rem] border-[30px] border-red-600 overflow-hidden shadow-[0_50px_150px_black] relative transform scale-110 group-hover:scale-125 transition-all duration-1000 rotate-[-3deg] group-hover:rotate-0 bg-zinc-900 flex items-center justify-center">
-                           {winner.avatar ? (
-                              <img
-                                 src={winner.avatar}
-                                 className="w-full h-full object-cover animate-in fade-in duration-500"
-                                 alt="win"
-                              />
-                           ) : (
-                              <User size={300} className="text-gray-500" />
-                           )}
-                        </div>
+                        <ProAvatar
+                           url={winner.avatar}
+                           username={winner.username}
+                           size="w-[550px] h-[550px]"
+                        />
                         <div className="text-[20rem] font-black text-white italic tracking-tighter uppercase drop-shadow-[0_60px_120px_black] leading-[0.7] mb-20 select-all">{winner.username}</div>
                      </div>
 

@@ -5,6 +5,7 @@ import { chatService } from '../services/chatService';
 import { leaderboardService } from '../services/supabase';
 import { getQuestions, Question, QuestionCategory } from '../data/questions';
 import { BrainCircuit, Play, RotateCcw, Trophy, Clock, CheckCircle, Eye, EyeOff, Trash2, User } from 'lucide-react';
+import { ProAvatar } from './ProAvatar';
 
 interface TriviaQuizProps {
    channelConnected: boolean;
@@ -395,9 +396,12 @@ export const TriviaQuiz: React.FC<TriviaQuizProps> = ({ channelConnected }) => {
                      <div className="flex flex-col items-center gap-4 animate-in slide-in-from-bottom-4">
                         <div className="flex -space-x-4">
                            {Object.entries(roundWinnerAvatars).slice(0, 5).map(([u, av], i) => (
-                              <div key={i} className="w-12 h-12 rounded-full border-2 border-indigo-500 overflow-hidden bg-zinc-900 shadow-lg flex items-center justify-center">
-                                 {av ? <img src={av} className="w-full h-full object-cover" /> : <User size={20} className="text-gray-500" />}
-                              </div>
+                              <ProAvatar
+                                 key={i}
+                                 url={av}
+                                 username={u}
+                                 size="w-12 h-12"
+                              />
                            ))}
                            {Object.keys(roundWinnerAvatars).length > 5 && (
                               <div className="w-12 h-12 rounded-full border-2 border-indigo-500 bg-indigo-900 text-white flex items-center justify-center font-bold text-xs shadow-lg">

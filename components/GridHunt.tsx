@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { getAssetUrl } from '../utils/assets';
+import { ProAvatar } from './ProAvatar';
 
 const tecshLogo = getAssetUrl('photo/image.png') || '';
 
@@ -254,9 +255,7 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                <div className="grid grid-cols-4 md:grid-cols-6 gap-3 justify-center max-h-[200px] overflow-y-auto custom-scrollbar pr-2">
                   {joinedPlayers.map((p, i) => (
                      <div key={i} className="animate-in zoom-in" style={{ animationDelay: `${i * 30}ms` }}>
-                        <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-red-600/50 shadow-md transform hover:scale-110 transition-transform mx-auto">
-                           <img src={p.avatar} className="w-full h-full object-cover" />
-                        </div>
+                        <ProAvatar url={p.avatar} username={p.name} size="w-12 h-12" className="mx-auto" />
                      </div>
                   ))}
                </div>
@@ -282,7 +281,7 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                      {scoreBoard.sort((a, b) => b.attempts - a.attempts).map((p, i) => (
                         <div key={i} className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/5">
                            <div className="flex items-center gap-3">
-                              <div className="w-6 h-6 rounded-lg overflow-hidden border-2 border-white/10"><img src={p.avatar} className="w-full h-full object-cover" /></div>
+                              <ProAvatar url={p.avatar} username={p.name} size="w-7 h-7" />
                               <span className="text-[9px] font-bold text-gray-400 truncate max-w-[100px]">{p.name}</span>
                            </div>
                            <div className={`text-[9px] font-mono font-black border px-2 py-0.5 rounded-lg ${p.attempts >= settings.maxAttempts ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-white/5 text-gray-600'}`}>{p.attempts}/{settings.maxAttempts || '∞'}</div>
@@ -479,10 +478,7 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                   </div>
 
                   <div className="flex flex-col items-center gap-4 bg-white/5 p-8 px-12 rounded-[4rem] border border-white/10 shadow-2xl animate-in slide-in-from-bottom duration-1000">
-                     <div className="w-24 h-24 rounded-[2.5rem] overflow-hidden border-4 border-red-600 shadow-2xl relative">
-                        <img src={winner.avatar} className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 border-2 border-white/20 rounded-[2.5rem]"></div>
-                     </div>
+                     <ProAvatar url={winner.avatar} username={winner.name} size="w-24 h-24" className="shadow-2xl" />
                      <div className="text-3xl font-black text-white italic tracking-tighter">{winner.name}</div>
                      <div className="px-8 py-2 bg-red-600 text-white text-xs font-black rounded-full italic shadow-lg uppercase tracking-widest">Authorized Winner</div>
                   </div>

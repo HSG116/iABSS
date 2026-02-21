@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { chatService } from '../services/chatService';
 import { leaderboardService, supabase } from '../services/supabase';
+import { ProAvatar } from './ProAvatar';
 import { ChatUser } from '../types';
 import { Type, Play, Settings, Users, Trophy, Clock, LogOut, RotateCcw, User, Zap, Crown, Star, Award, Sparkles, ChevronRight, RefreshCw } from 'lucide-react';
 
@@ -647,9 +648,11 @@ export const WordBuilder: React.FC<WordBuilderProps> = ({ onHome, isOBS }) => {
                         <div className="flex flex-wrap justify-center gap-3 max-w-3xl mx-auto">
                             {participants.map(p => (
                                 <div key={p.id} className="animate-in zoom-in duration-300 bg-black/40 border border-white/10 rounded-2xl px-4 py-2 flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl overflow-hidden border border-white/10">
-                                        {p.avatar ? <img src={p.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-zinc-900 flex items-center justify-center"><User size={16} /></div>}
-                                    </div>
+                                    <ProAvatar
+                                        url={p.avatar}
+                                        username={p.username}
+                                        size="w-10 h-10"
+                                    />
                                     <span className="font-black text-white text-sm">{p.username}</span>
                                 </div>
                             ))}
@@ -720,9 +723,11 @@ export const WordBuilder: React.FC<WordBuilderProps> = ({ onHome, isOBS }) => {
                                     <div key={p.user.username} className="flex items-center justify-between bg-white/5 rounded-xl px-4 py-2">
                                         <div className="flex items-center gap-3">
                                             <span className={`font-mono font-black text-sm ${i < 3 ? 'text-yellow-400' : 'text-gray-600'}`}>#{i + 1}</span>
-                                            <div className="w-7 h-7 rounded-lg overflow-hidden border border-white/10">
-                                                {p.user.avatar ? <img src={p.user.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-zinc-800 flex items-center justify-center"><User size={12} /></div>}
-                                            </div>
+                                            <ProAvatar
+                                                url={p.user.avatar}
+                                                username={p.user.username}
+                                                size="w-7 h-7"
+                                            />
                                             <span className="text-sm font-bold text-gray-300">{p.user.username}</span>
                                         </div>
                                         <div className="flex items-center gap-2">
@@ -750,9 +755,11 @@ export const WordBuilder: React.FC<WordBuilderProps> = ({ onHome, isOBS }) => {
                                 <div key={p.user.username} className="flex justify-between items-center py-3 border-b border-white/5 last:border-0 animate-in slide-in-from-right" style={{ animationDelay: `${i * 100}ms` }}>
                                     <div className="flex items-center gap-4">
                                         <span className={`text-xl font-black ${i === 0 ? 'text-yellow-400' : i === 1 ? 'text-gray-400' : 'text-orange-700'}`}>#{i + 1}</span>
-                                        <div className="w-10 h-10 rounded-xl overflow-hidden border-2 border-white/10">
-                                            {p.user.avatar ? <img src={p.user.avatar} className="w-full h-full object-cover" /> : <User size={16} />}
-                                        </div>
+                                        <ProAvatar
+                                            url={p.user.avatar}
+                                            username={p.user.username}
+                                            size="w-10 h-10"
+                                        />
                                         <span className="text-lg font-black text-white">{p.user.username}</span>
                                     </div>
                                     <span className="text-2xl font-black text-emerald-400 font-mono">+{p.roundScore}</span>
@@ -782,9 +789,11 @@ export const WordBuilder: React.FC<WordBuilderProps> = ({ onHome, isOBS }) => {
                                 <div key={p.user.username} className={`flex justify-between items-center py-4 border-b border-white/5 last:border-0 animate-in slide-in-from-right ${i === 0 ? 'bg-yellow-500/10 rounded-2xl px-4 -mx-2' : ''}`} style={{ animationDelay: `${i * 150}ms` }}>
                                     <div className="flex items-center gap-4">
                                         <span className={`text-2xl font-black ${i === 0 ? 'text-yellow-400' : i === 1 ? 'text-gray-400' : i === 2 ? 'text-orange-700' : 'text-gray-600'}`}>#{i + 1}</span>
-                                        <div className={`${i === 0 ? 'w-14 h-14' : 'w-10 h-10'} rounded-xl overflow-hidden border-2 ${i === 0 ? 'border-yellow-500' : 'border-white/10'}`}>
-                                            {p.user.avatar ? <img src={p.user.avatar} className="w-full h-full object-cover" /> : <User size={16} />}
-                                        </div>
+                                        <ProAvatar
+                                            url={p.user.avatar}
+                                            username={p.user.username}
+                                            size={i === 0 ? "w-14 h-14" : "w-10 h-10"}
+                                        />
                                         <div>
                                             <span className={`${i === 0 ? 'text-xl' : 'text-lg'} font-black text-white`}>{p.user.username}</span>
                                             <span className="text-xs text-gray-500 block">{p.wordsFound.length} كلمة</span>

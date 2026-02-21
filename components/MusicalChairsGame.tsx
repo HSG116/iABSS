@@ -6,6 +6,7 @@ import { chatService } from '../services/chatService';
 import { SONGS_DB } from '../constants';
 import { ARENA_MAPS, ArenaMap } from '../data/maps';
 import { leaderboardService } from '../services/supabase';
+import { ProAvatar } from './ProAvatar';
 
 interface MusicalChairsGameProps {
    onHome: () => void;
@@ -1214,15 +1215,11 @@ export const MusicalChairsGame: React.FC<MusicalChairsGameProps> = ({ onHome, is
                                     const occupant = participants.find(p => p.username === chair.occupiedBy);
                                     return (
                                        <div className="relative w-full h-full rounded-full overflow-hidden">
-                                          {occupant?.avatar ? (
-                                             <img src={occupant.avatar} className="w-full h-full object-cover" alt="" />
-                                          ) : (
-                                             <div className="w-full h-full flex items-center justify-center text-white/20 bg-zinc-900">
-                                                <User size={sizes.icon / 1.5} />
-                                             </div>
-                                          )}
-                                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-
+                                          <ProAvatar
+                                             url={occupant?.avatar}
+                                             username={occupant?.username || ''}
+                                             size="w-full h-full"
+                                          />
                                           {/* Chair Badge (Small top-right) */}
                                           {!config.hideNumbers && !isOccupied && (
                                              <div className="absolute top-0 right-0 bg-black/80 text-white font-black text-[9px] px-1.5 py-0.5 rounded-bl-lg border-b border-l border-white/20 min-w-[18px] text-center">
@@ -1237,25 +1234,29 @@ export const MusicalChairsGame: React.FC<MusicalChairsGameProps> = ({ onHome, is
 
 
                               {/* --- Floating Number (When Empty) --- */}
-                              {!config.hideNumbers && phase !== 'MUSIC_ON' && !isOccupied && (
-                                 <div
-                                    className={`absolute -top-8 px-2 py-0.5 rounded-xl ${sizes.text} font-black italic shadow-2xl z-40 transition-all duration-300 bg-black/80 border border-white/20 text-white animate-in zoom-in`}
-                                    style={{
-                                       borderColor: config.selectedMap.borderColor,
-                                       color: config.selectedMap.accentColor,
-                                       textShadow: '0 5px 15px rgba(0,0,0,0.5)',
-                                    }}
-                                 >
-                                    {chair.id}
-                                 </div>
-                              )}
+                              {
+                                 !config.hideNumbers && phase !== 'MUSIC_ON' && !isOccupied && (
+                                    <div
+                                       className={`absolute -top-8 px-2 py-0.5 rounded-xl ${sizes.text} font-black italic shadow-2xl z-40 transition-all duration-300 bg-black/80 border border-white/20 text-white animate-in zoom-in`}
+                                       style={{
+                                          borderColor: config.selectedMap.borderColor,
+                                          color: config.selectedMap.accentColor,
+                                          textShadow: '0 5px 15px rgba(0,0,0,0.5)',
+                                       }}
+                                    >
+                                       {chair.id}
+                                    </div>
+                                 )
+                              }
 
                               {/* Lucky Chair Indicator */}
-                              {chair.isLucky && !isOccupied && (
-                                 <div className="absolute -top-12 -right-12 animate-bounce">
-                                    <Sparkles size={40} className="text-yellow-400" fill="currentColor" style={{ filter: 'drop-shadow(0 0 20px rgba(251, 191, 36, 1))' }} />
-                                 </div>
-                              )}
+                              {
+                                 chair.isLucky && !isOccupied && (
+                                    <div className="absolute -top-12 -right-12 animate-bounce">
+                                       <Sparkles size={40} className="text-yellow-400" fill="currentColor" style={{ filter: 'drop-shadow(0 0 20px rgba(251, 191, 36, 1))' }} />
+                                    </div>
+                                 )
+                              }
                            </div>
                         );
                      })}
@@ -1309,11 +1310,11 @@ export const MusicalChairsGame: React.FC<MusicalChairsGameProps> = ({ onHome, is
                                  {/* Avatar Glow Effect */}
                                  <div className="absolute inset-0 opacity-20 blur-xl" style={{ backgroundColor: p.color || config.selectedMap.accentColor }}></div>
 
-                                 {p.avatar ? (
-                                    <img src={p.avatar} className="w-full h-full object-cover rounded-[1.7rem] relative z-10" />
-                                 ) : (
-                                    <div className="w-full h-full bg-zinc-900 rounded-[1.7rem] flex items-center justify-center text-gray-500 relative z-10"><User size={sizes.icon} /></div>
-                                 )}
+                                 <ProAvatar
+                                    url={p.avatar}
+                                    username={p.username}
+                                    size="w-full h-full"
+                                 />
                               </div>
                               <span className={`
                              ${sizes.text} font-black drop-shadow-lg transition-all duration-300
@@ -1528,7 +1529,8 @@ export const MusicalChairsGame: React.FC<MusicalChairsGameProps> = ({ onHome, is
                   )
                }
             </div >
-         )}
+         )
+         }
 
          {/* --- PHASE: FINALE - PREMIUM REDESIGN --- */}
          {

@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { chatService } from '../services/chatService';
 import { BOSS_DATA } from '../constants';
 import { Skull, RotateCcw, Shield, Sword, Trophy, Zap, User } from 'lucide-react';
+import { ProAvatar } from './ProAvatar';
 
 interface BossRaidProps {
    channelConnected: boolean;
@@ -158,9 +159,11 @@ export const BossRaid: React.FC<BossRaidProps> = ({ channelConnected, isOBS }) =
                         <div key={name} className="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/5 group hover:bg-white/10 transition-all">
                            <div className="flex items-center gap-3">
                               <div className="relative">
-                                 <div className={`w-10 h-10 rounded-xl overflow-hidden bg-black border-2 ${i === 0 ? 'border-yellow-500' : 'border-white/10'}`}>
-                                    {data.avatar ? <img src={data.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-2 text-white/20" />}
-                                 </div>
+                                 <ProAvatar
+                                    url={data.avatar}
+                                    username={name}
+                                    size="w-10 h-10"
+                                 />
                                  <div className={`absolute -top-2 -left-2 w-5 h-5 rounded-lg flex items-center justify-center text-[10px] font-black shadow-lg ${i === 0 ? 'bg-yellow-500 text-black' : 'bg-zinc-800 text-white'}`}>
                                     {i + 1}
                                  </div>

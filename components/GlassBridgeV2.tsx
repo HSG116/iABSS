@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { chatService } from '../services/chatService';
 import { ChatUser } from '../types';
 import { Footprints, Play, Settings, Users, Trophy, Skull, LogOut, User, Crown, ChevronRight, ArrowLeft, ArrowRight, Sparkles, Eye, ShieldCheck, AlertTriangle, RotateCcw } from 'lucide-react';
+import { ProAvatar } from './ProAvatar';
 
 interface GlassBridgeV2Props {
     onHome: () => void;
@@ -308,9 +309,11 @@ export const GlassBridgeV2: React.FC<GlassBridgeV2Props> = ({ onHome, isOBS }) =
                         <div className="flex flex-wrap justify-center gap-3 max-w-3xl mx-auto">
                             {participants.map(p => (
                                 <div key={p.id} className="animate-in zoom-in duration-300 bg-black/40 border border-white/10 rounded-2xl px-4 py-2 flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg overflow-hidden border border-white/10">
-                                        {p.avatar ? <img src={p.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-zinc-900 flex items-center justify-center"><User size={14} /></div>}
-                                    </div>
+                                    <ProAvatar
+                                        url={p.avatar}
+                                        username={p.username}
+                                        size="w-8 h-8"
+                                    />
                                     <span className="font-black text-white text-xs">{p.username}</span>
                                 </div>
                             ))}
@@ -457,9 +460,11 @@ export const GlassBridgeV2: React.FC<GlassBridgeV2Props> = ({ onHome, isOBS }) =
                         <div className="flex flex-wrap justify-center gap-4 mb-10 max-w-3xl">
                             {survivors.map(p => (
                                 <div key={p.id} className="flex flex-col items-center gap-2 animate-in zoom-in">
-                                    <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-yellow-500/40 shadow-[0_0_15px_rgba(251,191,36,0.3)]">
-                                        {p.avatar ? <img src={p.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-zinc-900 flex items-center justify-center"><User size={24} /></div>}
-                                    </div>
+                                    <ProAvatar
+                                        url={p.avatar}
+                                        username={p.username}
+                                        size="w-16 h-16"
+                                    />
                                     <span className="text-xs font-black text-yellow-400">{p.username}</span>
                                 </div>
                             ))}

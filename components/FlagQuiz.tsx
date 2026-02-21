@@ -5,6 +5,7 @@ import { chatService } from '../services/chatService';
 import { leaderboardService } from '../services/supabase';
 import { FLAGS_DATA } from '../constants';
 import { Flag, Play, RotateCcw, Award, CheckCircle2, LogOut, Home, Star, Globe, Zap, Settings2, User } from 'lucide-react';
+import { ProAvatar } from './ProAvatar';
 
 interface FlagQuizProps {
    channelConnected: boolean;
@@ -312,11 +313,11 @@ export const FlagQuiz: React.FC<FlagQuizProps> = ({ channelConnected, onHome }) 
                            </div>
 
                            <div className="w-24 h-24 rounded-full border-4 border-green-500 mx-auto mb-4 overflow-hidden shadow-2xl flex items-center justify-center bg-black/40">
-                              {lastWinner.avatar ? (
-                                 <img src={lastWinner.avatar} className="w-full h-full object-cover" />
-                              ) : (
-                                 <User size={40} className="text-gray-500" />
-                              )}
+                              <ProAvatar
+                                 url={lastWinner.avatar || ''}
+                                 username={lastWinner.name}
+                                 size="w-24 h-24"
+                              />
                            </div>
 
                            <div className="text-6xl font-black text-white italic tracking-tighter uppercase drop-shadow-lg mb-2">{lastWinner.name}</div>

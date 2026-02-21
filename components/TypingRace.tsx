@@ -5,6 +5,7 @@ import { leaderboardService } from '../services/supabase';
 import { TYPING_WORDS } from '../constants';
 import { Keyboard as KeyboardIcon, Play, RotateCcw, Trophy, Zap, Timer, LogOut, Home, History, User } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { ProAvatar } from './ProAvatar';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 
@@ -291,20 +292,11 @@ export const TypingRace: React.FC<TypingRaceProps> = ({ channelConnected, onHome
                      </div>
 
                      <div className="flex flex-col items-center justify-center gap-6 mb-12">
-                        <div className="w-32 h-32 rounded-[2.5rem] bg-zinc-900 border-4 border-white/10 flex items-center justify-center overflow-hidden shadow-2xl relative">
-                           {winner.avatar ? (
-                              <img
-                                 src={winner.avatar}
-                                 className="w-full h-full object-cover animate-in fade-in duration-500"
-                                 alt={winner.name}
-                              />
-                           ) : (
-                              <User size={64} className="text-gray-500" />
-                           )}
-                           <div className="absolute -bottom-2 -right-2 bg-yellow-500 text-black p-2 rounded-tl-2xl rounded-br-2xl border-4 border-black">
-                              <Trophy size={20} fill="black" />
-                           </div>
-                        </div>
+                        <ProAvatar
+                           url={winner.avatar}
+                           username={winner.name}
+                           size="w-32 h-32"
+                        />
 
                         <div>
                            <div className="text-7xl font-black text-white italic tracking-tighter uppercase drop-shadow-xl">{winner.name}</div>

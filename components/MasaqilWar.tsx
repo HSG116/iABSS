@@ -9,6 +9,7 @@ import {
   Package, ShieldAlert, HeartPulse, Flame, Gauge, PlayCircle, Skull, Trash2,
   Settings2, UserMinus, PlusSquare, UserPlus, Trophy, ArrowLeft
 } from 'lucide-react';
+import { ProAvatar } from './ProAvatar';
 
 interface MasaqilWarProps {
   channelConnected: boolean;
@@ -1125,15 +1126,11 @@ export const MasaqilWar: React.FC<MasaqilWarProps> = ({ channelConnected, onHome
                   return (
                     <div key={i} className={`flex justify-between items-center p-2 rounded-2xl text-[10px] font-bold transition-all border ${isDead ? 'opacity-20 grayscale bg-red-900/10 border-transparent' : 'bg-white/5 border-white/5 hover:border-white/10 group'}`}>
                       <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-xl border border-white/10 overflow-hidden bg-zinc-900 shadow-sm flex items-center justify-center">
-                          {imagesCacheRef.current[p.username] ? (
-                            <img src={imagesCacheRef.current[p.username].src} className="w-full h-full object-cover" alt="" />
-                          ) : p.avatar ? (
-                            <img src={p.avatar} className="w-full h-full object-cover" alt="" />
-                          ) : (
-                            <User size={10} className="text-gray-600" />
-                          )}
-                        </div>
+                        <ProAvatar
+                          url={imagesCacheRef.current[p.username] ? imagesCacheRef.current[p.username].src : (p.avatar || '')}
+                          username={p.username}
+                          size="w-6 h-6"
+                        />
                         <span className="text-gray-300 truncate max-w-[90px]">{p.username}</span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -1292,52 +1289,44 @@ export const MasaqilWar: React.FC<MasaqilWarProps> = ({ channelConnected, onHome
                     <div className="absolute inset-0 bg-yellow-400/20 blur-[130px] rounded-full scale-150 animate-pulse"></div>
 
                     {/* The Winner Card */}
-                    <div className="relative w-80 h-80 md:w-[28rem] md:h-[28rem] rounded-[6rem] border-[16px] border-[#FFD700] overflow-hidden shadow-[0_0_120px_rgba(255,215,0,0.4)] bg-zinc-900 ring-8 ring-black/50">
-                      {imagesCacheRef.current[winner.username] ? (
-                        <img
-                          src={imagesCacheRef.current[winner.username].src}
-                          className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
-                          alt={winner.username}
-                          onError={(e) => {
-                            // Secondary fallback if img fails to load via src
-                            (e.target as HTMLImageElement).style.display = 'none';
-                          }}
-                        />
-                      ) : (
-                        <User size={180} className="text-gray-500" />
-                      )}
-
-                      {/* Inner Badge */}
-                      <div className="absolute bottom-0 w-full py-6 bg-gradient-to-t from-black/90 to-transparent flex flex-col items-center">
-                        <div className="bg-[#FFD700] text-black font-black py-2 px-10 skew-x-[-12deg] text-3xl uppercase tracking-[0.2em] italic mb-2 shadow-xl">Survivor</div>
-                      </div>
+                    <div className="relative w-80 h-80 md:w-[28rem] md:h-[28rem] rounded-[6rem] overflow-hidden shadow-[0_0_120px_rgba(255,215,0,0.4)] bg-zinc-900 ring-8 ring-black/50">
+                      <ProAvatar
+                        url={imagesCacheRef.current[winner.username] ? imagesCacheRef.current[winner.username].src : (winner.avatar || '')}
+                        username={winner.username}
+                        size="w-full h-full"
+                      />
                     </div>
 
-                    {/* Kills Badge - Pop out effect */}
-                    <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 bg-red-600 px-14 py-6 rounded-[2.5rem] text-white font-black text-4xl italic shadow-[0_20px_50px_rgba(220,38,38,0.7)] border-4 border-white flex items-center gap-4 animate-in zoom-in duration-500 delay-500">
-                      <Skull size={40} className="animate-pulse" /> {winner.kills} قتيل
+                    {/* Inner Badge */}
+                    <div className="absolute bottom-0 w-full py-6 bg-gradient-to-t from-black/90 to-transparent flex flex-col items-center">
+                      <div className="bg-[#FFD700] text-black font-black py-2 px-10 skew-x-[-12deg] text-3xl uppercase tracking-[0.2em] italic mb-2 shadow-xl">Survivor</div>
                     </div>
                   </div>
 
-                  <h3 className="text-8xl md:text-[11rem] font-black italic text-white tracking-tighter mb-16 uppercase drop-shadow-[0_30px_60px_rgba(0,0,0,1)] bg-clip-text text-transparent bg-gradient-to-b from-white via-yellow-100 to-gray-400 leading-none animate-shimmer">
-                    {winner.username}
-                  </h3>
-
-                  {/* Professional Action Buttons */}
-                  <div className="flex flex-col md:flex-row gap-8 items-center justify-center">
-                    <button
-                      onClick={reset}
-                      className="group px-16 py-8 bg-white/5 hover:bg-white/10 text-gray-500 hover:text-white font-black text-3xl rounded-[3rem] border-2 border-white/5 transition-all italic flex items-center gap-4 shadow-2xl"
-                    >
-                      <ArrowLeft size={30} className="group-hover:-translate-x-3 transition-transform" /> جولة جديدة
-                    </button>
-                    <button
-                      onClick={rematch}
-                      className="px-32 py-9 bg-gradient-to-br from-red-500 to-red-700 text-white font-black text-5xl rounded-[3.5rem] shadow-[0_30px_70px_rgba(220,38,38,0.5)] hover:scale-110 active:scale-95 transition-all italic border-t-2 border-white/30 flex items-center gap-6 group"
-                    >
-                      <RotateCcw size={48} className="group-hover:rotate-180 transition-transform duration-700" /> إعادة التحدي
-                    </button>
+                  {/* Kills Badge - Pop out effect */}
+                  <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 bg-red-600 px-14 py-6 rounded-[2.5rem] text-white font-black text-4xl italic shadow-[0_20px_50px_rgba(220,38,38,0.7)] border-4 border-white flex items-center gap-4 animate-in zoom-in duration-500 delay-500">
+                    <Skull size={40} className="animate-pulse" /> {winner.kills} قتيل
                   </div>
+                </div>
+
+                <h3 className="text-8xl md:text-[11rem] font-black italic text-white tracking-tighter mb-16 uppercase drop-shadow-[0_30px_60px_rgba(0,0,0,1)] bg-clip-text text-transparent bg-gradient-to-b from-white via-yellow-100 to-gray-400 leading-none animate-shimmer">
+                  {winner.username}
+                </h3>
+
+                {/* Professional Action Buttons */}
+                <div className="flex flex-col md:flex-row gap-8 items-center justify-center">
+                  <button
+                    onClick={reset}
+                    className="group px-16 py-8 bg-white/5 hover:bg-white/10 text-gray-500 hover:text-white font-black text-3xl rounded-[3rem] border-2 border-white/5 transition-all italic flex items-center gap-4 shadow-2xl"
+                  >
+                    <ArrowLeft size={30} className="group-hover:-translate-x-3 transition-transform" /> جولة جديدة
+                  </button>
+                  <button
+                    onClick={rematch}
+                    className="px-32 py-9 bg-gradient-to-br from-red-500 to-red-700 text-white font-black text-5xl rounded-[3.5rem] shadow-[0_30px_70px_rgba(220,38,38,0.5)] hover:scale-110 active:scale-95 transition-all italic border-t-2 border-white/30 flex items-center gap-6 group"
+                  >
+                    <RotateCcw size={48} className="group-hover:rotate-180 transition-transform duration-700" /> إعادة التحدي
+                  </button>
                 </div>
               </div>
             )}

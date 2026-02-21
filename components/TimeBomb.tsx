@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { chatService } from '../services/chatService';
 import { ChatUser } from '../types';
 import { Bomb, Play, Settings, Users, Skull, Trophy, Clock, LogOut, RotateCcw, User, Flame, Zap, Timer, Crown, ChevronRight, Sparkles, AlertTriangle } from 'lucide-react';
+import { ProAvatar } from './ProAvatar';
 
 interface TimeBombProps {
     onHome: () => void;
@@ -366,11 +367,11 @@ export const TimeBomb: React.FC<TimeBombProps> = ({ onHome, isOBS }) => {
                                     return (
                                         <div key={p.id} className="animate-in zoom-in duration-500 flex flex-col items-center gap-2 group">
                                             <div className={`${sizes.box} rounded-[2rem] border-2 p-1 transition-all duration-300 shadow-2xl relative overflow-hidden bg-black/40 backdrop-blur-xl group-hover:border-orange-600`} style={{ borderColor: p.color || 'rgba(255,255,255,0.1)' }}>
-                                                {p.avatar ? (
-                                                    <img src={p.avatar} className="w-full h-full object-cover rounded-[1.7rem]" />
-                                                ) : (
-                                                    <div className="w-full h-full bg-zinc-900 rounded-[1.7rem] flex items-center justify-center text-gray-600"><User size={sizes.icon} /></div>
-                                                )}
+                                                <ProAvatar
+                                                    url={p.avatar || ''}
+                                                    username={p.username}
+                                                    size="w-full h-full"
+                                                />
                                             </div>
                                             <span className={`${sizes.text} font-black uppercase drop-shadow-md`} style={{ color: p.color || '#9ca3af' }}>{p.username}</span>
                                         </div>
@@ -424,11 +425,11 @@ export const TimeBomb: React.FC<TimeBombProps> = ({ onHome, isOBS }) => {
                             <div className="relative bg-black/80 backdrop-blur-2xl border-4 border-orange-500/50 rounded-[4rem] p-10 shadow-[0_0_80px_rgba(249,115,22,0.4)] flex flex-col items-center gap-6">
                                 {/* Avatar */}
                                 <div className="w-32 h-32 rounded-[2.5rem] border-4 border-orange-500 overflow-hidden shadow-[0_0_40px_rgba(249,115,22,0.6)] bomb-pulse">
-                                    {currentHolder.avatar ? (
-                                        <img src={currentHolder.avatar} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <div className="w-full h-full bg-zinc-900 flex items-center justify-center"><User size={60} className="text-orange-500/40" /></div>
-                                    )}
+                                    <ProAvatar
+                                        url={currentHolder.avatar || ''}
+                                        username={currentHolder.username}
+                                        size="w-full h-full"
+                                    />
                                 </div>
 
                                 <div className="text-4xl font-black text-white italic">{currentHolder.username}</div>
@@ -459,7 +460,7 @@ export const TimeBomb: React.FC<TimeBombProps> = ({ onHome, isOBS }) => {
                             {participants.filter(p => p.username !== currentHolder.username).map(p => (
                                 <div key={p.id} className="bg-black/40 border border-white/10 hover:border-orange-500/50 rounded-2xl px-4 py-2 flex items-center gap-2 transition-all hover:scale-105 cursor-default">
                                     <div className="w-8 h-8 rounded-xl overflow-hidden border border-white/10">
-                                        {p.avatar ? <img src={p.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-zinc-800 flex items-center justify-center"><User size={14} className="text-gray-500" /></div>}
+                                        <ProAvatar url={p.avatar || ''} username={p.username} size="w-8 h-8" />
                                     </div>
                                     <span className="text-sm font-black text-gray-300">{p.username}</span>
                                 </div>
@@ -492,7 +493,7 @@ export const TimeBomb: React.FC<TimeBombProps> = ({ onHome, isOBS }) => {
 
                         <div className="bg-black/60 backdrop-blur-xl border-2 border-red-500/30 rounded-[3rem] p-8 flex flex-col items-center gap-4 shadow-2xl">
                             <div className="w-24 h-24 rounded-[2rem] overflow-hidden border-4 border-red-500 shadow-[0_0_30px_rgba(239,68,68,0.5)]">
-                                {lastEliminated.avatar ? <img src={lastEliminated.avatar} className="w-full h-full object-cover grayscale" /> : <div className="w-full h-full bg-zinc-900 flex items-center justify-center"><User size={40} className="text-red-500/40" /></div>}
+                                <ProAvatar url={lastEliminated.avatar || ''} username={lastEliminated.username} size="w-full h-full" />
                             </div>
                             <div className="text-3xl font-black text-red-400">{lastEliminated.username}</div>
                             <div className="text-red-600/60 font-bold text-sm uppercase tracking-widest">ELIMINATED</div>
@@ -511,7 +512,7 @@ export const TimeBomb: React.FC<TimeBombProps> = ({ onHome, isOBS }) => {
                             {participants.map(p => (
                                 <div key={p.id} className="flex flex-col items-center gap-2 animate-in zoom-in duration-500">
                                     <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-green-500/40 shadow-[0_0_15px_rgba(34,197,94,0.3)]">
-                                        {p.avatar ? <img src={p.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-zinc-900 flex items-center justify-center"><User size={24} className="text-green-500/40" /></div>}
+                                        <ProAvatar url={p.avatar || ''} username={p.username} size="w-16 h-16" />
                                     </div>
                                     <span className="text-xs font-black text-gray-400">{p.username}</span>
                                 </div>
@@ -552,7 +553,7 @@ export const TimeBomb: React.FC<TimeBombProps> = ({ onHome, isOBS }) => {
                         <div className="relative mb-8">
                             <div className="absolute inset-0 bg-yellow-500/30 blur-[80px] rounded-full"></div>
                             <div className="w-40 h-40 rounded-[3rem] mx-auto overflow-hidden border-4 border-yellow-500 shadow-[0_0_60px_rgba(251,191,36,0.6)] relative z-10">
-                                {winner.avatar ? <img src={winner.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-zinc-900 flex items-center justify-center"><User size={60} className="text-yellow-500/40" /></div>}
+                                <ProAvatar url={winner.avatar || ''} username={winner.username} size="w-full h-full" />
                             </div>
                         </div>
                         <div className="text-5xl font-black text-white italic mb-8">{winner.username}</div>
