@@ -174,23 +174,36 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
 
       const username = msg.user.username;
       if (userAttemptsRef.current.has(username)) return;
+
+      const normalizedUser = normalizeArabic(msg.content);
+      if (normalizedUser.length < 2) return;
+
+      const checkMatch = (option: string) => {
+        const normOpt = normalizeArabic(option);
+        // Exact match OR partial match (at least 3 chars)
+        return normOpt === normalizedUser || (normOpt.includes(normalizedUser) && normalizedUser.length >= 3);
+      };
+
+      const matchingIndices = currentQ.options.reduce((acc, opt, idx) => {
+        if (checkMatch(opt)) acc.push(idx);
+        return acc;
+      }, [] as number[]);
+
+      // Ambiguity Check: If the input matches multiple options (e.g., just saying "سورة" when multiple answers exist),
+      // we ignore it and don't count it as an attempt to let the player be more specific.
+      if (matchingIndices.length > 1) return;
+
+      // If no matches found at all, count it as a failed attempt and the user is out for this round.
+      if (matchingIndices.length === 0) {
+        userAttemptsRef.current.add(username);
+        return;
+      }
+
+      // Exactly one match found - now we record the attempt
       userAttemptsRef.current.add(username);
 
-      const correctIndex = currentQ.correctIndex;
-      const rawCorrectText = currentQ.options[correctIndex];
-      const normalizedUser = normalizeArabic(msg.content);
-      const normalizedCorrect = normalizeArabic(rawCorrectText);
-
-      // Flexible match: Exact OR user wrote half/part of the answer
-      const isExactMatch = normalizedUser === normalizedCorrect;
-      // Partial: "أبو بكر" matches "أبو بكر الصديق"
-      // We check if normalizedCorrect contains the user's answer
-      // AND ensure the user's answer is long enough to avoid spam/accidents (min 3 chars)
-      const isPartialMatch = normalizedCorrect.includes(normalizedUser) && normalizedUser.length >= 3;
-
-      const isTextMatch = isExactMatch || isPartialMatch;
-
-      if (isTextMatch) {
+      // Check if the single match found is the correct one
+      if (matchingIndices[0] === currentQ.correctIndex) {
         const responseTime = (Date.now() - roundStartTimeRef.current) / 1000;
         const previousStats = winnersListRef.current.find(w => w.user === username);
         const winCountBefore = previousStats ? previousStats.winCount : 0;
