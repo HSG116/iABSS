@@ -68,6 +68,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
   const userAttemptsRef = useRef<Set<string>>(new Set());
   const roundStartTimeRef = useRef<number>(0);
   const winnersListRef = useRef<PlayerStats[]>([]);
+  const roundWinnersRef = useRef<RoundWinnerInfo[]>([]);
 
   useEffect(() => {
     questionsRef.current = questions;
@@ -76,7 +77,8 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
     settingsRef.current = settings;
     roundStartTimeRef.current = roundStartTime;
     winnersListRef.current = winnersList;
-  }, [questions, currentIndex, gameState, settings, roundStartTime, winnersList]);
+    roundWinnersRef.current = roundWinners;
+  }, [questions, currentIndex, gameState, settings, roundStartTime, winnersList, roundWinners]);
 
   // Keep track of used questions across sessions
   const usedIdsRef = useRef<Set<number>>(new Set());
@@ -214,15 +216,12 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
           });
         }
 
-        if (settingsRef.current.winMode === 'SPEED') {
-          handleRoundEnd(winnerObj);
-        } else {
-          setRoundWinners(prev => {
-            const next = [...prev, winnerObj];
-            // Sort by speed immediately for precise round rankings
-            return next.sort((a, b) => a.responseTime - b.responseTime);
-          });
-        }
+        // Always collect winners in the round winners list
+        setRoundWinners(prev => {
+          const next = [...prev, winnerObj];
+          // Sort by speed immediately for precise round rankings
+          return next.sort((a, b) => a.responseTime - b.responseTime);
+        });
       }
     });
     return () => unsubscribe();
@@ -231,10 +230,8 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
   const handleRoundEnd = async (singleWinner: RoundWinnerInfo | null) => {
     if (gameStateRef.current !== 'PLAYING') return;
 
-    // In speed mode, we only take the first person. In points mode, we take everyone who answered.
-    const winners = settingsRef.current.winMode === 'SPEED'
-      ? (singleWinner ? [singleWinner] : [])
-      : [...roundWinners].sort((a, b) => a.responseTime - b.responseTime);
+    // Use the collected winners from the round
+    const winners = [...roundWinnersRef.current].sort((a, b) => a.responseTime - b.responseTime);
 
     setGameState('ROUND_WIN');
     setRoundWinners(winners);
@@ -724,10 +721,18 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                 </div>
 
                 {gameState === 'PLAYING' && (
-                  <div className="mb-8 animate-pulse text-center">
-                    <p className="text-red-500 font-black text-xl italic tracking-[0.2em] uppercase">
+                  <div className="mb-8 flex flex-col items-center gap-4">
+                    <p className="text-red-500 font-black text-xl italic tracking-[0.2em] uppercase animate-pulse">
                       اكتب الإجابة في الشات للفوز! ⌨️
                     </p>
+                    {roundWinners.length > 0 && (
+                      <div className="bg-green-500/10 border border-green-500/30 px-6 py-2 rounded-full flex items-center gap-3 animate-bounce">
+                        <Trophy size={16} className="text-yellow-500" />
+                        <span className="text-green-500 font-black text-sm italic uppercase">
+                          تم العثور على {roundWinners.length} إجابة صحيحة!
+                        </span>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -768,9 +773,9 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
 
                 {!isOBS && (
                   <div className="mt-12 flex flex-col items-center gap-6 relative z-50">
-                    {gameState === 'PLAYING' && timer === 0 && (
-                      <button onClick={() => handleRoundEnd(null)} className="group px-16 py-6 bg-red-600 hover:bg-red-500 text-white font-black rounded-full text-3xl shadow-[0_0_50px_rgba(220,38,38,0.5)] animate-pulse transition-all flex items-center gap-4">
-                        <Eye size={32} /> اعـلان الـفـائزيـن
+                    {gameState === 'PLAYING' && (timer === 0 || roundWinners.length > 0) && (
+                      <button onClick={() => handleRoundEnd(null)} className="group px-16 py-6 bg-green-600 hover:bg-green-500 text-white font-black rounded-full text-3xl shadow-[0_0_50px_rgba(34,197,94,0.5)] animate-in zoom-in duration-500 transition-all flex items-center gap-4">
+                        <Eye size={32} /> اعـلان الـفـائزيـن ({roundWinners.length})
                       </button>
                     )}
                   </div>
