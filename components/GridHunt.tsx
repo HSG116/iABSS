@@ -455,9 +455,26 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                      </div>
                   </div>
 
-                  <div className="text-center space-y-4 mb-10">
+                  <div className="text-center space-y-4 mb-8">
                      <h3 className="text-5xl md:text-8xl font-black italic text-white red-neon-text uppercase leading-tight">مبروكككككك</h3>
                      <p className="text-2xl md:text-4xl font-black italic text-red-500 tracking-tighter animate-bounce">فزت معنا بماوس باد من تيكش</p>
+                  </div>
+
+                  {/* Treasure Location Box */}
+                  <div className="flex flex-col items-center gap-2 mb-8 animate-in zoom-in duration-1000 delay-300">
+                     <div className="text-[10px] text-white/30 font-black uppercase tracking-[0.3em] italic">موقع الجائزة (PRIZE LOCATION)</div>
+                     <div className="flex items-center gap-4 bg-zinc-900/80 px-8 py-4 rounded-[1.5rem] border border-blue-500/40 shadow-[0_0_30px_rgba(59,130,246,0.2)]">
+                        <Target size={24} className="text-blue-500 animate-spin-slow" />
+                        <span className="text-5xl font-black text-white italic tracking-tighter drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">
+                           {(() => {
+                              const treasureIdx = grid.findIndex(c => c.type === 'TREASURE');
+                              if (treasureIdx === -1) return '??';
+                              const col = COL_LABELS[treasureIdx % settings.cols];
+                              const row = ROW_LABELS[Math.floor(treasureIdx / settings.cols)];
+                              return `${col}${row}`;
+                           })()}
+                        </span>
+                     </div>
                   </div>
 
                   <div className="flex flex-col items-center gap-4 bg-white/5 p-8 px-12 rounded-[4rem] border border-white/10 shadow-2xl animate-in slide-in-from-bottom duration-1000">
@@ -479,6 +496,13 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
         .red-neon-text { text-shadow: 0 0 20px rgba(239,68,68,0.5), 0 0 40px rgba(239,68,68,0.2); }
+        @keyframes spin-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .animate-spin-slow {
+          animation: spin-slow 8s linear infinite;
+        }
       `}</style>
       </>
    );
