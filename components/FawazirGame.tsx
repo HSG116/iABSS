@@ -185,30 +185,21 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
         // 1. Exact match is always winner
         if (normOpt === normUser) return true;
 
-        const optWords = normOpt.split(' ');
-        const userWords = normUser.split(' ');
+        // 2. Starts with logic (Requested by user)
+        // If the answer starts with the input, it's a candidate.
+        // If multiple answers start with this, the ambiguity check (Line 220) will ignore it.
+        if (normOpt.startsWith(normUser)) return true;
 
-        // 2. If the option is just one word, exact match is already checked
-        if (optWords.length === 1) return false;
+        // 3. Ends with logic (E.g., "الخطاب" for "عمر بن الخطاب")
+        if (normOpt.endsWith(' ' + normUser)) return true;
 
-        // 3. Multi-word answer logic to prevent "stealing" (guessing only the 1st word)
-        // If user provides 2 or more words and it's part of the answer, it's valid (e.g., "ابو بكر")
-        if (userWords.length >= 2 && normOpt.includes(normUser)) return true;
-
-        // 4. If user provides only 1 word for a multi-word answer:
-        if (userWords.length === 1) {
-          // Reject if it's just the first word (e.g., "ابو" for "ابو بكر")
-          if (normOpt.startsWith(normUser + ' ')) return false;
-
-          // Accept if it's the LAST word (e.g., "بكر" for "ابو بكر") because it's usually the specific part
-          if (normOpt.endsWith(' ' + normUser)) return true;
-
-          // Reject anything else for 1-word inputs on multi-word answers
-          return false;
-        }
+        // 4. Multi-word inclusion (e.g., "بن الخطاب")
+        const userWordsCount = normUser.split(' ').filter(w => w.length > 0).length;
+        if (userWordsCount >= 2 && normOpt.includes(normUser)) return true;
 
         return false;
       };
+
 
       const matchingIndices = currentQ.options.reduce((acc, opt, idx) => {
         if (checkMatch(opt)) acc.push(idx);
