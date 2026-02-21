@@ -108,7 +108,7 @@ export const CATEGORIES: Category[] = [
 export const QUESTIONS_DB: Question[] = [
   // فوازير رمضان (40 سؤال)
   { id: 1, category: 'ramadan', text: 'من هو الصحابي الذي لُقب بـ "ذو النورين"؟', options: ['ابو بكر', 'عمر بن الخطاب', 'عثمان بن عفان', 'علي بن ابي طالب'], correctIndex: 2 },
-  { id: 2, category: 'ramadan', text: 'ما هو الغاز الأكثر تواجداً في الكون بنسبة 75%؟', options: ['الاكسجين', 'النيتروجين', 'الهيدروجين', 'الهيليوم'], correctIndex: 2 },
+  { id: 2, category: 'ramadan', text: 'ما هو الغاز الأكثر تواواجداً في الكون بنسبة 75%؟', options: ['الاكسجين', 'النيتروجين', 'الهيدروجين', 'الهيليوم'], correctIndex: 2 },
   { id: 3, category: 'ramadan', text: 'ما هي السورة التي تسمى "قلب القران"؟', options: ['البقرة', 'يس', 'الفاتحة', 'الرحمن'], correctIndex: 1 },
   { id: 4, category: 'ramadan', text: 'في اي مدينة يوجد مقر محكمة العدل الدولية؟', options: ['جنيف', 'لندن', 'لاهاي', 'نيويورك'], correctIndex: 2 },
   { id: 5, category: 'ramadan', text: 'من هو القائد المسلم الذي فتح بلاد الاندلس؟', options: ['عقبة بن نافع', 'طارق بن زياد', 'قتيبة بن مسلم', 'موسى بن نصير'], correctIndex: 1 },
