@@ -1,6 +1,7 @@
 import React from 'react';
-// @ts-ignore
-import tecshLogo from '../photo/image.png';
+import { getAssetUrl } from '../utils/assets';
+
+const tecshLogo = getAssetUrl('photo/image.png') || '';
 
 const TecshIcon = ({ size = 40, color = "#FFFFFF" }: { size?: number; color?: string }) => {
     return (

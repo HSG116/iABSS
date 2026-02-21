@@ -8,8 +8,9 @@ import {
    Activity, BarChart3, Eye, EyeOff
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-// @ts-ignore
-import tecshLogo from '../photo/image.png';
+import { getAssetUrl } from '../utils/assets';
+
+const tecshLogo = getAssetUrl('photo/image.png') || '';
 
 interface GridHuntProps {
    channelConnected: boolean;
