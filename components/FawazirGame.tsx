@@ -180,8 +180,34 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
 
       const checkMatch = (option: string) => {
         const normOpt = normalizeArabic(option);
-        // Exact match OR partial match (at least 3 chars)
-        return normOpt === normalizedUser || (normOpt.includes(normalizedUser) && normalizedUser.length >= 3);
+        const normUser = normalizedUser;
+
+        // 1. Exact match is always winner
+        if (normOpt === normUser) return true;
+
+        const optWords = normOpt.split(' ');
+        const userWords = normUser.split(' ');
+
+        // 2. If the option is just one word, exact match is already checked
+        if (optWords.length === 1) return false;
+
+        // 3. Multi-word answer logic to prevent "stealing" (guessing only the 1st word)
+        // If user provides 2 or more words and it's part of the answer, it's valid (e.g., "ابو بكر")
+        if (userWords.length >= 2 && normOpt.includes(normUser)) return true;
+
+        // 4. If user provides only 1 word for a multi-word answer:
+        if (userWords.length === 1) {
+          // Reject if it's just the first word (e.g., "ابو" for "ابو بكر")
+          if (normOpt.startsWith(normUser + ' ')) return false;
+
+          // Accept if it's the LAST word (e.g., "بكر" for "ابو بكر") because it's usually the specific part
+          if (normOpt.endsWith(' ' + normUser)) return true;
+
+          // Reject anything else for 1-word inputs on multi-word answers
+          return false;
+        }
+
+        return false;
       };
 
       const matchingIndices = currentQ.options.reduce((acc, opt, idx) => {
