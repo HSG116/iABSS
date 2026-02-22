@@ -44,7 +44,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [timer, setTimer] = useState(20);
-  const [gameState, setGameState] = useState<'PRE_START' | 'PLAYING' | 'ROUND_WIN' | 'SUMMARY'>('PRE_START');
+  const [gameState, setGameState] = useState<'PRE_START' | 'RULES' | 'PLAYING' | 'ROUND_WIN' | 'SUMMARY'>('PRE_START');
   const [roundWinner, setRoundWinner] = useState<RoundWinnerInfo | null>(null);
   const [roundWinners, setRoundWinners] = useState<RoundWinnerInfo[]>([]);
   const [winnersList, setWinnersList] = useState<PlayerStats[]>([]);
@@ -136,6 +136,10 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
     setRoundWinners([]);
     userAttemptsRef.current.clear();
     setQuestions(gameQuestions);
+    setGameState('RULES');
+  };
+
+  const startActualGame = () => {
     setTimer(settings.timerDuration);
     setRoundStartTime(Date.now());
     setGameState('PLAYING');
@@ -344,7 +348,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
       {!isOBS && <div className="absolute inset-0 bg-black/40"></div>}
 
       <div className="relative z-10 w-full h-full flex flex-col items-center p-8 max-w-7xl">
-        {(!isOBS || gameState === 'PLAYING') && gameState !== 'PRE_START' && gameState !== 'SUMMARY' && (
+        {(!isOBS || gameState === 'PLAYING') && gameState !== 'PRE_START' && gameState !== 'RULES' && gameState !== 'SUMMARY' && (
           <div className="w-full flex justify-between items-center mb-8">
             <div className="w-10"></div>
             <div className="w-10"></div>
@@ -429,6 +433,59 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                 </button>
                 <button onClick={onHome} className="px-8 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-[2.5rem] flex items-center justify-center transition-all">
                   <Home size={24} />
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : gameState === 'RULES' ? (
+          <div className="flex-1 w-full flex items-center justify-center animate-in zoom-in p-4 overflow-y-auto custom-scrollbar">
+            <div className="glass-card p-8 md:p-12 rounded-[3.5rem] border-2 border-red-600/30 w-full max-w-4xl text-center shadow-[0_0_100px_rgba(255,0,0,0.3)] backdrop-blur-3xl bg-black/95 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-96 h-96 bg-red-600/10 blur-[120px] rounded-full pointer-events-none"></div>
+              <div className="absolute bottom-0 left-0 w-96 h-96 bg-yellow-600/10 blur-[120px] rounded-full pointer-events-none"></div>
+
+              <div className="mb-12 relative z-10">
+                <div className="w-24 h-24 bg-red-600/20 rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-red-500/50 animate-pulse">
+                  <Swords size={48} className="text-red-500" />
+                </div>
+                <h2 className="text-5xl md:text-7xl font-black text-white italic mb-4 tracking-tighter uppercase red-neon-text">قوانين الميدان 📜</h2>
+                <div className="h-2 w-40 bg-gradient-to-r from-transparent via-red-600 to-transparent mx-auto rounded-full"></div>
+              </div>
+
+              <div className="space-y-6 text-right mb-16 relative z-10">
+                <div className="bg-white/[0.03] p-6 md:p-8 rounded-[2rem] border border-white/10 flex flex-col md:flex-row items-center md:items-start gap-6 hover:bg-red-600/10 hover:border-red-500/50 transition-all duration-300 group shadow-lg">
+                  <div className="p-4 bg-red-600/20 rounded-2xl group-hover:bg-red-600 transition-colors shadow-xl shrink-0">
+                    <User size={32} className="text-red-500 group-hover:text-white" />
+                  </div>
+                  <div className="text-center md:text-right">
+                    <h3 className="text-2xl md:text-3xl font-black text-white mb-3 italic">محاولة واحدة فقط! ⚠️</h3>
+                    <p className="text-gray-400 font-bold leading-relaxed text-sm md:text-lg">كل لاعب له فرصة واحدة فقط للإجابة في كل جولة. أي رسالة تنكتب في الشات (حتى لو مو الإجابة) راح تُحتسب كمحاولة وتروح عليك فرصتك.</p>
+                  </div>
+                </div>
+
+                <div className="bg-white/[0.03] p-6 md:p-8 rounded-[2rem] border border-white/10 flex flex-col md:flex-row items-center md:items-start gap-6 hover:bg-green-500/10 hover:border-green-500/50 transition-all duration-300 group shadow-lg">
+                  <div className="p-4 bg-green-500/20 rounded-2xl group-hover:bg-green-500 transition-colors shadow-xl shrink-0">
+                    <CheckCircle2 size={32} className="text-green-500 group-hover:text-white" />
+                  </div>
+                  <div className="text-center md:text-right">
+                    <h3 className="text-2xl md:text-3xl font-black text-white mb-3 italic">طابق الإجابة 🎯</h3>
+                    <p className="text-gray-400 font-bold leading-relaxed text-sm md:text-lg">لازم تنكتب الإجابة في الشات <span className="text-green-400">نفس المكتوب بالضبط</span> في خيارات الشاشة حرفياً. التدقيق الإملائي مهم جداً!</p>
+                  </div>
+                </div>
+
+                <div className="bg-white/[0.03] p-6 md:p-8 rounded-[2rem] border border-white/10 flex flex-col md:flex-row items-center md:items-start gap-6 hover:bg-yellow-500/10 hover:border-yellow-500/50 transition-all duration-300 group shadow-lg">
+                  <div className="p-4 bg-yellow-500/20 rounded-2xl group-hover:bg-yellow-500 transition-colors shadow-xl shrink-0">
+                    <Clock size={32} className="text-yellow-500 group-hover:text-white" />
+                  </div>
+                  <div className="text-center md:text-right">
+                    <h3 className="text-2xl md:text-3xl font-black text-white mb-3 italic">السرعة تحسم! ⚡</h3>
+                    <p className="text-gray-400 font-bold leading-relaxed text-sm md:text-lg">الوقت من ذهب! كلما كنت أسرع في لقط الإجابة وكتابتها بالوقت، زادت نقاطك وفرصتك تتصدر قائمة الأساطير.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="relative z-10 w-full flex flex-col md:flex-row justify-center gap-6">
+                <button onClick={startActualGame} className="flex-1 max-w-sm bg-white text-black hover:bg-gray-200 font-black py-6 px-10 rounded-[2.5rem] text-3xl shadow-[0_15px_50px_rgba(255,255,255,0.2)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-4 group italic border-4 border-transparent hover:border-white/50">
+                  فهمت، لنبدأ! <PlayCircle size={32} className="group-hover:text-red-600 transition-colors group-hover:scale-110" />
                 </button>
               </div>
             </div>
