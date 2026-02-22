@@ -85,15 +85,23 @@ export const TimeBomb: React.FC<TimeBombProps> = ({ onHome, isOBS }) => {
             // Pass bomb
             if (phaseRef.current === 'PLAYING' && currentHolderRef.current) {
                 if (msg.user.username.toLowerCase() === currentHolderRef.current.username.toLowerCase()) {
-                    const targetName = msg.content.trim();
-                    const target = participantsRef.current.find(p =>
-                        p.username.toLowerCase() === targetName.toLowerCase() &&
-                        p.username.toLowerCase() !== currentHolderRef.current!.username.toLowerCase()
-                    );
-                    if (target) {
-                        setPassHistory(prev => [...prev, `${currentHolderRef.current!.username} → ${target.username}`]);
-                        setCurrentHolder(target);
-                        setPassTimer(configRef.current.passTimeLimit);
+                    const rawContent = msg.content.trim();
+
+                    // Extract name from @mention or plain text
+                    // Supports: @username, @ username, or just username
+                    const mentionMatch = rawContent.match(/^@?([\w.\-\u0600-\u06FF]+)$/);
+                    const targetName = mentionMatch ? mentionMatch[1].trim() : null;
+
+                    if (targetName) {
+                        const target = participantsRef.current.find(p =>
+                            p.username.toLowerCase() === targetName.toLowerCase() &&
+                            p.username.toLowerCase() !== currentHolderRef.current!.username.toLowerCase()
+                        );
+                        if (target) {
+                            setPassHistory(prev => [...prev, `${currentHolderRef.current!.username} → ${target.username}`]);
+                            setCurrentHolder(target);
+                            setPassTimer(configRef.current.passTimeLimit);
+                        }
                     }
                 }
             }
@@ -324,7 +332,7 @@ export const TimeBomb: React.FC<TimeBombProps> = ({ onHome, isOBS }) => {
                                 <h2 className="text-3xl font-black text-white mb-3">كيف تلعب؟</h2>
                                 <div className="space-y-3 text-gray-400 text-sm font-bold max-w-sm">
                                     <p className="flex items-center gap-3"><span className="w-8 h-8 bg-orange-600 text-white rounded-xl flex items-center justify-center font-black text-xs">1</span> القنبلة عند لاعب عشوائي</p>
-                                    <p className="flex items-center gap-3"><span className="w-8 h-8 bg-orange-600 text-white rounded-xl flex items-center justify-center font-black text-xs">2</span> اكتب اسم لاعب آخر لتمريرها</p>
+                                    <p className="flex items-center gap-3"><span className="w-8 h-8 bg-orange-600 text-white rounded-xl flex items-center justify-center font-black text-xs">2</span> اكتب <span className="text-orange-400 font-mono">@اسم_اللاعب</span> أو اسمه لتمريرها</p>
                                     <p className="flex items-center gap-3"><span className="w-8 h-8 bg-red-600 text-white rounded-xl flex items-center justify-center font-black text-xs">3</span> من تنفجر عنده يخرج!</p>
                                 </div>
                             </div>
@@ -440,7 +448,7 @@ export const TimeBomb: React.FC<TimeBombProps> = ({ onHome, isOBS }) => {
                                     <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full fuse-spark"></div>
                                 </div>
 
-                                <p className="text-orange-400 font-bold text-lg">اكتب اسم لاعب آخر لتمرر القنبلة!</p>
+                                <p className="text-orange-400 font-bold text-lg">منشن لاعب <span className="text-white font-mono">@username</span> أو اكتب اسمه لتمرر القنبلة!</p>
                             </div>
                         </div>
 
