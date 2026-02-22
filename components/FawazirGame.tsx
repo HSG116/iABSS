@@ -14,6 +14,8 @@ const CONTENT_BACKGROUND_URL = "https://i.ibb.co/k6mHccgc/content.png";
 const AVAILABLE_BACKGROUNDS = [
   { id: 'main', url: MAIN_BACKGROUND_URL, label: 'الرئيسية' },
   { id: 'content', url: CONTENT_BACKGROUND_URL, label: 'الميدان' },
+  { id: 'custom1', url: '/photo/image%20copy.png', label: 'اللعب 1' },
+  { id: 'custom2', url: '/photo/image%20copy%202.png', label: 'اللعب 2' },
 ];
 
 interface FawazirGameProps {

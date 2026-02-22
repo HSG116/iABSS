@@ -94,7 +94,7 @@ export const CATEGORIES: Category[] = [
   { id: 'anime', label: 'أنمي ومانجا', icon: '⛩️', image: 'https://i.ibb.co/3mbBNPQ0/Whats-App-Image-2022-11-05-at-3-19-11-PM.webp' },
   { id: 'history', label: 'تاريخ', icon: '📜', image: 'https://i.ibb.co/N27nXjP4/974b9884-9bd0-4977-99a0-697adbb8a71e.jpg' },
   { id: 'science', label: 'علوم', icon: '🧬', image: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=800' },
-  { id: 'saudi', label: 'ثقافة سعودية', icon: '🇸🇦', image: 'https://i.ibb.co/gFgkXdH4/arrdah.jpg' },
+  { id: 'saudi', label: 'يوم التأسيس', icon: '🇸🇦', image: 'https://i.ibb.co/gFgkXdH4/arrdah.jpg' },
   { id: 'technology', label: 'تكنولوجيا', icon: '💻', image: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=800' },
   { id: 'music', label: 'موسيقى وفنون', icon: '🎨', image: 'https://i.ibb.co/S42vXGfD/659b633c73fa75b9f907409caacd2cab-XL.jpg' },
   { id: 'geography', label: 'جغرافيا وسفر', icon: '🌍', image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=800' },
