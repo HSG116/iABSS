@@ -430,19 +430,7 @@ export const TruthOrLie: React.FC<TruthOrLieProps> = ({ onHome, isOBS = false })
                             </div>
                         </div>
 
-                        {/* Question & Image Display */}
-                        <div className="flex flex-col items-center gap-6 mb-2 animate-in fade-in zoom-in duration-500">
-                            {gameState.imageUrl && (
-                                <div className="w-48 h-48 md:w-64 md:h-64 rounded-3xl overflow-hidden border-4 border-white/20 shadow-[0_0_30px_rgba(0,0,0,0.5)] bg-black/40">
-                                    <img src={gameState.imageUrl} className="w-full h-full object-cover hover:scale-110 transition-transform duration-700" alt="Topic" />
-                                </div>
-                            )}
-                            {gameState.questionText && (
-                                <h2 className="text-4xl md:text-5xl font-black text-white text-center drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] bg-black/40 backdrop-blur-md px-8 py-4 rounded-2xl border border-white/10 leading-relaxed max-w-4xl">
-                                    {gameState.questionText}
-                                </h2>
-                            )}
-                        </div>
+                        {/* Question & Image Display (Hidden in OBS per user request) */}
 
                         {/* VS Battle Cards */}
                         <div className="grid grid-cols-2 gap-8 items-stretch h-[400px]">
