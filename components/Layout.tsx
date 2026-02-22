@@ -25,7 +25,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onChangeV
       case 'FAWAZIR_GAME':
         return "url('/photo/image%20copy.png')";
       default:
-        return "url('/photo/image%20copy.png')";
+        return "url('https://i.ibb.co/kWJRhSN/1000126060.png')";
     }
   };
 
