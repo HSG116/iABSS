@@ -152,7 +152,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onChangeV
       {!chatOpen && (
         <button
           onClick={() => setChatOpen(true)}
-          className="fixed bottom-10 left-10 z-[100] p-6 bg-red-600 text-white rounded-[2rem] shadow-[0_0_50px_rgba(255,0,0,0.6)] hover:scale-110 active:scale-95 transition-all border-2 border-white/20 animate-in slide-in-from-left-20 duration-500"
+          className="fixed bottom-40 left-10 z-[100] p-6 bg-red-600 text-white rounded-[2rem] shadow-[0_0_50px_rgba(255,0,0,0.6)] hover:scale-110 active:scale-95 transition-all border-2 border-white/20 animate-in slide-in-from-left-20 duration-500"
         >
           <MessageSquare size={32} strokeWidth={3} className="drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
         </button>
