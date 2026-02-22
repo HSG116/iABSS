@@ -23,9 +23,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onChangeV
   const viewBg = (view: ViewState) => {
     switch (view) {
       case 'FAWAZIR_GAME':
-        return "url('https://i.ibb.co/pjDLM8Hq/1000126047.png')";
+        return "url('/photo/image%20copy.png')";
       default:
-        return "url('https://i.ibb.co/kWJRhSN/1000126060.png')";
+        return "url('/photo/image%20copy.png')";
     }
   };
 
