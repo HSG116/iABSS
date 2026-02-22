@@ -46,7 +46,6 @@ import { OBSLinksModal } from './components/OBSLinksModal';
 import { SponsorsWidget } from './components/SponsorsWidget';
 import { ProAvatar } from './components/ProAvatar';
 import TecshIcon from './components/TecsIcon';
-import { CartoonIntro } from './components/CartoonIntro';
 
 const ICON_MAP: Record<string, any> = {
   Sparkles, Armchair, TecshIcon, ImageIcon, Zap, Gift, Flag, Users2, Keyboard, Swords, Coffee, PaintBucket, AlertTriangle, Video, Sword, Globe, Brain, Vote, Bomb, Type, Footprints, Flame, Smile
@@ -71,7 +70,6 @@ const App: React.FC = () => {
   const [showWelcome, setShowWelcome] = useState(!initialParams.obs);
   const [isOBSMode, setIsOBSMode] = useState(initialParams.obs);
   const [showOBSModal, setShowOBSModal] = useState(false);
-  const [showCartoonIntro, setShowCartoonIntro] = useState(!initialParams.obs);
 
   // Authorization State - bypass for OBS
   const [isAuthorized, setIsAuthorized] = useState<boolean>(initialParams.obs);
@@ -803,12 +801,10 @@ const App: React.FC = () => {
       isAuthorized={isAuthorized}
     >
       <OBSLinksModal isOpen={showOBSModal} onClose={() => setShowOBSModal(false)} />
-      {showCartoonIntro && <CartoonIntro onComplete={() => setShowCartoonIntro(false)} />}
       {(currentView === 'FAWAZIR_GAME' || currentView === 'FAWAZIR_SELECT') && <SponsorsWidget />}
       {!isAuthorized && <GlobalPasswordPage onSuccess={(role) => {
         setUserRole(role);
         setIsAuthorized(true);
-        setShowCartoonIntro(true);
       }} />}
 
       {/* Only show content if authorized */}
