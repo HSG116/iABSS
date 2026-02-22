@@ -20,7 +20,7 @@ interface GridHuntProps {
 }
 
 type CellType = 'EMPTY' | 'TREASURE' | 'BOMB';
-type GamePhase = 'SETTINGS' | 'WAITING' | 'PLAYING' | 'GAME_OVER';
+type GamePhase = 'SETTINGS' | 'WAITING' | 'RULES' | 'PLAYING' | 'GAME_OVER';
 
 interface GridCell {
    type: CellType;
@@ -85,6 +85,10 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
       setScoreBoard([]);
       setJoinedPlayers([]);
       setLastAction(null);
+      setPhase('RULES');
+   };
+
+   const startActualGame = () => {
       setPhase(settings.entryMode === 'WAITING' ? 'WAITING' : 'PLAYING');
    };
 
@@ -195,7 +199,7 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                      <div className="space-y-3">
                         <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest pl-2 italic">حجم الخريطة (GRID SIZE)</label>
                         <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
-                           {[10, 15, 20, 25, 30].map(size => (
+                           {[10, 15, 20, 25].map(size => (
                               <button
                                  key={size}
                                  onClick={() => setSettings({ ...settings, rows: size, cols: size })}
@@ -237,6 +241,63 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                         <Play size={20} fill="currentColor" /> ابدأ العملية
                      </button>
                   </div>
+               </div>
+            </div>
+         </div>
+      );
+   }
+
+   if (phase === 'RULES') {
+      return (
+         <div className="w-full h-full flex items-center justify-center p-6 bg-transparent overflow-y-auto custom-scrollbar">
+            <div className="glass-card p-8 md:p-12 rounded-[3.5rem] border-2 border-red-600/30 w-full max-w-4xl text-center shadow-[0_0_100px_rgba(255,0,0,0.3)] backdrop-blur-3xl bg-black/95 relative overflow-hidden animate-in zoom-in duration-700">
+               <div className="absolute top-0 right-0 w-96 h-96 bg-red-600/10 blur-[120px] rounded-full pointer-events-none"></div>
+               <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-600/10 blur-[120px] rounded-full pointer-events-none"></div>
+
+               <div className="mb-12 relative z-10">
+                  <div className="w-24 h-24 bg-red-600/20 rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-red-500/50 animate-pulse">
+                     <Target size={48} className="text-red-500" />
+                  </div>
+                  <h2 className="text-5xl md:text-7xl font-black text-white italic mb-4 tracking-tighter uppercase red-neon-text">تعليمات الميدان 🗺️</h2>
+                  <div className="h-2 w-40 bg-gradient-to-r from-transparent via-red-600 to-transparent mx-auto rounded-full"></div>
+               </div>
+
+               <div className="space-y-6 text-right mb-16 relative z-10">
+                  <div className="bg-white/[0.03] p-6 md:p-8 rounded-[2rem] border border-white/10 flex flex-col md:flex-row items-center md:items-start gap-6 hover:bg-white/10 transition-all duration-300 group shadow-lg">
+                     <div className="p-4 bg-red-600/20 rounded-2xl group-hover:bg-red-600 transition-colors shadow-xl shrink-0">
+                        <Zap size={32} className="text-red-500 group-hover:text-white" />
+                     </div>
+                     <div className="text-center md:text-right">
+                        <h3 className="text-2xl md:text-3xl font-black text-white mb-3 italic">حروف عادية ومرونة! 🔠</h3>
+                        <p className="text-gray-400 font-bold leading-relaxed text-sm md:text-lg">مو شرط تكتب الحرف كابيتال (Capital)، تقدر تكتب الإحداثيات بحروف صغيرة أو مع مسافة عادي جداً! مثلاً (a1 أو A 1 أو a 1) كلها مقبولة وتحسب لك وتسهل سرعتك.</p>
+                     </div>
+                  </div>
+
+                  <div className="bg-white/[0.03] p-6 md:p-8 rounded-[2rem] border border-white/10 flex flex-col md:flex-row items-center md:items-start gap-6 hover:bg-white/10 transition-all duration-300 group shadow-lg">
+                     <div className="p-4 bg-yellow-500/20 rounded-2xl group-hover:bg-yellow-500 transition-colors shadow-xl shrink-0">
+                        <Target size={32} className="text-yellow-500 group-hover:text-white" />
+                     </div>
+                     <div className="text-center md:text-right">
+                        <h3 className="text-2xl md:text-3xl font-black text-white mb-3 italic">ركز في محاولاتك 🎯</h3>
+                        <p className="text-gray-400 font-bold leading-relaxed text-sm md:text-lg">تذكر أن عدد محاولاتك {settings.maxAttempts ? 'محدود بـ ' + settings.maxAttempts + ' محاولات' : 'محدود'}، ركز زين واختر الإحداثيات بعناية عشان ما تضيع بطاقاتك بالفوز!</p>
+                     </div>
+                  </div>
+
+                  <div className="bg-white/[0.03] p-6 md:p-8 rounded-[2rem] border border-white/10 flex flex-col md:flex-row items-center md:items-start gap-6 hover:bg-white/10 transition-all duration-300 group shadow-lg">
+                     <div className="p-4 bg-blue-500/20 rounded-2xl group-hover:bg-blue-500 transition-colors shadow-xl shrink-0">
+                        <Bomb size={32} className="text-blue-500 group-hover:text-white" />
+                     </div>
+                     <div className="text-center md:text-right">
+                        <h3 className="text-2xl md:text-3xl font-black text-white mb-3 italic">احذر الألغام 💣</h3>
+                        <p className="text-gray-400 font-bold leading-relaxed text-sm md:text-lg">هدفك الوحيد في هذا الميدان هو إيجاد الماوس باد، وإذا اخترت خيار خطأ بيطلع لك لغم! السرعة والدقة هم سلاحك.</p>
+                     </div>
+                  </div>
+               </div>
+
+               <div className="relative z-10 w-full flex flex-col md:flex-row justify-center gap-6">
+                  <button onClick={startActualGame} className="flex-1 max-w-sm bg-red-600 text-white hover:bg-red-500 font-black py-6 px-10 rounded-[2.5rem] text-3xl shadow-[0_15px_50px_rgba(220,38,38,0.4)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-4 group italic border-4 border-transparent hover:border-white/20">
+                     موافق، انطلق! <Play size={32} className="group-hover:translate-x-2 transition-transform duration-300" fill="currentColor" />
+                  </button>
                </div>
             </div>
          </div>
