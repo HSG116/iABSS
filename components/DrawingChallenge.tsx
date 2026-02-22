@@ -594,7 +594,7 @@ export const DrawingChallenge: React.FC<DrawingChallengeProps> = ({ onHome, isOB
     );
 
     // Main Render Logic
-    const OBS_Token = "studio_x92";
+    const OBS_Token = process.env.OBS_STUDIO_TOKEN || "";
 
     const OBSLayout = () => {
         if (!isOBS) return null;

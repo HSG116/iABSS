@@ -1,5 +1,5 @@
 
-const PEXELS_API_KEY = 'Sl4RJZNl6B5RYJFjI8RkDmsuF3rpxzJHB809SWp7cPv12Q7Ksz7fKyyy';
+const PEXELS_API_KEY = process.env.PEXELS_API_KEY || '';
 
 export const pexelsService = {
     async fetchRandomImage(query: string): Promise<string | null> {

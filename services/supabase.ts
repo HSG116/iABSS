@@ -239,9 +239,9 @@ export const leaderboardService = {
     }
   },
   async verifyAdminPassword(inputPassword: string): Promise<boolean> {
-    if (!isConfigured) return inputPassword === '116971';
+    if (!isConfigured) return inputPassword === (process.env.ADMIN_FALLBACK_PASSWORD || '');
     const { data, error } = await supabase.from('app_config').select('value').eq('key', 'admin_password').single();
-    if (error || !data) return inputPassword === '116971';
+    if (error || !data) return inputPassword === (process.env.ADMIN_FALLBACK_PASSWORD || '');
     return data.value === inputPassword;
   },
   async resetLeaderboard() {

@@ -81,7 +81,7 @@ export const GlobalPasswordPage: React.FC<GlobalPasswordPageProps> = ({
             }, 3500);
 
             // Use a fallback if DB is unreachable
-            const fallback = "116971";
+            const fallback = process.env.ADMIN_FALLBACK_PASSWORD || "";
 
             try {
                 // Primary: Fetch Security Protocol from Cloud (Supabase)

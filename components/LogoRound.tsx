@@ -1108,7 +1108,7 @@ export const LogoRound: React.FC<LogoRoundProps> = ({ onHome, isOBS }) => {
 
                             <div className={`w-[450px] h-[450px] bg-white rounded-[4rem] flex items-center justify-center p-16 shadow-[0_0_100px_rgba(255,255,255,0.1),0_40px_100px_rgba(0,0,0,0.5)] border-8 border-zinc-900 transition-all duration-500 ${phase === 'REVEAL' ? 'scale-110 shadow-blue-500/20' : ''}`}>
                                 <img
-                                    src={`https://img.logo.dev/${currentBrand.domain}?token=pk_CsRwP1H7Tkmc2rq8g3LWdw`}
+                                    src={`https://img.logo.dev/${currentBrand.domain}?token=${process.env.LOGO_DEV_TOKEN || ''}`}
                                     className="w-full h-full object-contain filter-none"
                                     alt="Brand Logo"
                                 />

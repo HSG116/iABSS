@@ -10,7 +10,7 @@ interface BlurGuessProps {
   onHome: () => void;
 }
 
-const PEXELS_API_KEY = "uZQAx7uPvBboEvI8i6pN9NsvGFvZi5qDPQNPFHchF0DnuBZdrPm7wt54";
+const PEXELS_API_KEY = process.env.PEXELS_API_KEY || "";
 
 const ENGLISH_WORDS = [
   "Lion", "Tiger", "Elephant", "Giraffe", "Zebra", "Monkey", "Kangaroo", "Panda", "Koala", "Leopard",

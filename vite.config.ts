@@ -9,11 +9,17 @@ const __dirname = path.dirname(__filename);
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
 
-  // Fallback to process.env if loadEnv (from .env files) is empty
-  // Useful for CI/CD like GitHub Actions
-  const GEMINI_API_KEY = env.GEMINI_API_KEY || process.env.GEMINI_API_KEY || '';
-  const SUPABASE_URL = env.EXPO_PUBLIC_SUPABASE_URL || process.env.EXPO_PUBLIC_SUPABASE_URL || '';
-  const SUPABASE_KEY = env.EXPO_PUBLIC_SUPABASE_KEY || process.env.EXPO_PUBLIC_SUPABASE_KEY || '';
+  // Helper: get env variable from .env file or system environment
+  const getEnv = (key: string) => env[key] || process.env[key] || '';
+
+  // All sensitive keys - loaded from .env, NEVER hardcoded
+  const GEMINI_API_KEY = getEnv('GEMINI_API_KEY');
+  const SUPABASE_URL = getEnv('EXPO_PUBLIC_SUPABASE_URL');
+  const SUPABASE_KEY = getEnv('EXPO_PUBLIC_SUPABASE_KEY');
+  const PEXELS_API_KEY = getEnv('PEXELS_API_KEY');
+  const LOGO_DEV_TOKEN = getEnv('LOGO_DEV_TOKEN');
+  const OBS_STUDIO_TOKEN = getEnv('OBS_STUDIO_TOKEN');
+  const ADMIN_FALLBACK_PASSWORD = getEnv('ADMIN_FALLBACK_PASSWORD');
 
   return {
     // Dynamic Base Path: Vercel usually serves from root (/), GitHub Pages from project folder (./)
@@ -29,6 +35,10 @@ export default defineConfig(({ mode }) => {
       'process.env.GEMINI_API_KEY': JSON.stringify(GEMINI_API_KEY),
       'process.env.EXPO_PUBLIC_SUPABASE_URL': JSON.stringify(SUPABASE_URL),
       'process.env.EXPO_PUBLIC_SUPABASE_KEY': JSON.stringify(SUPABASE_KEY),
+      'process.env.PEXELS_API_KEY': JSON.stringify(PEXELS_API_KEY),
+      'process.env.LOGO_DEV_TOKEN': JSON.stringify(LOGO_DEV_TOKEN),
+      'process.env.OBS_STUDIO_TOKEN': JSON.stringify(OBS_STUDIO_TOKEN),
+      'process.env.ADMIN_FALLBACK_PASSWORD': JSON.stringify(ADMIN_FALLBACK_PASSWORD),
       'process': { env: {} }
     },
     resolve: {
