@@ -133,27 +133,14 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onChangeV
 
       {/* Main Game Area */}
       <main className="flex-1 relative flex flex-col h-full overflow-hidden bg-black">
-        {/* Advanced Red & Black Premium Global Background Layer */}
-        <div className="absolute inset-0 z-0 pointer-events-none bg-black">
-          {/* Base Image */}
-          <div
-            className="absolute inset-0 opacity-30 mix-blend-screen transition-all duration-1000 bg-center bg-no-repeat"
-            style={{
-              backgroundImage: viewBg(currentView),
-              backgroundSize: 'cover'
-            }}
-          ></div>
-
-          {/* Intense Red & Black Overlays */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(159,18,57,0.2),transparent_60%)]"></div>
-          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/60 to-[#050505]"></div>
-
-          {/* Animated Glow in center */}
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vh] bg-rose-600/5 blur-[150px] rounded-full animate-pulse-glow pointer-events-none"></div>
-
-          {/* Hex/Grid Pattern Overlay for technical look */}
-          <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)]" style={{ backgroundSize: '40px 40px' }}></div>
-        </div>
+        {/* Global Background Layer */}
+        <div
+          className="absolute inset-0 z-0 pointer-events-none opacity-40 transition-all duration-1000 bg-center bg-no-repeat blur-[2px]"
+          style={{
+            backgroundImage: viewBg(currentView),
+            backgroundSize: 'cover'
+          }}
+        ></div>
 
         {/* Content Container */}
         <div className="flex-1 w-full h-full relative z-10 overflow-y-auto overflow-x-hidden p-4 md:p-8 flex flex-col items-center">

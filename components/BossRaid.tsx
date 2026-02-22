@@ -117,62 +117,62 @@ export const BossRaid: React.FC<BossRaidProps> = ({ channelConnected, isOBS }) =
       <>
          {!isOBS && (
             <SidebarPortal>
-               <div className="glass-card p-5 rounded-[2rem] space-y-4 animate-in slide-in-from-right-4">
-                  <div className="flex items-center justify-between border-b border-red-900/30 pb-3">
-                     <h4 className="text-[10px] font-black text-white/50 uppercase tracking-widest flex items-center gap-2">
-                        <Skull size={14} className="text-red-500 animate-pulse" /> BOSS CONSOLE
+               <div className="bg-[#0a0a0c]/90 backdrop-blur-md p-5 rounded-[2rem] border border-white/10 space-y-4 animate-in slide-in-from-right-4 shadow-2xl">
+                  <div className="flex items-center justify-between">
+                     <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                        <Skull size={12} className="text-red-500" /> BOSS CONSOLE
                      </h4>
-                     {isActive && hp > 0 && <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping shadow-[0_0_10px_red]"></span>}
+                     {isActive && hp > 0 && <span className="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>}
                   </div>
 
-                  <div className="grid grid-cols-1 gap-3 pt-2">
+                  <div className="grid grid-cols-1 gap-2">
                      <button
                         onClick={resetGame}
-                        className="w-full bg-gradient-to-r from-red-700 to-red-900 hover:from-red-600 hover:to-red-800 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-95 shadow-[0_0_20px_rgba(220,38,38,0.4)] border border-red-500/30 uppercase tracking-wider text-sm"
+                        className="w-full bg-red-600 hover:bg-red-500 text-white font-black py-3 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-95 shadow-lg shadow-red-900/20"
                      >
-                        <RotateCcw size={18} className="animate-spin-slow" /> {isActive ? 'RESET RAID' : 'SUMMON BOSS'}
+                        <RotateCcw size={18} /> {isActive ? 'RESET RAID' : 'SUMMON BOSS'}
                      </button>
 
                      <button
                         onClick={toggleShield}
                         disabled={!isActive || hp <= 0}
-                        className={`w-full font-black py-4 rounded-2xl flex items-center justify-center gap-3 transition-all border-2 active:scale-95 uppercase tracking-wider text-sm ${isShielded ? 'bg-gradient-to-r from-blue-700 to-blue-900 border-blue-400 text-white shadow-[0_0_20px_rgba(59,130,246,0.5)]' : 'bg-black/50 border-white/10 text-gray-500 hover:text-white hover:border-white/30'}`}
+                        className={`w-full font-black py-3 rounded-2xl flex items-center justify-center gap-3 transition-all border-2 active:scale-95 ${isShielded ? 'bg-blue-600 border-blue-400 text-white shadow-lg shadow-blue-900/30' : 'bg-white/5 border-white/5 text-gray-400 hover:bg-white/10'}`}
                      >
                         <Shield size={18} /> {isShielded ? 'DISABLE SHIELD' : 'ACTIVATE SHIELD'}
                      </button>
                   </div>
                </div>
 
-               <div className="glass-card rounded-[2rem] flex flex-col overflow-hidden h-[450px] mt-6">
-                  <div className="p-5 border-b border-red-500/20 bg-gradient-to-r from-red-950/40 to-black/20">
-                     <span className="text-xs font-black text-white flex items-center gap-2 uppercase tracking-widest">
-                        <Trophy size={16} className="text-yellow-500 drop-shadow-[0_0_10px_yellow]" /> Top Damage Dealers
+               <div className="bg-[#0a0a0c]/90 backdrop-blur-md rounded-[2rem] border border-white/10 flex flex-col overflow-hidden h-[400px] mt-4 shadow-2xl">
+                  <div className="p-4 border-b border-white/5 bg-gradient-to-r from-red-600/20 to-transparent">
+                     <span className="text-[10px] font-black text-white flex items-center gap-2 uppercase tracking-tighter">
+                        <Trophy size={14} className="text-yellow-500" /> Top Damage Dealers
                      </span>
                   </div>
-                  <div className="overflow-y-auto flex-1 p-4 space-y-3 custom-scrollbar">
+                  <div className="overflow-y-auto flex-1 p-3 space-y-2 custom-scrollbar">
                      {sortedMvps.length === 0 ? (
-                        <div className="h-full flex flex-col items-center justify-center opacity-30 italic text-sm text-gray-400 font-bold uppercase tracking-widest">
-                           <Sword size={48} className="mb-4 text-red-500" />
+                        <div className="h-full flex flex-col items-center justify-center opacity-20 italic text-xs grayscale">
+                           <Sword size={40} className="mb-2" />
                            NO DAMAGE YET
                         </div>
                      ) : sortedMvps.map(([name, data], i) => (
-                        <div key={name} className="flex items-center justify-between p-4 rounded-2xl bg-black/60 border border-white/5 group hover:bg-red-950/40 hover:border-red-500/30 transition-all">
-                           <div className="flex items-center gap-4">
+                        <div key={name} className="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/5 group hover:bg-white/10 transition-all">
+                           <div className="flex items-center gap-3">
                               <div className="relative">
                                  <ProAvatar
                                     url={data.avatar}
                                     username={name}
-                                    size="w-12 h-12"
+                                    size="w-10 h-10"
                                  />
-                                 <div className={`absolute -top-2 -left-2 w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black shadow-lg border border-black ${i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-black shadow-[0_0_15px_yellow]' : 'bg-zinc-800 text-white'}`}>
+                                 <div className={`absolute -top-2 -left-2 w-5 h-5 rounded-lg flex items-center justify-center text-[10px] font-black shadow-lg ${i === 0 ? 'bg-yellow-500 text-black' : 'bg-zinc-800 text-white'}`}>
                                     {i + 1}
                                  </div>
                               </div>
-                              <span className="text-base font-black text-white group-hover:text-red-400 transition-colors truncate max-w-[100px]">{name}</span>
+                              <span className="text-sm font-black text-white group-hover:text-red-400 transition-colors truncate w-24">{name}</span>
                            </div>
                            <div className="flex flex-col items-end">
-                              <span className="text-sm font-black text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]">{data.dmg}</span>
-                              <span className="text-[9px] text-gray-500 uppercase font-black tracking-widest">DMG</span>
+                              <span className="text-xs font-black text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.4)]">{data.dmg}</span>
+                              <span className="text-[8px] text-gray-500 uppercase font-bold">DMG</span>
                            </div>
                         </div>
                      ))}
@@ -181,13 +181,13 @@ export const BossRaid: React.FC<BossRaidProps> = ({ channelConnected, isOBS }) =
             </SidebarPortal>
          )}
 
-         <div className={`w-full h-full flex flex-col items-center justify-center p-6 relative overflow-hidden transition-all duration-75 ${shake ? 'scale-[0.98] -translate-x-2 translate-y-2 bg-red-900/30' : 'scale-100 rotate-0'}`}>
+         <div className={`w-full h-full flex flex-col items-center justify-center p-6 relative overflow-hidden transition-all duration-75 ${shake ? 'scale-98 rotate-1 bg-red-900/10' : 'scale-100 rotate-0'}`}>
 
             {/* Atmospheric Effects */}
             <div className="absolute inset-0 pointer-events-none">
-               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-red-600/20 blur-[150px] rounded-full animate-pulse-glow"></div>
+               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-red-600/10 blur-[150px] rounded-full animate-pulse"></div>
                {hp > 0 && hp < maxHp * 0.3 && (
-                  <div className="absolute inset-0 bg-red-900/40 backdrop-sepia-[0.3] animate-pulse"></div>
+                  <div className="absolute inset-0 bg-red-900/20 backdrop-sepia-[0.2] animate-pulse"></div>
                )}
             </div>
 
@@ -198,38 +198,39 @@ export const BossRaid: React.FC<BossRaidProps> = ({ channelConnected, isOBS }) =
                      {/* Floating Damage Numbers */}
                      {damageLog.map((log) => (
                         <div key={log.id}
-                           className="absolute left-1/2 top-1/2 font-black text-white animate-out slide-out-to-top-32 fade-out duration-1000 pointer-events-none whitespace-nowrap z-50 flex flex-col items-center drop-shadow-[0_0_20px_rgba(220,38,38,1)]"
+                           className="absolute left-1/2 top-1/2 font-black text-red-500 animate-out slide-out-to-top fade-out duration-1000 pointer-events-none whitespace-nowrap z-50 flex flex-col items-center"
                            style={{
                               marginLeft: `${log.x}px`,
                               marginTop: `${log.y}px`,
                               fontSize: `${20 + (log.dmg / 2)}px`
                            }}
                         >
-                           <span className="text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]">-{log.dmg}</span>
-                           <span className="text-[10px] text-white/50 bg-black/50 px-2 rounded-full mt-1 uppercase tracking-widest">{log.user}</span>
+                           <span className="drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]">-{log.dmg}</span>
+                           <span className="text-[10px] text-white/40 uppercase tracking-widest">{log.user}</span>
                         </div>
                      ))}
 
-                     <div className={`text-[120px] md:text-[220px] leading-none transition-all duration-300 transform select-none
-                     ${shake ? 'scale-110 blur-[2px]' : 'scale-100 hover:scale-105'} 
+                     <div className={`text-[180px] md:text-[300px] leading-none transition-all duration-300 transform select-none
+                     ${shake ? 'scale-110 blur-[1px]' : 'scale-100 hover:scale-105'} 
                      ${isShielded ? 'opacity-40 grayscale blur-sm' : 'opacity-100'} 
-                     filter drop-shadow-[0_20px_50px_rgba(220,38,38,0.8)] animate-bounce-slow`
+                     filter drop-shadow-[0_0_60px_rgba(220,38,38,0.6)] animate-float`
                      }>
                         {BOSS_DATA.image}
                      </div>
 
                      {isShielded && (
                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                           <div className="w-[350px] h-[350px] rounded-full border-4 border-blue-500/80 flex items-center justify-center animate-spin-slow bg-blue-500/10 backdrop-blur-[2px] shadow-[0_0_50px_rgba(59,130,246,0.6)]">
-                              <Shield size={250} className="text-blue-400 drop-shadow-[0_0_30px_rgba(59,130,246,1)] animate-pulse" />
+                           <div className="w-[350px] h-[350px] rounded-full border-4 border-blue-500/50 flex items-center justify-center animate-spin-slow">
+                              <Shield size={200} className="text-blue-500/80 drop-shadow-[0_0_30px_rgba(59,130,246,0.8)]" />
                            </div>
+                           <div className="absolute inset-0 bg-blue-500/10 rounded-full blur-2xl animate-pulse"></div>
                         </div>
                      )}
 
                      {/* Last Hit Indicator */}
                      {lastHitBy && (
-                        <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 bg-gradient-to-r from-transparent via-red-950/80 to-transparent backdrop-blur-md px-6 py-2 border-y border-red-500/30 text-xs font-black text-white/60 animate-in fade-in slide-in-from-bottom-2 shadow-[0_0_30px_rgba(220,38,38,0.3)]">
-                           LAST HIT BY: <span className="text-red-500 drop-shadow-[0_0_5px_red] ml-2">{lastHitBy}</span>
+                        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-md px-4 py-1 rounded-full border border-white/10 text-[10px] font-bold text-white/60 animate-in fade-in slide-in-from-bottom-2">
+                           LAST HIT BY: <span className="text-red-400">{lastHitBy}</span>
                         </div>
                      )}
                   </div>
@@ -237,63 +238,60 @@ export const BossRaid: React.FC<BossRaidProps> = ({ channelConnected, isOBS }) =
                   <div className="animate-in zoom-in duration-700 flex flex-col items-center">
                      <div className="relative">
                         <div className="text-[200px] filter grayscale opacity-40">💀</div>
-                        <div className="absolute inset-0 bg-red-600/40 blur-3xl rounded-full"></div>
+                        <div className="absolute inset-0 bg-red-600/20 blur-3xl rounded-full"></div>
                      </div>
                      <h1 className="text-7xl md:text-9xl font-black text-red-600 mt-6 red-neon-text italic tracking-tighter uppercase skew-x-[-10deg]">
                         DEFEATED
                      </h1>
-                     <p className="mt-4 text-white/60 font-black tracking-[1em] uppercase text-sm border-b border-red-500/50 pb-2">The territory is safe</p>
+                     <p className="mt-4 text-white/40 font-black tracking-[1em] uppercase text-xs">The territory is safe</p>
                   </div>
                )}
 
                {/* Cinematic Health Bar */}
                {hp > 0 && (
-                  <div className="glass-card w-[90vw] max-w-4xl mx-auto mt-24 p-8 rounded-[3rem] animate-in slide-in-from-bottom border-t-4 border-red-500/50 shadow-[0_0_80px_rgba(220,38,38,0.2)]">
-                     <div className="flex justify-between items-end mb-4">
-                        <div className="flex items-center gap-4">
-                           <Zap size={28} className="text-red-500 animate-pulse drop-shadow-[0_0_15px_red]" />
-                           <h2 className="text-4xl md:text-5xl font-black text-white italic tracking-tighter drop-shadow-[0_0_20px_rgba(255,255,255,0.3)] uppercase">{BOSS_DATA.name}</h2>
-                        </div>
+                  <div className="w-[90vw] max-w-4xl mx-auto mt-20 relative px-10">
+                     <div className="absolute -top-10 left-10 flex items-center gap-2 text-white/40 font-black uppercase tracking-widest text-[10px]">
+                        <Zap size={12} className="text-yellow-500" /> Raid Boss Health
+                     </div>
+
+                     <div className="flex justify-between items-end mb-3">
+                        <h2 className="text-5xl font-black text-white italic tracking-tighter drop-shadow-lg uppercase">{BOSS_DATA.name}</h2>
                         <div className="flex flex-col items-end">
-                           <span className="text-3xl font-mono font-black text-red-500 drop-shadow-[0_0_15px_red]">{hp.toLocaleString()} HP</span>
-                           <span className="text-sm text-red-400/80 font-black uppercase tracking-widest bg-red-950/40 px-3 py-1 rounded-full border border-red-500/30">{(hp / maxHp * 100).toFixed(1)}%</span>
+                           <span className="text-2xl font-mono font-black text-red-500">{hp.toLocaleString()} HP</span>
+                           <span className="text-[10px] text-white/30 font-bold uppercase">{(hp / maxHp * 100).toFixed(1)}%</span>
                         </div>
                      </div>
 
-                     <div className="h-8 bg-black/80 rounded-full p-1.5 border-2 border-white/10 relative overflow-hidden group shadow-[inset_0_0_20px_rgba(0,0,0,0.8)]">
+                     <div className="h-6 bg-black/60 rounded-full p-1 border-2 border-white/10 relative overflow-hidden group shadow-[0_0_50px_rgba(0,0,0,0.5)]">
                         <div
                            className={`h-full rounded-full transition-all duration-300 ease-out relative overflow-hidden
-                                ${hp < maxHp * 0.2 ? 'bg-gradient-to-r from-red-600 via-red-500 to-red-600 animate-pulse' : 'bg-gradient-to-r from-red-900 via-red-600 to-orange-500'} neon-glow-red`}
+                                ${hp < maxHp * 0.2 ? 'bg-gradient-to-r from-red-600 via-red-500 to-red-600 animate-pulse' : 'bg-gradient-to-r from-red-800 via-red-600 to-orange-500'}`}
                            style={{ width: `${(hp / maxHp) * 100}%` }}
                         >
-                           {/* Cinematic Shine effect */}
-                           <div className="absolute inset-0 bg-white/40 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 skew-x-[-35deg] pointer-events-none"></div>
-                           {/* Inner Top Glow */}
-                           <div className="absolute top-0 left-0 w-full h-[30%] bg-gradient-to-b from-white/30 to-transparent"></div>
+                           {/* Shine effect */}
+                           <div className="absolute inset-0 bg-white/30 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 skew-x-[-45deg] pointer-events-none"></div>
+                           {/* Glow */}
+                           <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent"></div>
                         </div>
                      </div>
 
                      {/* Tick markers */}
-                     <div className="flex justify-between px-4 mt-3 opacity-30">
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => <div key={i} className="w-0.5 h-3 bg-red-500"></div>)}
+                     <div className="flex justify-between px-2 mt-2 opacity-20">
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => <div key={i} className="w-[1px] h-2 bg-white"></div>)}
                      </div>
                   </div>
                )}
 
                {hp > 0 && (
-                  <div className="mt-10 flex flex-col items-center gap-5">
-                     <div className="glass-card px-10 py-4 rounded-full border-t border-red-500/50 flex items-center gap-5 animate-pulse-glow hover:scale-105 transition-transform cursor-pointer">
-                        <Sword size={24} className="text-red-500 drop-shadow-[0_0_10px_red]" />
-                        <span className="text-white font-black text-xl tracking-wide">
-                           اكتب <span className="text-red-500 px-1 underline decoration-2 drop-shadow-[0_0_8px_red]">هجوم</span> أو <span className="text-red-500 px-1 decoration-2 drop-shadow-[0_0_8px_red]">!attack</span> للقتال
+                  <div className="mt-12 flex flex-col items-center gap-4">
+                     <div className="px-8 py-3 bg-white/5 backdrop-blur-md rounded-full border border-white/10 flex items-center gap-4 animate-bounce">
+                        <Sword size={20} className="text-red-500" />
+                        <span className="text-white font-black text-xl tracking-tight">
+                           اكتب <span className="text-red-500 px-1 underline decoration-2">هجوم</span> أو <span className="text-red-500 px-1 decoration-2">!attack</span> للقتال
                         </span>
-                        <Sword size={24} className="text-red-500 scale-x-[-1] drop-shadow-[0_0_10px_red]" />
+                        <Sword size={20} className="text-red-500 scale-x-[-1]" />
                      </div>
-                     <div className="text-[10px] text-red-500/50 font-black uppercase tracking-[0.8em] flex items-center gap-2">
-                        <span className="w-10 h-px bg-gradient-to-r from-transparent to-red-500/50"></span>
-                        Battle in Progress
-                        <span className="w-10 h-px bg-gradient-to-l from-transparent to-red-500/50"></span>
-                     </div>
+                     <div className="text-[10px] text-white/20 font-bold uppercase tracking-[0.5em]">Battle in Progress</div>
                   </div>
                )}
             </div>

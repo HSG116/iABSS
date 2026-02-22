@@ -329,7 +329,7 @@ export const TimeBomb: React.FC<TimeBombProps> = ({ onHome, isOBS }) => {
                                 </div>
                             </div>
 
-                            <button onClick={() => setPhase('LOBBY')} className="mt-8 bg-gradient-to-r from-red-700 to-red-950 hover:from-red-600 hover:to-red-900 text-white font-black py-5 px-16 rounded-3xl text-3xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-4 shadow-[0_0_40px_rgba(220,38,38,0.5)] border-t border-red-500/50 italic relative z-10">
+                            <button onClick={() => setPhase('LOBBY')} className="mt-8 bg-gradient-to-r from-orange-600 to-red-600 text-white font-black py-5 px-16 rounded-3xl text-3xl hover:scale-[1.05] active:scale-95 transition-all flex items-center justify-center gap-4 shadow-[0_15px_40px_rgba(249,115,22,0.4)] border-t border-white/20 italic relative z-10">
                                 بـدء المـعـركـة <Play fill="currentColor" size={28} />
                             </button>
                         </div>
@@ -344,14 +344,14 @@ export const TimeBomb: React.FC<TimeBombProps> = ({ onHome, isOBS }) => {
 
                     <div className="text-center mb-10 z-10">
                         <div className="relative inline-block mb-6">
-                            <div className="absolute inset-0 bg-red-600/30 blur-[60px] animate-pulse-glow"></div>
-                            <Bomb size={120} className="text-red-500 relative z-10 drop-shadow-[0_0_40px_rgba(220,38,38,1)] animate-bounce-slow" strokeWidth={1.5} />
+                            <div className="absolute inset-0 bg-orange-500/30 blur-[60px] animate-pulse"></div>
+                            <Bomb size={100} className="text-orange-500 relative z-10 drop-shadow-[0_0_40px_rgba(249,115,22,1)] animate-bounce" strokeWidth={1.5} />
                         </div>
-                        <h1 className="text-7xl md:text-8xl font-black text-white italic tracking-tighter mb-6 drop-shadow-[0_10px_60px_rgba(220,38,38,0.4)] uppercase">
+                        <h1 className="text-8xl font-black text-white italic tracking-tighter mb-6 drop-shadow-[0_10px_60px_rgba(0,0,0,1)] uppercase">
                             في انتظار اللاعبين
                         </h1>
-                        <div className="flex items-center justify-center gap-4 text-3xl text-white font-black glass-card px-12 py-8 rounded-[3rem] border-t border-red-500/30 shadow-[0_0_40px_rgba(220,38,38,0.2)]">
-                            أرسل <span className="bg-gradient-to-r from-red-600 to-red-800 text-white px-8 py-3 rounded-2xl font-black shadow-[0_0_20px_rgba(220,38,38,0.6)]">{config.joinKeyword}</span> للمشاركة
+                        <div className="flex items-center justify-center gap-4 text-3xl text-gray-400 font-bold bg-black/40 backdrop-blur-xl px-12 py-8 rounded-[3rem] border-2 border-white/5 shadow-2xl">
+                            أرسل <span className="bg-orange-600 text-white px-8 py-3 rounded-2xl font-black italic shadow-lg">{config.joinKeyword}</span> للمشاركة
                         </div>
                     </div>
 
@@ -381,15 +381,15 @@ export const TimeBomb: React.FC<TimeBombProps> = ({ onHome, isOBS }) => {
                         )}
                     </div>
 
-                    <div className="w-full max-w-4xl glass-card p-8 rounded-[3rem] shadow-[0_0_50px_rgba(220,38,38,0.15)] flex items-center justify-between z-20">
-                        <div className="flex items-center gap-4 bg-black/50 px-6 py-3 rounded-2xl border border-red-500/20">
+                    <div className="w-full max-w-4xl bg-black/60 backdrop-blur-[40px] p-8 rounded-[3rem] border border-white/10 shadow-2xl flex items-center justify-between z-20">
+                        <div className="flex items-center gap-4 bg-white/5 px-6 py-3 rounded-2xl border border-white/5">
                             <span className="text-5xl font-black text-white font-mono italic">{participants.length}</span>
-                            <span className="text-lg text-red-500 font-black opacity-60">/ {config.maxPlayers}</span>
+                            <span className="text-lg text-orange-500 font-black opacity-40">/ {config.maxPlayers}</span>
                         </div>
                         <div className="flex gap-4">
-                            <button onClick={resetGame} className="px-8 py-5 rounded-2xl bg-black/40 text-gray-400 font-black hover:text-white transition-all text-lg border border-white/10 hover:border-white/30">تراجع</button>
-                            <button onClick={startGame} disabled={participants.length < 3} className="px-12 py-5 bg-gradient-to-r from-red-600 to-red-900 border border-red-400/30 text-white font-black text-2xl rounded-2xl shadow-[0_0_30px_rgba(220,38,38,0.5)] hover:scale-105 active:scale-95 transition-all disabled:opacity-20 flex items-center gap-3">
-                                ابدأ المعركة! <Bomb size={28} className="animate-pulse" />
+                            <button onClick={resetGame} className="px-8 py-5 rounded-2xl bg-white/5 text-gray-500 font-black hover:text-white transition-all text-lg border border-white/10">تراجع</button>
+                            <button onClick={startGame} disabled={participants.length < 3} className="px-12 py-5 bg-gradient-to-r from-orange-600 to-red-600 text-white font-black text-2xl rounded-2xl shadow-2xl hover:scale-[1.05] active:scale-95 transition-all disabled:opacity-20 italic flex items-center gap-3">
+                                ابدأ! <Bomb size={28} />
                             </button>
                         </div>
                     </div>
@@ -399,32 +399,32 @@ export const TimeBomb: React.FC<TimeBombProps> = ({ onHome, isOBS }) => {
             {/* --- PLAYING --- */}
             {phase === 'PLAYING' && currentHolder && (
                 <div className="w-full h-full flex flex-col items-center justify-center p-8 animate-in fade-in duration-500 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-red-950/40 via-black to-black"></div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-orange-950/40 via-black to-red-950/40"></div>
 
                     {/* Danger particles */}
-                    {Array.from({ length: 30 }).map((_, i) => (
+                    {Array.from({ length: 20 }).map((_, i) => (
                         <div key={`spark-${i}`} className="absolute rounded-full fuse-spark" style={{
                             width: `${3 + Math.random() * 5}px`, height: `${3 + Math.random() * 5}px`,
-                            backgroundColor: i % 2 === 0 ? '#ef4444' : '#b91c1c',
+                            backgroundColor: i % 2 === 0 ? '#f97316' : '#ef4444',
                             left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`,
-                            opacity: 0.5, animationDelay: `${Math.random() * 2}s`, boxShadow: '0 0 10px red'
+                            opacity: 0.3, animationDelay: `${Math.random() * 2}s`,
                         }} />
                     ))}
 
                     <div className="relative z-10 flex flex-col items-center w-full max-w-4xl">
                         {/* Round Info */}
                         <div className="mb-6 text-center">
-                            <span className="text-red-500 font-black text-sm uppercase tracking-[0.6em] drop-shadow-[0_0_8px_red]">الجولة {currentRound}</span>
+                            <span className="text-orange-500 font-black text-sm uppercase tracking-[0.5em]">الجولة {currentRound}</span>
                         </div>
 
                         {/* Bomb holder card */}
                         <div className="relative mb-8" style={{ animation: shakeIntensity > 5 ? `bomb-shake ${Math.max(0.1, 0.5 - shakeIntensity * 0.02)}s infinite` : 'none' }}>
                             {/* Glow */}
-                            <div className="absolute inset-0 bg-red-600/20 blur-[100px] rounded-full animate-pulse-glow" style={{ transform: `scale(${1 + shakeIntensity * 0.05})` }}></div>
+                            <div className="absolute inset-0 bg-orange-500/30 blur-[80px] rounded-full animate-pulse" style={{ transform: `scale(${1 + shakeIntensity * 0.05})` }}></div>
 
-                            <div className="relative glass-card border-t-4 border-red-500/80 rounded-[4rem] p-10 shadow-[0_0_100px_rgba(220,38,38,0.4)] flex flex-col items-center gap-6">
+                            <div className="relative bg-black/80 backdrop-blur-2xl border-4 border-orange-500/50 rounded-[4rem] p-10 shadow-[0_0_80px_rgba(249,115,22,0.4)] flex flex-col items-center gap-6">
                                 {/* Avatar */}
-                                <div className="w-32 h-32 rounded-[2.5rem] border-4 border-red-600 overflow-hidden shadow-[0_0_40px_rgba(220,38,38,0.8)] bomb-pulse">
+                                <div className="w-32 h-32 rounded-[2.5rem] border-4 border-orange-500 overflow-hidden shadow-[0_0_40px_rgba(249,115,22,0.6)] bomb-pulse">
                                     <ProAvatar
                                         url={currentHolder.avatar || ''}
                                         username={currentHolder.username}
@@ -432,15 +432,15 @@ export const TimeBomb: React.FC<TimeBombProps> = ({ onHome, isOBS }) => {
                                     />
                                 </div>
 
-                                <div className="text-5xl font-black text-white italic drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]">{currentHolder.username}</div>
+                                <div className="text-4xl font-black text-white italic">{currentHolder.username}</div>
 
                                 {/* Bomb icon */}
                                 <div className="relative">
-                                    <Bomb size={90} className="text-red-500 drop-shadow-[0_0_40px_rgba(220,38,38,1)]" style={{ animation: `bomb-pulse ${Math.max(0.15, 1 - shakeIntensity * 0.05)}s ease-in-out infinite` }} />
-                                    <div className="absolute -top-3 -right-3 w-8 h-8 bg-yellow-300 rounded-full fuse-spark shadow-[0_0_20px_yellow]"></div>
+                                    <Bomb size={80} className="text-orange-500 drop-shadow-[0_0_30px_rgba(249,115,22,0.8)]" style={{ animation: `bomb-pulse ${Math.max(0.3, 1 - shakeIntensity * 0.05)}s ease-in-out infinite` }} />
+                                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full fuse-spark"></div>
                                 </div>
 
-                                <p className="text-red-400 font-black text-xl tracking-wide bg-red-950/40 px-6 py-2 rounded-full border border-red-500/30 shadow-[0_0_15px_rgba(220,38,38,0.2)]">اكتب اسم لاعب آخر لتمرر القنبلة!</p>
+                                <p className="text-orange-400 font-bold text-lg">اكتب اسم لاعب آخر لتمرر القنبلة!</p>
                             </div>
                         </div>
 
@@ -480,22 +480,23 @@ export const TimeBomb: React.FC<TimeBombProps> = ({ onHome, isOBS }) => {
                 <div className="w-full h-full flex flex-col items-center justify-center p-8 animate-in zoom-in duration-300 relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-red-950 via-black to-orange-950"></div>
 
+                    {/* Explosion rings */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <div className="w-56 h-56 rounded-full bg-red-600/60 explosion-ring mix-blend-screen shadow-[0_0_100px_rgba(220,38,38,1)]"></div>
-                        <div className="w-56 h-56 rounded-full bg-rose-500/40 explosion-ring mix-blend-screen shadow-[0_0_80px_rgba(244,63,94,0.8)]" style={{ animationDelay: '0.1s' }}></div>
-                        <div className="w-56 h-56 rounded-full bg-orange-500/30 explosion-ring mix-blend-screen shadow-[0_0_60px_rgba(249,115,22,0.6)]" style={{ animationDelay: '0.2s' }}></div>
+                        <div className="w-40 h-40 rounded-full bg-orange-500/60 explosion-ring"></div>
+                        <div className="w-40 h-40 rounded-full bg-red-500/40 explosion-ring" style={{ animationDelay: '0.2s' }}></div>
+                        <div className="w-40 h-40 rounded-full bg-yellow-500/30 explosion-ring" style={{ animationDelay: '0.4s' }}></div>
                     </div>
 
                     <div className="relative z-10 text-center">
-                        <div className="text-[200px] mb-4 animate-pulse drop-shadow-[0_0_50px_rgba(220,38,38,1)]">💥</div>
-                        <h2 className="text-8xl font-black text-red-500 italic uppercase tracking-tighter mb-6 drop-shadow-[0_0_60px_rgba(220,38,38,0.9)] scale-110">انفجرت!</h2>
+                        <div className="text-[200px] mb-4 animate-pulse">💥</div>
+                        <h2 className="text-8xl font-black text-red-500 italic uppercase tracking-tighter mb-6 drop-shadow-[0_0_40px_rgba(239,68,68,0.8)]">انفجرت!</h2>
 
-                        <div className="glass-card border-t-4 border-red-500 rounded-[3rem] p-10 flex flex-col items-center gap-4 shadow-[0_0_50px_rgba(220,38,38,0.3)] mx-auto">
-                            <div className="w-32 h-32 rounded-[2.5rem] overflow-hidden border-4 border-red-500 shadow-[0_0_40px_rgba(220,38,38,0.6)]">
+                        <div className="bg-black/60 backdrop-blur-xl border-2 border-red-500/30 rounded-[3rem] p-8 flex flex-col items-center gap-4 shadow-2xl">
+                            <div className="w-24 h-24 rounded-[2rem] overflow-hidden border-4 border-red-500 shadow-[0_0_30px_rgba(239,68,68,0.5)]">
                                 <ProAvatar url={lastEliminated.avatar || ''} username={lastEliminated.username} size="w-full h-full" />
                             </div>
-                            <div className="text-4xl font-black text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">{lastEliminated.username}</div>
-                            <div className="text-red-500 font-black text-xs uppercase tracking-[0.4em] bg-red-950/50 px-4 py-1.5 rounded-full border border-red-500/30">ELIMINATED</div>
+                            <div className="text-3xl font-black text-red-400">{lastEliminated.username}</div>
+                            <div className="text-red-600/60 font-bold text-sm uppercase tracking-widest">ELIMINATED</div>
                         </div>
                     </div>
                 </div>
@@ -504,28 +505,24 @@ export const TimeBomb: React.FC<TimeBombProps> = ({ onHome, isOBS }) => {
             {/* --- ROUND END --- */}
             {phase === 'ROUND_END' && (
                 <div className="w-full h-full flex flex-col items-center justify-center p-8 animate-in fade-in duration-500 relative">
-                    <div className="absolute inset-0 bg-gradient-to-br from-red-950/50 via-black to-black"></div>
-                    <div className="relative z-10 text-center w-full max-w-4xl">
-                        <h2 className="text-6xl font-black text-white italic mb-10 drop-shadow-[0_0_20px_rgba(220,38,38,0.5)]">الباقون: {participants.length}</h2>
-
-                        <div className="glass-card p-8 rounded-[3rem] shadow-[0_0_40px_rgba(220,38,38,0.1)] mb-10">
-                            <div className="flex flex-wrap justify-center gap-4 max-w-3xl mx-auto">
-                                {participants.map(p => (
-                                    <div key={p.id} className="flex flex-col items-center gap-2 animate-in zoom-in duration-500 bg-black/40 p-2 rounded-2xl border border-white/5 hover:border-red-500/50 transition-all">
-                                        <div className="w-14 h-14 rounded-[1.2rem] overflow-hidden border-2 border-red-500/20 shadow-[0_0_10px_rgba(220,38,38,0.2)]">
-                                            <ProAvatar url={p.avatar || ''} username={p.username} size="w-full h-full" />
-                                        </div>
-                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{p.username}</span>
+                    <div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-black to-orange-950/30"></div>
+                    <div className="relative z-10 text-center">
+                        <h2 className="text-6xl font-black text-white italic mb-4">الباقون: {participants.length}</h2>
+                        <div className="flex flex-wrap justify-center gap-4 mb-10 max-w-3xl">
+                            {participants.map(p => (
+                                <div key={p.id} className="flex flex-col items-center gap-2 animate-in zoom-in duration-500">
+                                    <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-green-500/40 shadow-[0_0_15px_rgba(34,197,94,0.3)]">
+                                        <ProAvatar url={p.avatar || ''} username={p.username} size="w-16 h-16" />
                                     </div>
-                                ))}
-                            </div>
+                                    <span className="text-xs font-black text-gray-400">{p.username}</span>
+                                </div>
+                            ))}
                         </div>
-
-                        <div className="flex gap-4 justify-center">
-                            <button onClick={nextRound} className="px-16 py-6 bg-gradient-to-r from-red-600 to-red-900 border border-red-500/40 text-white font-black text-3xl rounded-[2.5rem] hover:scale-105 active:scale-95 transition-all italic shadow-[0_0_40px_rgba(220,38,38,0.6)]">
-                                الجولة التالية <ChevronRight size={28} className="inline ml-2" />
+                        <div className="flex gap-4">
+                            <button onClick={nextRound} className="px-16 py-6 bg-gradient-to-r from-orange-600 to-red-600 text-white font-black text-3xl rounded-[2.5rem] hover:scale-105 active:scale-95 transition-all italic shadow-[0_0_40px_rgba(249,115,22,0.4)]">
+                                الجولة التالية <ChevronRight size={28} className="inline" />
                             </button>
-                            <button onClick={resetGame} className="px-10 py-6 bg-black/50 text-gray-500 font-black text-xl rounded-2xl border border-white/10 hover:text-white hover:bg-black transition-all">
+                            <button onClick={resetGame} className="px-10 py-6 bg-white/5 text-gray-500 font-black text-xl rounded-2xl border border-white/10 hover:text-white transition-all">
                                 إعادة
                             </button>
                         </div>
@@ -550,16 +547,16 @@ export const TimeBomb: React.FC<TimeBombProps> = ({ onHome, isOBS }) => {
                     ))}
 
                     <div className="relative z-10 text-center">
-                        <Trophy size={140} className="text-red-500 mx-auto mb-6 drop-shadow-[0_0_60px_rgba(220,38,38,1)] animate-bounce-slow" strokeWidth={1} />
-                        <h2 className="text-[90px] md:text-[120px] font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-red-600 italic uppercase tracking-tighter mb-8 drop-shadow-[0_0_20px_rgba(220,38,38,0.5)] leading-none">الناجي الأخير!</h2>
+                        <Trophy size={100} className="text-yellow-400 mx-auto mb-6 drop-shadow-[0_0_40px_rgba(251,191,36,1)] animate-bounce" strokeWidth={1.5} />
+                        <h2 className="text-[80px] font-black text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 to-yellow-600 italic uppercase tracking-tighter mb-6">الناجي الأخير!</h2>
 
                         <div className="relative mb-8">
-                            <div className="absolute inset-0 bg-red-600/40 blur-[100px] rounded-full animate-pulse-glow"></div>
-                            <div className="w-48 h-48 rounded-[3rem] mx-auto overflow-hidden border-4 border-red-500 shadow-[0_0_80px_rgba(220,38,38,0.8)] relative z-10 bg-black">
+                            <div className="absolute inset-0 bg-yellow-500/30 blur-[80px] rounded-full"></div>
+                            <div className="w-40 h-40 rounded-[3rem] mx-auto overflow-hidden border-4 border-yellow-500 shadow-[0_0_60px_rgba(251,191,36,0.6)] relative z-10">
                                 <ProAvatar url={winner.avatar || ''} username={winner.username} size="w-full h-full" />
                             </div>
                         </div>
-                        <div className="text-6xl font-black text-white italic mb-12 drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]">{winner.username}</div>
+                        <div className="text-5xl font-black text-white italic mb-8">{winner.username}</div>
 
                         <div className="flex gap-4 justify-center">
                             <button onClick={resetGame} className="px-12 py-5 bg-gradient-to-r from-yellow-600 to-amber-600 text-white font-black text-2xl rounded-2xl hover:scale-105 transition-all italic shadow-lg">
