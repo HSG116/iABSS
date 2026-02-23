@@ -32,6 +32,7 @@ export const SponsorsWidget: React.FC = () => {
     const [showForm, setShowForm] = useState(false);
     const [newName, setNewName] = useState('');
     const [newKick, setNewKick] = useState('');
+    const [newAvatarUrl, setNewAvatarUrl] = useState('');
     const [isAdding, setIsAdding] = useState(false);
     const [hovId, setHovId] = useState<string | null>(null);
     const [scale, setScale] = useState(() => {
@@ -99,22 +100,22 @@ export const SponsorsWidget: React.FC = () => {
     useEffect(() => { localStorage.setItem('iabs_sp_scale', String(scale)); }, [scale]);
 
     const addSponsor = async () => {
-        if (!newName.trim() && !newKick.trim()) return;
+        if (!newName.trim() && !newKick.trim() && !newAvatarUrl.trim()) return;
         setIsAdding(true);
 
         try {
-            let avatar = '';
-            if (newKick.trim()) {
+            let avatar = newAvatarUrl.trim();
+            if (!avatar && newKick.trim()) {
                 avatar = await chatService.fetchKickAvatar(newKick.trim());
             }
 
             await supabase.from('sponsors').insert({
-                name: newName.trim() || newKick.trim(),
+                name: newName.trim() || newKick.trim() || 'راعي',
                 kick_username: newKick.trim(),
                 avatar_url: avatar
             });
 
-            setNewName(''); setNewKick(''); setShowForm(false);
+            setNewName(''); setNewKick(''); setNewAvatarUrl(''); setShowForm(false);
         } catch (e) {
             console.error(e);
         } finally {
@@ -135,7 +136,7 @@ export const SponsorsWidget: React.FC = () => {
             {/* ══ ADD FORM (floats above) ══ */}
             <div style={{
                 position: 'absolute', bottom: '100%', left: 0, marginBottom: '8px',
-                maxHeight: showForm ? '260px' : '0', opacity: showForm ? 1 : 0,
+                maxHeight: showForm ? '300px' : '0', opacity: showForm ? 1 : 0,
                 transform: showForm ? 'translateY(0) scale(1)' : 'translateY(8px) scale(0.95)',
                 transition: 'all 0.35s cubic-bezier(0.4,0,0.2,1)', overflow: 'hidden',
                 pointerEvents: showForm ? 'auto' : 'none', transformOrigin: 'bottom left',
@@ -155,11 +156,14 @@ export const SponsorsWidget: React.FC = () => {
                         style={{ width: '100%', padding: '8px 12px', fontSize: '12px', fontWeight: 700, color: '#fff', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', outline: 'none', marginBottom: '6px', boxSizing: 'border-box', textAlign: 'right' }}
                     />
                     <input type="text" value={newKick} onChange={e => setNewKick(e.target.value)} placeholder="يوزر الكيك (اختياري)..." dir="ltr"
-                        style={{ width: '100%', padding: '8px 12px', fontSize: '12px', fontWeight: 700, color: '#53fc18', fontFamily: 'monospace', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', outline: 'none', marginBottom: '8px', boxSizing: 'border-box' }}
+                        style={{ width: '100%', padding: '8px 12px', fontSize: '12px', fontWeight: 700, color: '#53fc18', fontFamily: 'monospace', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', outline: 'none', marginBottom: '6px', boxSizing: 'border-box' }}
+                    />
+                    <input type="text" value={newAvatarUrl} onChange={e => setNewAvatarUrl(e.target.value)} placeholder="رابط صورة (اختياري)..." dir="ltr"
+                        style={{ width: '100%', padding: '8px 12px', fontSize: '12px', fontWeight: 700, color: '#38bdf8', fontFamily: 'monospace', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', outline: 'none', marginBottom: '8px', boxSizing: 'border-box' }}
                         onKeyDown={e => { if (e.key === 'Enter') addSponsor(); }}
                     />
-                    <button onClick={addSponsor} disabled={isAdding || (!newName.trim() && !newKick.trim())}
-                        style={{ width: '100%', padding: '8px', borderRadius: '8px', border: 'none', background: '#dc2626', color: '#fff', fontSize: '11px', fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', opacity: (!newName.trim() && !newKick.trim()) ? 0.3 : 1 }}
+                    <button onClick={addSponsor} disabled={isAdding || (!newName.trim() && !newKick.trim() && !newAvatarUrl.trim())}
+                        style={{ width: '100%', padding: '8px', borderRadius: '8px', border: 'none', background: '#dc2626', color: '#fff', fontSize: '11px', fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', opacity: (!newName.trim() && !newKick.trim() && !newAvatarUrl.trim()) ? 0.3 : 1 }}
                     >
                         {isAdding ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
                         <span>إضافة</span>
