@@ -57,6 +57,7 @@ export type GameType = 'TRIVIA' | 'BLUR' | 'FLAGS' | 'TYPING' | 'CUPS' | 'GRID' 
 
 export interface Question {
   id: number;
+  day?: number;
   category: string;
   text: string;
   options: string[];
