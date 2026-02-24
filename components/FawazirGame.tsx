@@ -5,6 +5,55 @@ import { QUESTIONS_DB, CATEGORIES } from '../constants';
 import { chatService } from '../services/chatService';
 import { leaderboardService } from '../services/supabase';
 import { ProAvatar } from './ProAvatar';
+import fawazirTxt from '../fawazir.txt?raw';
+
+const parseFawazir = (txt: string): Question[] => {
+  const lines = txt.split('\n');
+  const questions: Question[] = [];
+  let currentQuestion: any = null;
+  const optionLetterToIndex: Record<string, number> = { 'A': 0, 'B': 1, 'C': 2, 'D': 3 };
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    if (/^\d+[\.-]/.test(line)) {
+      if (currentQuestion && currentQuestion.options && currentQuestion.options.length >= 2 && currentQuestion.correctIndex !== undefined) {
+        questions.push(currentQuestion as Question);
+      }
+      currentQuestion = {
+        id: questions.length + 1,
+        day: Math.floor(questions.length / 33) + 1,
+        category: 'ramadan',
+        text: line.replace(/^\d+[\.-]\s*(?:فزورة:)?\s*/i, '').trim(),
+        options: [],
+        correctIndex: undefined
+      };
+      if (currentQuestion.day > 30) currentQuestion.day = 30;
+    } else if (currentQuestion && line.includes('A)') && line.includes('B)')) {
+      const optsArgs = line.split('|').map(o => o.trim());
+      optsArgs.forEach(o => {
+        const match = o.match(/^([A-D])\)\s*(.*)/);
+        if (match) {
+          currentQuestion.options.push(match[2].trim());
+        } else {
+          currentQuestion.options.push(o.replace(/^[A-D]\)\s*/, '').trim());
+        }
+      });
+    } else if (currentQuestion && line.includes('الإجابة:')) {
+      const ansMatch = line.match(/الإجابة:\s*([A-D])/i);
+      if (ansMatch) {
+        currentQuestion.correctIndex = optionLetterToIndex[ansMatch[1].toUpperCase()];
+      }
+    }
+  }
+  if (currentQuestion && currentQuestion.options && currentQuestion.options.length >= 2 && currentQuestion.correctIndex !== undefined) {
+    questions.push(currentQuestion as Question);
+  }
+  return questions;
+};
+
+const RAMADAN_QUESTIONS_DYNAMIC = parseFawazir(fawazirTxt);
 
 const logoImage = "https://i.ibb.co/pvCN1NQP/95505180312.png";
 
@@ -87,13 +136,16 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
   const usedIdsRef = useRef<Set<number>>(new Set());
 
   useEffect(() => {
+    // Determine which database to use: dynamic fawazir for ramadan, constants.ts for others
+    const dbSource = category === 'ramadan' ? RAMADAN_QUESTIONS_DYNAMIC : QUESTIONS_DB;
+
     // Filter out used questions if possible, otherwise reset
-    let available = QUESTIONS_DB.filter(q => q.category === category && !usedIdsRef.current.has(q.id));
+    let available = dbSource.filter(q => q.category === category && !usedIdsRef.current.has(q.id));
 
     // If we ran out of new questions, reset the tracker for this category
     if (available.length < settings.roundsCount) {
       usedIdsRef.current.clear();
-      available = QUESTIONS_DB.filter(q => q.category === category);
+      available = dbSource.filter(q => q.category === category);
     }
 
     const shuffled = [...available].sort(() => Math.random() - 0.5);
