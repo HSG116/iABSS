@@ -102,7 +102,14 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
   const [roundStartTime, setRoundStartTime] = useState<number>(0);
   const [usedQuestionIds, setUsedQuestionIds] = useState<Set<number>>(new Set());
 
-  const [settings, setSettings] = useState<GameSettings & { ramadanDay: number }>({
+  const [settings, setSettings] = useState<GameSettings & {
+    ramadanDay: number;
+    ramadanMixMode: boolean;
+    goldenRound: boolean;
+    hiddenOptions: boolean;
+    hardcore: boolean;
+    doublePoints: boolean;
+  }>({
     winMode: 'SPEED',
     roundsCount: 10,
     timerDuration: 20,
@@ -112,6 +119,11 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
     autoNext: false,
     winnerDuration: 5,
     ramadanDay: 1,
+    ramadanMixMode: false,
+    goldenRound: false,
+    hiddenOptions: false,
+    hardcore: false,
+    doublePoints: false,
   });
 
   const questionsRef = useRef<Question[]>([]);
@@ -180,13 +192,23 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
     let gameQuestions: Question[] = [];
 
     if (category === 'ramadan') {
-      // For ramadan, we load exactly the questions for the selected day in sequence
-      const dayQuestions = RAMADAN_QUESTIONS_DYNAMIC.filter(q => q.day === settings.ramadanDay);
-      gameQuestions = dayQuestions;
+      let pool = RAMADAN_QUESTIONS_DYNAMIC;
+      if (!settings.ramadanMixMode) {
+        pool = pool.filter(q => q.day === settings.ramadanDay);
+      }
+
+      const available = pool.filter(q => !usedIdsRef.current.has(q.id));
+      const shuffled = [...available].sort(() => Math.random() - 0.5);
+      gameQuestions = shuffled.slice(0, settings.roundsCount);
+
+      if (gameQuestions.length === 0) {
+        // Fallback
+        gameQuestions = pool.slice(0, settings.roundsCount);
+      }
 
       // Keep UI in sync for length
-      setSettings(prev => ({ ...prev, roundsCount: dayQuestions.length }));
-      settingsRef.current.roundsCount = dayQuestions.length;
+      setSettings(prev => ({ ...prev, roundsCount: gameQuestions.length }));
+      settingsRef.current.roundsCount = gameQuestions.length;
     } else {
       // Re-filter to ensure we don't pick already used questions from the current set
       const available = questions.filter(q => !usedIdsRef.current.has(q.id));
@@ -347,9 +369,12 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
 
     if (winners.length > 0) {
       // Awarding points based on rank in the round for fairness
+      const isGoldenRound = settingsRef.current.goldenRound && currentIndexRef.current === questionsRef.current.length - 1;
+      const multiplier = (settingsRef.current.doublePoints ? 2 : 1) * (isGoldenRound ? 2 : 1);
+
       winners.forEach(async (w, index) => {
-        const points = index === 0 ? 100 : index === 1 ? 50 : 25; // First gets more
-        await leaderboardService.recordWin(w.user, w.avatar, points);
+        const basePoints = index === 0 ? 100 : index === 1 ? 50 : 25; // First gets more
+        await leaderboardService.recordWin(w.user, w.avatar, basePoints * multiplier);
       });
 
       setWinnersList(prev => {
@@ -439,24 +464,34 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10 text-right">
                 <div className="space-y-6">
                   <div className="bg-white/5 p-6 rounded-[2rem] border border-white/5 hover:border-white/10 transition-colors">
-                    <label className="text-xs font-black text-iabs-red uppercase tracking-wider block mb-4 flex items-center gap-2"><Settings size={14} /> {category === 'ramadan' ? 'اختر اليوم' : 'نظام اللعب'}</label>
-                    {category === 'ramadan' ? (
+                    <div className="flex justify-between items-center mb-4">
+                      <label className="text-xs font-black text-iabs-red uppercase tracking-wider flex items-center gap-2"><Settings size={14} /> نظام اللعب</label>
+                      {category === 'ramadan' && (
+                        <div className="flex gap-2">
+                          <button onClick={() => setSettings({ ...settings, ramadanMixMode: false })} className={`px-3 py-1.5 rounded-xl font-black text-[10px] transition-all ${!settings.ramadanMixMode ? 'bg-red-600 text-white shadow-lg' : 'bg-black/40 text-gray-400'}`}>حسب اليوم</button>
+                          <button onClick={() => setSettings({ ...settings, ramadanMixMode: true })} className={`px-3 py-1.5 rounded-xl font-black text-[10px] transition-all ${settings.ramadanMixMode ? 'bg-red-600 text-white shadow-lg' : 'bg-black/40 text-gray-400'}`}>عشوائي شامل</button>
+                        </div>
+                      )}
+                    </div>
+
+                    {category === 'ramadan' && !settings.ramadanMixMode && (
                       <select
-                        className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-xl font-black text-white text-center focus:outline-none focus:border-red-500 appearance-none cursor-pointer"
+                        className="w-full mb-4 bg-black/40 border border-white/10 rounded-2xl p-4 text-xl font-black text-white text-center focus:outline-none focus:border-red-500 appearance-none cursor-pointer"
                         value={settings.ramadanDay}
                         onChange={(e) => setSettings({ ...settings, ramadanDay: parseInt(e.target.value) })}
                       >
                         {Array.from({ length: 30 }, (_, i) => i + 1).map(day => (
-                          <option key={day} value={day} className="bg-gray-900 text-white">مسابقة اليوم {day}</option>
+                          <option key={day} value={day} className="bg-gray-900 text-white">ألغاز اليوم {day}</option>
                         ))}
                       </select>
-                    ) : (
-                      <div className="grid grid-cols-2 gap-3">
-                        {[5, 10, 15, 20].map(n => (
-                          <button key={n} onClick={() => setSettings({ ...settings, roundsCount: n })} className={`h-14 rounded-2xl font-black text-lg transition-all ${settings.roundsCount === n ? 'bg-red-600 text-white shadow-lg scale-105' : 'bg-black/40 text-gray-500 hover:bg-white/10'}`}>{n} جولة</button>
-                        ))}
-                      </div>
                     )}
+
+                    <div className="grid grid-cols-4 gap-2">
+                      <div className="col-span-4 text-center text-[10px] text-gray-500 font-bold mb-1">عدد الجولات</div>
+                      {[5, 10, 15, 33].map(n => (
+                        <button key={n} onClick={() => setSettings({ ...settings, roundsCount: n })} className={`h-12 rounded-2xl font-black text-lg transition-all ${settings.roundsCount === n ? 'bg-red-600 text-white shadow-lg scale-105' : 'bg-black/40 text-gray-500 hover:bg-white/10'}`}>{n}</button>
+                      ))}
+                    </div>
                   </div>
 
                   <div className="bg-white/5 p-6 rounded-[2rem] border border-white/5 hover:border-white/10 transition-colors">
@@ -488,23 +523,66 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <button onClick={() => setSettings({ ...settings, soundEnabled: !settings.soundEnabled })} className={`p-4 rounded-[2rem] border transition-all flex flex-col items-center justify-center gap-2 ${settings.soundEnabled ? 'bg-white/10 border-green-500/50 text-green-400' : 'bg-black/40 border-white/5 text-gray-600'}`}>
-                      {settings.soundEnabled ? <Volume2 size={24} /> : <VolumeX size={24} />}
-                      <span className="text-xs font-black">المؤثرات</span>
-                    </button>
-                    <button onClick={() => setSettings({ ...settings, autoNext: !settings.autoNext })} className={`p-4 rounded-[2rem] border transition-all flex flex-col items-center justify-center gap-2 ${settings.autoNext ? 'bg-white/10 border-blue-500/50 text-blue-400' : 'bg-black/40 border-white/5 text-gray-600'}`}>
-                      <Zap size={24} />
-                      <span className="text-xs font-black">التالي تلقائي</span>
-                    </button>
-                    <button onClick={() => setSettings({ ...settings, gameOverOnMiss: !settings.gameOverOnMiss })} className={`p-4 rounded-[2rem] border transition-all flex flex-col items-center justify-center gap-2 ${settings.gameOverOnMiss ? 'bg-red-900/20 border-red-500 text-red-500' : 'bg-black/40 border-white/5 text-gray-600'}`}>
-                      <Skull size={24} />
-                      <span className="text-xs font-black">الموت المفاجئ</span>
-                    </button>
-                    <button onClick={() => setSettings({ ...settings, winMode: settings.winMode === 'SPEED' ? 'POINTS' : 'SPEED' })} className={`p-4 rounded-[2rem] border transition-all flex flex-col items-center justify-center gap-2 ${settings.winMode === 'SPEED' ? 'bg-white/10 border-yellow-500/50 text-yellow-500' : 'bg-white/10 border-purple-500/50 text-purple-500'}`}>
-                      <Trophy size={24} />
-                      <span className="text-xs font-black">{settings.winMode === 'SPEED' ? 'الأسرع' : 'تجميع نقاط'}</span>
-                    </button>
+                  <div className="bg-white/5 p-5 rounded-[2rem] border border-white/5 hover:border-white/10 transition-colors">
+                    <label className="text-xs font-black text-iabs-red uppercase tracking-wider block mb-4 flex items-center gap-2"><Zap size={14} /> قوى التحدي الخاصة</label>
+
+                    <div className="space-y-3">
+                      {/* Golden Round */}
+                      <div className="flex justify-between items-center p-3 rounded-2xl bg-black/40 border border-white/5">
+                        <div className="flex items-center gap-3">
+                          <Star className={settings.goldenRound ? "text-yellow-500" : "text-gray-600"} size={20} />
+                          <div className="text-right">
+                            <div className="font-black text-white text-sm">الجولة الذهبية</div>
+                            <div className="text-[10px] text-gray-500">الجولة الأخيرة تمنح ×2 نقاط</div>
+                          </div>
+                        </div>
+                        <button onClick={() => setSettings({ ...settings, goldenRound: !settings.goldenRound })} className={`w-12 h-6 rounded-full transition-all relative ${settings.goldenRound ? 'bg-yellow-500' : 'bg-gray-700'}`}>
+                          <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${settings.goldenRound ? 'left-1' : 'left-7'}`}></span>
+                        </button>
+                      </div>
+
+                      {/* Hidden Options */}
+                      <div className="flex justify-between items-center p-3 rounded-2xl bg-black/40 border border-white/5">
+                        <div className="flex items-center gap-3">
+                          <Eye className={settings.hiddenOptions ? "text-blue-500" : "text-gray-600"} size={20} />
+                          <div className="text-right">
+                            <div className="font-black text-white text-sm">تأخير الخيارات</div>
+                            <div className="text-[10px] text-gray-500">إخفاء الخيارات لنصف الوقت لتصعيبها</div>
+                          </div>
+                        </div>
+                        <button onClick={() => setSettings({ ...settings, hiddenOptions: !settings.hiddenOptions })} className={`w-12 h-6 rounded-full transition-all relative ${settings.hiddenOptions ? 'bg-blue-500' : 'bg-gray-700'}`}>
+                          <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${settings.hiddenOptions ? 'left-1' : 'left-7'}`}></span>
+                        </button>
+                      </div>
+
+                      {/* Hardcore Mode */}
+                      <div className="flex justify-between items-center p-3 rounded-2xl bg-black/40 border border-white/5">
+                        <div className="flex items-center gap-3">
+                          <Skull className={settings.hardcore ? "text-red-500" : "text-gray-600"} size={20} />
+                          <div className="text-right">
+                            <div className="font-black text-white text-sm">التحدي الأعمى</div>
+                            <div className="text-[10px] text-red-500">بدون خيارات تماماً! (للمحترفين)</div>
+                          </div>
+                        </div>
+                        <button onClick={() => setSettings({ ...settings, hardcore: !settings.hardcore })} className={`w-12 h-6 rounded-full transition-all relative ${settings.hardcore ? 'bg-red-500' : 'bg-gray-700'}`}>
+                          <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${settings.hardcore ? 'left-1' : 'left-7'}`}></span>
+                        </button>
+                      </div>
+
+                      {/* Double Points */}
+                      <div className="flex justify-between items-center p-3 rounded-2xl bg-black/40 border border-white/5">
+                        <div className="flex items-center gap-3">
+                          <BarChart3 className={settings.doublePoints ? "text-green-500" : "text-gray-600"} size={20} />
+                          <div className="text-right">
+                            <div className="font-black text-white text-sm">نقاط مضاعفة</div>
+                            <div className="text-[10px] text-gray-500">جميع الجولات تمنح ×2 نقاط</div>
+                          </div>
+                        </div>
+                        <button onClick={() => setSettings({ ...settings, doublePoints: !settings.doublePoints })} className={`w-12 h-6 rounded-full transition-all relative ${settings.doublePoints ? 'bg-green-500' : 'bg-gray-700'}`}>
+                          <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${settings.doublePoints ? 'left-1' : 'left-7'}`}></span>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -915,38 +993,53 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full relative z-10 animate-in slide-in-from-bottom-10 duration-700">
-                  {questions[currentIndex]?.options.map((opt, idx) => {
-                    const isCorrect = idx === questions[currentIndex]?.correctIndex;
-                    const isRoundWin = gameState === 'ROUND_WIN';
+                  {settings.hardcore ? (
+                    <div className="col-span-2 text-center p-8 bg-black/60 rounded-3xl border border-red-500/50 shadow-2xl">
+                      <Skull className="text-red-500 mx-auto mb-4" size={48} />
+                      <h3 className="text-3xl font-black text-white tracking-widest drop-shadow-lg leading-relaxed">التحدي الأعمى<br /><span className="text-lg text-gray-400">أجب بدون خيارات</span></h3>
+                    </div>
+                  ) : (
+                    questions[currentIndex]?.options.map((opt, idx) => {
+                      const isCorrect = idx === questions[currentIndex]?.correctIndex;
+                      const isRoundWin = gameState === 'ROUND_WIN';
+                      const isHidden = settings.hiddenOptions && gameState === 'PLAYING' && timer > settings.timerDuration / 2;
 
-                    let cardStyles = "border-white/10 bg-black/60 hover:border-red-600/50 hover:bg-red-600/[0.02]";
-                    let textStyles = "text-white";
+                      let cardStyles = "border-white/10 bg-black/60 hover:border-red-600/50 hover:bg-red-600/[0.02]";
+                      let textStyles = "text-white";
 
-                    if (isRoundWin) {
-                      if (isCorrect) {
-                        cardStyles = "border-green-500 bg-green-500/20 scale-105 shadow-[0_0_50px_rgba(34,197,94,0.4)]";
-                        textStyles = "text-green-500";
-                      } else {
-                        cardStyles = "border-white/5 bg-black/40 opacity-30 grayscale";
-                        textStyles = "text-white/20";
+                      if (isRoundWin) {
+                        if (isCorrect) {
+                          cardStyles = "border-green-500 bg-green-500/20 scale-105 shadow-[0_0_50px_rgba(34,197,94,0.4)] z-50 relative";
+                          textStyles = "text-green-500";
+                        } else {
+                          cardStyles = "border-white/5 bg-black/40 opacity-30 grayscale";
+                          textStyles = "text-white/20";
+                        }
+                      } else if (isHidden) {
+                        cardStyles = "border-white/5 bg-gray-900/40 blur-[4px] pointer-events-none opacity-80";
+                        textStyles = "text-transparent";
                       }
-                    }
 
-                    return (
-                      <div key={idx} className={`group relative p-8 md:p-12 rounded-[3.5rem] border-4 flex items-center justify-center transition-all shadow-2xl overflow-hidden ${cardStyles}`}>
-                        <div className="absolute top-0 left-0 w-2 h-full bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        <span className={`text-3xl md:text-5xl font-black italic text-center relative z-10 px-8 transition-all ${textStyles} drop-shadow-md`}>{opt}</span>
-                        {!isRoundWin && (
-                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-600/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                        )}
-                        {isRoundWin && isCorrect && (
-                          <div className="absolute top-4 right-8 text-green-500 animate-bounce">
-                            <CheckCircle2 size={32} />
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                      return (
+                        <div key={idx} className={`group relative p-8 md:p-12 rounded-[3.5rem] border-4 flex items-center justify-center transition-all duration-500 shadow-2xl overflow-hidden ${cardStyles}`}>
+                          <div className="absolute top-0 left-0 w-2 h-full bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"></div>
+                          {isHidden ? (
+                            <span className="text-5xl font-black italic text-gray-600 absolute blur-none drop-shadow-lg">???</span>
+                          ) : (
+                            <span className={`text-3xl md:text-5xl font-black italic text-center relative z-10 px-8 transition-all ${textStyles} drop-shadow-md`}>{opt}</span>
+                          )}
+                          {!isRoundWin && !isHidden && (
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-600/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                          )}
+                          {isRoundWin && isCorrect && (
+                            <div className="absolute top-4 right-8 text-green-500 animate-bounce">
+                              <CheckCircle2 size={32} />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
 
                 {!isOBS && (
