@@ -606,14 +606,15 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                 </div>
               </div>
 
-              <div className="flex gap-4 relative z-10 w-full">
-                <button onClick={startGame} className="flex-1 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white font-black py-6 rounded-[2.5rem] text-3xl shadow-[0_10px_40px_rgba(220,38,38,0.5)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-4 group border border-red-500/50 relative overflow-hidden">
+              <div className="flex flex-col md:flex-row gap-4 relative z-10 w-full mt-6">
+                <button onClick={startGame} className="flex-[3] bg-gradient-to-r from-red-600 via-red-500 to-red-600 hover:from-red-500 hover:via-red-400 hover:to-red-500 text-white font-black py-6 px-10 rounded-[2.5rem] text-3xl shadow-[0_10px_40px_rgba(220,38,38,0.5)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-4 group border border-red-400/50 relative overflow-hidden">
                   <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out"></div>
-                  <PlayCircle size={36} className="fill-white text-red-600 drop-shadow-lg relative z-10 group-hover:scale-110 transition-transform" />
-                  <span className="relative z-10 tracking-widest">ابدأ التحدي</span>
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/20 blur-3xl rounded-full group-hover:bg-yellow-500/40 transition-colors"></div>
+                  <PlayCircle size={36} className="fill-white text-red-600 drop-shadow-lg relative z-10 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300" />
+                  <span className="relative z-10 tracking-widest italic decoration-2 underline-offset-8 group-hover:underline">ابدأ التحدي 🔥</span>
                 </button>
-                <button onClick={onHome} className="px-8 bg-black/50 border-2 border-white/10 hover:border-white/30 hover:bg-white/10 text-white rounded-[2.5rem] flex items-center justify-center transition-all group">
-                  <Home size={28} className="group-hover:scale-110 transition-transform text-gray-400 group-hover:text-white" />
+                <button onClick={onHome} className="flex-1 px-8 py-6 bg-black/60 border-2 border-white/10 hover:border-red-500/50 hover:bg-red-600/10 hover:shadow-[0_0_30px_rgba(220,38,38,0.2)] text-white rounded-[2.5rem] flex items-center justify-center transition-all group backdrop-blur-md">
+                  <Home size={32} className="group-hover:scale-110 transition-transform text-gray-400 group-hover:text-red-500" />
                 </button>
               </div>
             </div>
