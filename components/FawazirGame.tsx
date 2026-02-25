@@ -504,6 +504,16 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                   </div>
 
                   <div className="bg-white/5 p-6 rounded-[2rem] border border-white/5 hover:border-white/10 transition-colors">
+                    <label className="text-xs font-black text-iabs-red uppercase tracking-wider block mb-4 flex items-center gap-2"><Trophy size={14} /> نظام الفوز</label>
+                    <div className="grid grid-cols-2 gap-3 mb-6">
+                      <button onClick={() => setSettings({ ...settings, winMode: 'SPEED' })} className={`h-14 flex items-center justify-center gap-2 rounded-2xl font-black text-lg transition-all ${settings.winMode === 'SPEED' ? 'bg-yellow-500 text-black shadow-[0_0_20px_rgba(234,179,8,0.4)] scale-105' : 'bg-black/40 text-gray-500 hover:bg-white/10'}`}>
+                        <Zap size={20} /> الأسرع فقط
+                      </button>
+                      <button onClick={() => setSettings({ ...settings, winMode: 'POINTS' })} className={`h-14 flex items-center justify-center gap-2 rounded-2xl font-black text-lg transition-all ${settings.winMode === 'POINTS' ? 'bg-purple-500 text-white shadow-[0_0_20px_rgba(168,85,247,0.4)] scale-105' : 'bg-black/40 text-gray-500 hover:bg-white/10'}`}>
+                        <BarChart3 size={20} /> تجميع نقاط
+                      </button>
+                    </div>
+
                     <label className="text-xs font-black text-iabs-red uppercase tracking-wider block mb-4 flex items-center gap-2"><Clock size={14} /> مؤقت الإجابة</label>
                     <input
                       type="range" min="5" max="60" step="5"
@@ -596,13 +606,14 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                 </div>
               </div>
 
-              <div className="flex gap-4">
-                <button onClick={startGame} className="flex-1 bg-red-600 hover:bg-red-500 text-white font-black py-6 rounded-[2.5rem] text-3xl shadow-[0_10px_40px_rgba(220,38,38,0.4)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-4 group">
-                  <PlayCircle size={32} className="fill-white text-red-600" />
-                  ابدأ التحدي
+              <div className="flex gap-4 relative z-10 w-full">
+                <button onClick={startGame} className="flex-1 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white font-black py-6 rounded-[2.5rem] text-3xl shadow-[0_10px_40px_rgba(220,38,38,0.5)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-4 group border border-red-500/50 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out"></div>
+                  <PlayCircle size={36} className="fill-white text-red-600 drop-shadow-lg relative z-10 group-hover:scale-110 transition-transform" />
+                  <span className="relative z-10 tracking-widest">ابدأ التحدي</span>
                 </button>
-                <button onClick={onHome} className="px-8 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-[2.5rem] flex items-center justify-center transition-all">
-                  <Home size={24} />
+                <button onClick={onHome} className="px-8 bg-black/50 border-2 border-white/10 hover:border-white/30 hover:bg-white/10 text-white rounded-[2.5rem] flex items-center justify-center transition-all group">
+                  <Home size={28} className="group-hover:scale-110 transition-transform text-gray-400 group-hover:text-white" />
                 </button>
               </div>
             </div>
