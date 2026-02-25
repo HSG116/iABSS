@@ -61,10 +61,14 @@ const MAIN_BACKGROUND_URL = "/photo/image%20copy.png";
 const CONTENT_BACKGROUND_URL = "https://i.ibb.co/k6mHccgc/content.png";
 
 const AVAILABLE_BACKGROUNDS = [
+  { id: 'classic', url: 'https://i.ibb.co/pjDLM8Hq/1000126047.png', label: 'الكلاسيكية' },
+  { id: 'ramadan1', url: '/photo/a12ccf4c5dd53cd39832682a101ee782%20(1).jpg', label: 'روحانية' },
+  { id: 'ramadan2', url: '/photo/be4055d81b248eb6889a9891e2f919f5%20(1).jpg', label: 'نقوش رمضان' },
+  { id: 'ramadan3', url: '/photo/image%20copy%203.png', label: 'فانوس' },
   { id: 'main', url: MAIN_BACKGROUND_URL, label: 'الرئيسية' },
   { id: 'content', url: CONTENT_BACKGROUND_URL, label: 'الميدان' },
-  { id: 'classic', url: 'https://i.ibb.co/pjDLM8Hq/1000126047.png', label: 'الكلاسيكية' },
   { id: 'custom2', url: '/photo/image%20copy%202.png', label: 'اللعب 2' },
+  { id: 'ramadan4', url: '/photo/80ef454398f771996752573cdbabbf19%20(1).jpg', label: 'ليالي رمضان' },
 ];
 
 interface FawazirGameProps {
@@ -114,7 +118,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
     roundsCount: category === 'ramadan' ? 999 : 10,
     timerDuration: 20,
     gameOverOnMiss: false,
-    backgroundId: 'main',
+    backgroundId: 'classic',
     soundEnabled: true,
     autoNext: false,
     winnerDuration: 5,
@@ -125,6 +129,8 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
     hardcore: false,
     doublePoints: false,
   });
+
+  const [showAllBgs, setShowAllBgs] = useState(false);
 
   const questionsRef = useRef<Question[]>([]);
   const currentIndexRef = useRef(0);
@@ -531,12 +537,26 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
 
                 <div className="space-y-6">
                   <div className="bg-white/5 p-6 rounded-[2rem] border border-white/5 hover:border-white/10 transition-colors">
-                    <label className="text-xs font-black text-iabs-red uppercase tracking-wider block mb-4 flex items-center gap-2"><ImageIcon size={14} /> خلفية اللعب</label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {AVAILABLE_BACKGROUNDS.map(bg => (
-                        <button key={bg.id} onClick={() => setSettings({ ...settings, backgroundId: bg.id })} className={`aspect-video rounded-xl border-2 transition-all relative overflow-hidden group ${settings.backgroundId === bg.id ? 'border-red-600 scale-105' : 'border-transparent opacity-50 hover:opacity-100'}`}>
+                    <div className="flex justify-between items-center mb-4">
+                      <label className="text-xs font-black text-iabs-red uppercase tracking-wider flex items-center gap-2">
+                        <ImageIcon size={14} /> خلفيات الميدان
+                      </label>
+                      <button onClick={() => setShowAllBgs(!showAllBgs)} className="text-[10px] font-black text-red-500 hover:text-red-400 bg-red-900/10 hover:bg-red-900/20 px-3 py-1 rounded-xl transition-all border border-red-500/20">
+                        {showAllBgs ? 'إخفاء' : 'المزيد'}
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 transition-all duration-500">
+                      {(showAllBgs ? AVAILABLE_BACKGROUNDS : AVAILABLE_BACKGROUNDS.slice(0, 4)).map(bg => (
+                        <button key={bg.id} onClick={() => setSettings({ ...settings, backgroundId: bg.id })} className={`aspect-video rounded-xl border-2 transition-all duration-300 relative overflow-hidden group ${settings.backgroundId === bg.id ? 'border-red-600 shadow-[0_0_15px_rgba(220,38,38,0.3)] scale-105 z-10' : 'border-transparent opacity-60 hover:opacity-100 hover:scale-[1.02]'}`}>
                           <img src={bg.url} className="w-full h-full object-cover" />
-                          <span className="absolute inset-0 flex items-center justify-center font-black text-[10px] text-white z-10 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">{bg.label}</span>
+                          <div className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-all ${settings.backgroundId === bg.id ? 'opacity-0' : 'opacity-100 group-hover:opacity-0'}`}>
+                            <span className="font-black text-[10px] text-white tracking-widest bg-black/60 px-2 py-0.5 rounded-full">{bg.label}</span>
+                          </div>
+                          {settings.backgroundId === bg.id && (
+                            <div className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-0.5 shadow-lg animate-in zoom-in duration-300">
+                              <CheckCircle2 size={12} />
+                            </div>
+                          )}
                         </button>
                       ))}
                     </div>
