@@ -66,7 +66,6 @@ const AVAILABLE_BACKGROUNDS = [
   { id: 'ramadan1', url: '/pak/spiritual.jpg', label: 'روحانية' },
   { id: 'ramadan2', url: '/pak/ramadan_patterns.jpg', label: 'نقوش رمضان' },
   { id: 'ramadan3', url: '/pak/lantern.png', label: 'فانوس' },
-  { id: 'main', url: MAIN_BACKGROUND_URL, label: 'الرئيسية' },
   { id: 'content', url: CONTENT_BACKGROUND_URL, label: 'الميدان' },
   { id: 'custom2', url: '/pak/arena_2.png', label: 'ساحة التحدي' },
   { id: 'ramadan4', url: '/pak/ramadan_nights.jpg', label: 'ليالي رمضان' },
