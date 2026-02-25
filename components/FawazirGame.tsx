@@ -111,7 +111,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
     doublePoints: boolean;
   }>({
     winMode: 'SPEED',
-    roundsCount: 10,
+    roundsCount: category === 'ramadan' ? 999 : 10,
     timerDuration: 20,
     gameOverOnMiss: false,
     backgroundId: 'main',
@@ -197,18 +197,25 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
         pool = pool.filter(q => q.day === settings.ramadanDay);
       }
 
-      const available = pool.filter(q => !usedIdsRef.current.has(q.id));
-      const shuffled = [...available].sort(() => Math.random() - 0.5);
-      gameQuestions = shuffled.slice(0, settings.roundsCount);
+      let available = pool.filter(q => !usedIdsRef.current.has(q.id));
+
+      // If we ran out, reset
+      if (available.length === 0) {
+        usedIdsRef.current.clear();
+        available = pool;
+      }
+
+      if (settings.ramadanMixMode) {
+        available = [...available].sort(() => Math.random() - 0.5);
+      }
+
+      const count = settings.roundsCount >= 999 ? available.length : settings.roundsCount;
+      gameQuestions = available.slice(0, count);
 
       if (gameQuestions.length === 0) {
         // Fallback
-        gameQuestions = pool.slice(0, settings.roundsCount);
+        gameQuestions = pool.slice(0, count);
       }
-
-      // Keep UI in sync for length
-      setSettings(prev => ({ ...prev, roundsCount: gameQuestions.length }));
-      settingsRef.current.roundsCount = gameQuestions.length;
     } else {
       // Re-filter to ensure we don't pick already used questions from the current set
       const available = questions.filter(q => !usedIdsRef.current.has(q.id));
@@ -488,8 +495,10 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
 
                     <div className="grid grid-cols-4 gap-2">
                       <div className="col-span-4 text-center text-[10px] text-gray-500 font-bold mb-1">عدد الجولات</div>
-                      {[5, 10, 15, 33].map(n => (
-                        <button key={n} onClick={() => setSettings({ ...settings, roundsCount: n })} className={`h-12 rounded-2xl font-black text-lg transition-all ${settings.roundsCount === n ? 'bg-red-600 text-white shadow-lg scale-105' : 'bg-black/40 text-gray-500 hover:bg-white/10'}`}>{n}</button>
+                      {[10, 20, 33, 999].map(n => (
+                        <button key={n} onClick={() => setSettings({ ...settings, roundsCount: n })} className={`h-12 rounded-2xl font-black text-lg transition-all ${settings.roundsCount === n ? 'bg-red-600 text-white shadow-lg scale-105' : 'bg-black/40 text-gray-500 hover:bg-white/10'}`}>
+                          {n === 999 ? 'الكل' : n}
+                        </button>
                       ))}
                     </div>
                   </div>
