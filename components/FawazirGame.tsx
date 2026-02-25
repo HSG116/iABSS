@@ -57,18 +57,20 @@ const RAMADAN_QUESTIONS_DYNAMIC = parseFawazir(fawazirTxt);
 
 const logoImage = "https://i.ibb.co/pvCN1NQP/95505180312.png";
 
-const MAIN_BACKGROUND_URL = "/photo/image%20copy.png";
+const MAIN_BACKGROUND_URL = "/pak/image%20copy.png";
 const CONTENT_BACKGROUND_URL = "https://i.ibb.co/k6mHccgc/content.png";
 
 const AVAILABLE_BACKGROUNDS = [
-  { id: 'classic', url: 'https://i.ibb.co/pjDLM8Hq/1000126047.png', label: 'الكلاسيكية' },
-  { id: 'ramadan1', url: '/photo/a12ccf4c5dd53cd39832682a101ee782%20(1).jpg', label: 'روحانية' },
-  { id: 'ramadan2', url: '/photo/be4055d81b248eb6889a9891e2f919f5%20(1).jpg', label: 'نقوش رمضان' },
-  { id: 'ramadan3', url: '/photo/image%20copy%203.png', label: 'فانوس' },
+  { id: 'classic', url: 'https://i.ibb.co/pjDLM8Hq/1000126047.png', label: 'الكلاسيكية 1' },
+  { id: 'classic2', url: '/pak/image%20copy.png', label: 'الكلاسيكية 2' },
+  { id: 'ramadan1', url: '/pak/a12ccf4c5dd53cd39832682a101ee782%20(1).jpg', label: 'روحانية' },
+  { id: 'ramadan2', url: '/pak/be4055d81b248eb6889a9891e2f919f5%20(1).jpg', label: 'نقوش رمضان' },
+  { id: 'ramadan3', url: '/pak/image%20copy%203.png', label: 'فانوس' },
   { id: 'main', url: MAIN_BACKGROUND_URL, label: 'الرئيسية' },
   { id: 'content', url: CONTENT_BACKGROUND_URL, label: 'الميدان' },
-  { id: 'custom2', url: '/photo/image%20copy%202.png', label: 'اللعب 2' },
-  { id: 'ramadan4', url: '/photo/80ef454398f771996752573cdbabbf19%20(1).jpg', label: 'ليالي رمضان' },
+  { id: 'custom2', url: '/pak/image%20copy%202.png', label: 'ساحة التحدي' },
+  { id: 'ramadan4', url: '/pak/80ef454398f771996752573cdbabbf19%20(1).jpg', label: 'ليالي رمضان' },
+  { id: 'pak_image_2', url: '/pak/image%20copy%202.png', label: 'الصورة الثانية (رابط)' },
 ];
 
 interface FawazirGameProps {
