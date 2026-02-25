@@ -102,7 +102,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
   const [roundStartTime, setRoundStartTime] = useState<number>(0);
   const [usedQuestionIds, setUsedQuestionIds] = useState<Set<number>>(new Set());
 
-  const [settings, setSettings] = useState<GameSettings>({
+  const [settings, setSettings] = useState<GameSettings & { ramadanDay: number }>({
     winMode: 'SPEED',
     roundsCount: 10,
     timerDuration: 20,
@@ -111,6 +111,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
     soundEnabled: true,
     autoNext: false,
     winnerDuration: 5,
+    ramadanDay: 1,
   });
 
   const questionsRef = useRef<Question[]>([]);
@@ -139,6 +140,13 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
     // Determine which database to use: dynamic fawazir for ramadan, constants.ts for others
     const dbSource = category === 'ramadan' ? RAMADAN_QUESTIONS_DYNAMIC : QUESTIONS_DB;
 
+    if (category === 'ramadan') {
+      // Directly load the questions for this specific day without shuffling out of order.
+      const dayQuestions = dbSource.filter(q => q.day === settings.ramadanDay);
+      setQuestions(dayQuestions);
+      return;
+    }
+
     // Filter out used questions if possible, otherwise reset
     let available = dbSource.filter(q => q.category === category && !usedIdsRef.current.has(q.id));
 
@@ -150,7 +158,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
 
     const shuffled = [...available].sort(() => Math.random() - 0.5);
     setQuestions(shuffled);
-  }, [category, settings.roundsCount]);
+  }, [category, settings.roundsCount, settings.ramadanDay]);
 
   useEffect(() => {
     const bg = AVAILABLE_BACKGROUNDS.find(b => b.id === settings.backgroundId);
@@ -169,15 +177,26 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
   }, [roundWinner]);
 
   const startGame = () => {
-    // Re-filter to ensure we don't pick already used questions from the current set
-    const available = questions.filter(q => !usedIdsRef.current.has(q.id));
-    const gameQuestions = available.slice(0, settings.roundsCount);
+    let gameQuestions: Question[] = [];
 
-    if (gameQuestions.length === 0) {
-      // If none available (shouldn't happen with the reset logic), just take what we have
-      const fallback = QUESTIONS_DB.filter(q => q.category === category).slice(0, settings.roundsCount);
-      setQuestions(fallback);
-      gameQuestions.push(...fallback);
+    if (category === 'ramadan') {
+      // For ramadan, we load exactly the questions for the selected day in sequence
+      const dayQuestions = RAMADAN_QUESTIONS_DYNAMIC.filter(q => q.day === settings.ramadanDay);
+      gameQuestions = dayQuestions;
+
+      // Keep UI in sync for length
+      setSettings(prev => ({ ...prev, roundsCount: dayQuestions.length }));
+      settingsRef.current.roundsCount = dayQuestions.length;
+    } else {
+      // Re-filter to ensure we don't pick already used questions from the current set
+      const available = questions.filter(q => !usedIdsRef.current.has(q.id));
+      gameQuestions = available.slice(0, settings.roundsCount);
+
+      if (gameQuestions.length === 0) {
+        // If none available (shouldn't happen with the reset logic), just take what we have
+        const fallback = QUESTIONS_DB.filter(q => q.category === category).slice(0, settings.roundsCount);
+        gameQuestions.push(...fallback);
+      }
     }
 
     // Mark these as used immediately
@@ -420,12 +439,24 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10 text-right">
                 <div className="space-y-6">
                   <div className="bg-white/5 p-6 rounded-[2rem] border border-white/5 hover:border-white/10 transition-colors">
-                    <label className="text-xs font-black text-iabs-red uppercase tracking-wider block mb-4 flex items-center gap-2"><Settings size={14} /> نظام اللعب</label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {[5, 10, 15, 20].map(n => (
-                        <button key={n} onClick={() => setSettings({ ...settings, roundsCount: n })} className={`h-14 rounded-2xl font-black text-lg transition-all ${settings.roundsCount === n ? 'bg-red-600 text-white shadow-lg scale-105' : 'bg-black/40 text-gray-500 hover:bg-white/10'}`}>{n} جولة</button>
-                      ))}
-                    </div>
+                    <label className="text-xs font-black text-iabs-red uppercase tracking-wider block mb-4 flex items-center gap-2"><Settings size={14} /> {category === 'ramadan' ? 'اختر اليوم' : 'نظام اللعب'}</label>
+                    {category === 'ramadan' ? (
+                      <select
+                        className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-xl font-black text-white text-center focus:outline-none focus:border-red-500 appearance-none cursor-pointer"
+                        value={settings.ramadanDay}
+                        onChange={(e) => setSettings({ ...settings, ramadanDay: parseInt(e.target.value) })}
+                      >
+                        {Array.from({ length: 30 }, (_, i) => i + 1).map(day => (
+                          <option key={day} value={day} className="bg-gray-900 text-white">مسابقة اليوم {day}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-3">
+                        {[5, 10, 15, 20].map(n => (
+                          <button key={n} onClick={() => setSettings({ ...settings, roundsCount: n })} className={`h-14 rounded-2xl font-black text-lg transition-all ${settings.roundsCount === n ? 'bg-red-600 text-white shadow-lg scale-105' : 'bg-black/40 text-gray-500 hover:bg-white/10'}`}>{n} جولة</button>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   <div className="bg-white/5 p-6 rounded-[2rem] border border-white/5 hover:border-white/10 transition-colors">
