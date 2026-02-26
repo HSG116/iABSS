@@ -115,7 +115,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
     doublePoints: boolean;
   }>({
     winMode: 'SPEED',
-    roundsCount: category === 'ramadan' ? 999 : 10,
+    roundsCount: category === 'ramadan' ? 999 : 15,
     timerDuration: 20,
     gameOverOnMiss: false,
     backgroundId: 'classic',
@@ -510,7 +510,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
 
                     <div className="grid grid-cols-4 gap-2">
                       <div className="col-span-4 text-center text-[10px] text-gray-500 font-bold mb-1">عدد الجولات</div>
-                      {[10, 20, 33, 999].map(n => (
+                      {[15, 20, 33, 999].map(n => (
                         <button key={n} onClick={() => setSettings({ ...settings, roundsCount: n })} className={`h-12 rounded-2xl font-black text-lg transition-all ${settings.roundsCount === n ? 'bg-red-600 text-white shadow-lg scale-105' : 'bg-black/40 text-gray-500 hover:bg-white/10'}`}>
                           {n === 999 ? 'الكل' : n}
                         </button>
