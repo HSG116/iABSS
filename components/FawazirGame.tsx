@@ -101,7 +101,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
   const [roundWinner, setRoundWinner] = useState<RoundWinnerInfo | null>(null);
   const [roundWinners, setRoundWinners] = useState<RoundWinnerInfo[]>([]);
   const [winnersList, setWinnersList] = useState<PlayerStats[]>([]);
-  const [backgroundImage, setBackgroundImage] = useState<string>('');
+  const [backgroundImage, setBackgroundImage] = useState<string>('url(/pak/classic_2.png)');
   const [avatarCache, setAvatarCache] = useState<Record<string, string>>({});
   const [roundStartTime, setRoundStartTime] = useState<number>(0);
   const [usedQuestionIds, setUsedQuestionIds] = useState<Set<number>>(new Set());
@@ -275,6 +275,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
       .replace(/ى/g, 'ي')
       .replace(/[ؤئ]/g, 'ء')
       .replace(/[\u064B-\u0652]/g, '') // Remove Harakat
+      .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString()) // Normalize Hindi digits to Western digits
       .replace(/\s+/g, ' ') // Normalize spaces
       .trim();
   };
@@ -289,7 +290,10 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
       if (userAttemptsRef.current.has(username)) return;
 
       const normalizedUser = normalizeArabic(msg.content);
-      if (normalizedUser.length < 2) return;
+      if (normalizedUser.length < 1) return;
+
+      // Allow single character only if it's a number, otherwise require at least 2 chars
+      if (normalizedUser.length < 2 && !/^\d+$/.test(normalizedUser)) return;
 
       const checkMatch = (option: string) => {
         const normOpt = normalizeArabic(option);
@@ -299,8 +303,6 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
         if (normOpt === normUser) return true;
 
         // 2. Starts with logic (Requested by user)
-        // If the answer starts with the input, it's a candidate.
-        // If multiple answers start with this, the ambiguity check (Line 220) will ignore it.
         if (normOpt.startsWith(normUser)) return true;
 
         // 3. Ends with logic (E.g., "الخطاب" for "عمر بن الخطاب")
@@ -313,27 +315,37 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
         return false;
       };
 
-
+      let exactMatchIndex = -1;
       const matchingIndices = currentQ.options.reduce((acc, opt, idx) => {
+        const normOpt = normalizeArabic(opt);
+        if (normOpt === normalizedUser) {
+          exactMatchIndex = idx;
+        }
         if (checkMatch(opt)) acc.push(idx);
         return acc;
       }, [] as number[]);
 
-      // Ambiguity Check: If the input matches multiple options (e.g., just saying "سورة" when multiple answers exist),
-      // we ignore it and don't count it as an attempt to let the player be more specific.
-      if (matchingIndices.length > 1) return;
+      let finalMatchIndex = -1;
+      if (exactMatchIndex !== -1) {
+        finalMatchIndex = exactMatchIndex;
+      } else if (matchingIndices.length === 1) {
+        finalMatchIndex = matchingIndices[0];
+      }
 
-      // If no matches found at all, count it as a failed attempt and the user is out for this round.
-      if (matchingIndices.length === 0) {
+      // If multiple matches found but none is exact, it's ambiguous
+      if (finalMatchIndex === -1 && matchingIndices.length > 1) return;
+
+      // If no matches found at all, count it as a failed attempt
+      if (finalMatchIndex === -1) {
         userAttemptsRef.current.add(username);
         return;
       }
 
-      // Exactly one match found - now we record the attempt
+      // Valid match found
       userAttemptsRef.current.add(username);
 
-      // Check if the single match found is the correct one
-      if (matchingIndices[0] === currentQ.correctIndex) {
+      // Check if the match is the correct one
+      if (finalMatchIndex === currentQ.correctIndex) {
         const responseTime = (Date.now() - roundStartTimeRef.current) / 1000;
         const previousStats = winnersListRef.current.find(w => w.user === username);
         const winCountBefore = previousStats ? previousStats.winCount : 0;
@@ -351,7 +363,6 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
             if (av) {
               const uLower = username.toLowerCase();
               setAvatarCache(prev => ({ ...prev, [uLower]: av }));
-              // Update current winners if they are on screen
               setRoundWinners(prev => prev.map(w => w.user.toLowerCase() === uLower ? { ...w, avatar: av } : w));
               setRoundWinner(prev => (prev && prev.user.toLowerCase() === uLower) ? { ...prev, avatar: av } : prev);
               setWinnersList(prev => prev.map(w => w.user.toLowerCase() === uLower ? { ...w, avatar: av } : w));
@@ -359,10 +370,8 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
           });
         }
 
-        // Always collect winners in the round winners list
         setRoundWinners(prev => {
           const next = [...prev, winnerObj];
-          // Sort by speed immediately for precise round rankings
           return next.sort((a, b) => a.responseTime - b.responseTime);
         });
       }
