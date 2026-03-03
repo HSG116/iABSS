@@ -68,7 +68,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ userData, onLogout
         switch (activeView) {
             case 'OVERVIEW': return <Overview userData={{ ...userData, points }} />;
             case 'STORE': return <Store userId={userData.id} kickUsername={userData.kick_username || (userData as any).kickUsername} points={points} onPurchase={(newPoints) => setPoints(newPoints)} />;
-            case 'LOCKER': return <Locker userId={userData.id} onEquipChanged={(frame: string | null) => setActiveFrame(frame)} />;
+            case 'LOCKER': return <Locker userId={userData.id} kickUsername={userData.kick_username || (userData as any).kickUsername} onEquipChanged={(frame: string | null) => setActiveFrame(frame)} />;
             case 'RANKINGS': return <Rankings />;
             case 'SETTINGS': return <SettingsSection userData={userData} />;
             default: return <Overview userData={{ ...userData, points }} />;
@@ -397,7 +397,7 @@ const Store = ({ userId, kickUsername, points, onPurchase }: any) => {
     );
 };
 
-const Locker = ({ userId, onEquipChanged }: any) => {
+const Locker = ({ userId, kickUsername, onEquipChanged }: any) => {
     const [ownedItems, setOwnedItems] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -453,7 +453,12 @@ const Locker = ({ userId, onEquipChanged }: any) => {
                     .single();
 
                 const frameUrl = newStatus ? itemData?.image_url : null;
-                await supabase.from('profiles').update({ active_frame_url: frameUrl }).eq('id', userId);
+                const uLower = kickUsername?.toLowerCase();
+                if (uLower) {
+                    await supabase.from('profiles').update({ active_frame_url: frameUrl }).ilike('username', uLower);
+                } else {
+                    await supabase.from('profiles').update({ active_frame_url: frameUrl }).eq('id', userId);
+                }
                 if (onEquipChanged) onEquipChanged(frameUrl);
             }
 

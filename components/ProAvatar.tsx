@@ -7,12 +7,11 @@ import { supabase } from '../services/supabase';
 interface ProAvatarProps {
     url?: string;
     username: string;
-    frameUrl?: string; // Manual override
+    frameUrl?: string;
     size?: string;
     className?: string;
 }
 
-// Session cache to avoid blinky updates
 const frameCache: Record<string, string | null> = {};
 
 export const ProAvatar: React.FC<ProAvatarProps> = ({
@@ -26,20 +25,18 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
     const [frameUrl, setFrameUrl] = useState<string | undefined>(initialFrameUrl);
     const [isRefreshing, setIsRefreshing] = useState(false);
 
-    // 1. Avatar Handling
+    // 1. Avatar Logic
     useEffect(() => {
         const fetchAvatar = async () => {
             if (!username) return;
             const uLower = username.toLowerCase().trim().replace('@', '');
 
-            // Check Local Cache
             const cachedAv = localStorage.getItem(`av_${uLower}`);
             if (cachedAv && cachedAv.length > 10) {
                 setSrc(cachedAv);
                 return;
             }
 
-            // DB Check
             try {
                 const { data } = await supabase
                     .from('profiles')
@@ -54,7 +51,6 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
                 }
             } catch (e) { }
 
-            // Live Fetch
             const realAv = await chatService.fetchKickAvatar(uLower);
             if (realAv) {
                 setSrc(realAv);
@@ -69,17 +65,18 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
         }
     }, [url, username]);
 
-    // 2. Frame Handling + Real-time Subscription
+    // 2. Frame Logic
     useEffect(() => {
+        if (!username) return;
+        const uLower = username.toLowerCase().trim().replace('@', '');
+
+        // Respect initial prop if it exists and isn't empty
         if (initialFrameUrl) {
             setFrameUrl(initialFrameUrl);
             return;
         }
 
-        if (!username) return;
-        const uLower = username.toLowerCase().trim().replace('@', '');
-
-        // Immediate Load from Cache
+        // Check local cache
         if (frameCache[uLower] !== undefined) {
             setFrameUrl(frameCache[uLower] || undefined);
         } else {
@@ -91,52 +88,43 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
             }
         }
 
-        // Fetch Fresh + Subscribe
-        loadAndSubscribe(uLower);
+        loadAndRefresh(uLower);
 
-        // Cleanup subscription
-        return () => {
-            supabase.channel(`profile_${uLower}`).unsubscribe();
-        };
-    }, [initialFrameUrl, username]);
-
-    const loadAndSubscribe = async (uLower: string) => {
-        // Initial Fetch
-        const fetchOnce = async () => {
-            try {
-                const { data } = await supabase
-                    .from('profiles')
-                    .select('active_frame_url')
-                    .ilike('username', uLower)
-                    .maybeSingle();
-
-                const fresh = data?.active_frame_url || null;
-                updateFrameState(uLower, fresh);
-            } catch (e) { }
-        };
-
-        fetchOnce();
-
-        // Subscribe to changes (Real-time update if user equips frame in dashboard)
-        supabase
-            .channel(`profile_${uLower}`)
+        // Real-time subscription to profile updates
+        const channel = supabase
+            .channel(`profile_updates_${uLower}`)
             .on(
                 'postgres_changes',
-                {
-                    event: 'UPDATE',
-                    schema: 'public',
-                    table: 'profiles',
-                    filter: `username=ilike.${uLower}`
-                },
+                { event: 'UPDATE', schema: 'public', table: 'profiles' },
                 (payload) => {
-                    const newFrame = payload.new.active_frame_url || null;
-                    updateFrameState(uLower, newFrame);
+                    if (payload.new.username?.toLowerCase() === uLower) {
+                        const freshFrame = payload.new.active_frame_url || null;
+                        updateFrame(uLower, freshFrame);
+                    }
                 }
             )
             .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [initialFrameUrl, username]);
+
+    const loadAndRefresh = async (uLower: string) => {
+        try {
+            const { data } = await supabase
+                .from('profiles')
+                .select('active_frame_url')
+                .ilike('username', uLower)
+                .maybeSingle();
+
+            updateFrame(uLower, data?.active_frame_url || null);
+        } catch (e) {
+            console.error("[ProAvatar] Frame refresh error:", e);
+        }
     };
 
-    const updateFrameState = (uLower: string, fresh: string | null) => {
+    const updateFrame = (uLower: string, fresh: string | null) => {
         if (frameCache[uLower] !== fresh) {
             frameCache[uLower] = fresh;
             setFrameUrl(fresh || undefined);
@@ -162,10 +150,16 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
     return (
         <div
             className={`relative ${size} flex-shrink-0 ${className}`}
-            style={{ overflow: 'visible' }} // Ensure no clipping
+            style={{
+                overflow: 'visible',
+                zIndex: 10
+            }}
         >
-            {/* 1. Avatar Circle */}
-            <div className="absolute inset-[8%] rounded-full overflow-hidden border-2 border-white/10 bg-zinc-900 z-0 shadow-lg">
+            {/* 1. Circle Container */}
+            <div
+                className="absolute inset-[8%] rounded-full overflow-hidden border-2 border-white/10 bg-zinc-900 shadow-xl"
+                style={{ zIndex: 5 }}
+            >
                 {src ? (
                     <img
                         src={src}
@@ -186,15 +180,13 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
                 )}
             </div>
 
-            {/* 2. Frame Layer - Top Priority Visibility */}
+            {/* 2. Frame Layer - High zIndex and absolute position */}
             {frameUrl && (
                 <div
-                    className="absolute z-50 pointer-events-none"
+                    className="absolute pointer-events-none"
                     style={{
-                        top: '-15%',
-                        left: '-15%',
-                        right: '-15%',
-                        bottom: '-15%',
+                        inset: '-18%', // Increased size to ensure it wraps well
+                        zIndex: 100, // Forces it to the top
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center'
@@ -202,12 +194,13 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
                 >
                     <img
                         src={getAssetUrl(frameUrl)}
-                        className="w-full h-full object-contain filter drop-shadow-[0_0_15px_rgba(0,0,0,0.8)]"
+                        className="w-full h-full object-contain filter drop-shadow-[0_0_20px_rgba(0,0,0,0.9)]"
                         alt="Frame"
                         onError={() => {
-                            console.warn("Frame load error for", username);
+                            console.warn("[ProAvatar] Frame failed to load:", frameUrl);
                             setFrameUrl(undefined);
                         }}
+                        style={{ transform: 'scale(1.1)' }} // Slight scale up
                     />
                 </div>
             )}
