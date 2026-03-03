@@ -208,23 +208,23 @@ class ChatService {
   async fetchKickAvatar(username: string): Promise<string> {
     const slug = username.toLowerCase().trim().replace('@', '');
 
-    // 1. Check Memory Cache
     if (this.avatarCache[slug]) return this.avatarCache[slug];
-
-    // 2. Check Deduplication
     if (this.pendingAvatarFetches[slug]) return this.pendingAvatarFetches[slug];
 
     const fetchPromise = (async () => {
       try {
         const proxies = [
-          `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(`https://kick.com/api/v2/channels/${slug}`)}`,
-          `https://api.allorigins.win/get?url=${encodeURIComponent(`https://kick.com/api/v2/channels/${slug}`)}`,
-          `https://corsproxy.io/?${encodeURIComponent(`https://kick.com/api/v2/channels/${slug}`)}`
+          `https://api.allorigins.win/get?url=${encodeURIComponent(`https://kick.com/api/v2/channels/${slug}`)}&disableCache=true`,
+          `https://corsproxy.io/?${encodeURIComponent(`https://kick.com/api/v2/channels/${slug}`)}`,
+          `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(`https://kick.com/api/v2/channels/${slug}`)}`
         ];
 
         for (const proxyUrl of proxies) {
           try {
-            const response = await fetch(proxyUrl, { cache: 'force-cache' });
+            const response = await fetch(proxyUrl, {
+              cache: 'no-store',
+              headers: { 'Accept': 'application/json' }
+            });
             if (!response.ok) continue;
 
             const rawData = await response.json();
@@ -237,18 +237,23 @@ class ChatService {
               data = rawData;
             }
 
-            const avatar = data.user?.profile_pic || data.profile_pic || data.user?.profilepic || '';
+            const avatar = data.user?.profile_pic ||
+              data.user?.profilepic ||
+              data.profile_pic ||
+              data.user?.avatar?.url || '';
 
             if (avatar && avatar.includes('http')) {
-              this.avatarCache[slug] = avatar;
-              return avatar;
+              // Ensure files.kick.com is used
+              const finalAvatar = avatar.replace('https://kick.com/', 'https://files.kick.com/');
+              this.avatarCache[slug] = finalAvatar;
+              return finalAvatar;
             }
           } catch (e) {
-            // Silently continue
+            // continue
           }
         }
       } catch (e) {
-        console.error(`[ChatService] Fatal error fetching avatar for ${username}`, e);
+        console.error(`[ChatService] Error for ${username}`, e);
       } finally {
         delete this.pendingAvatarFetches[slug];
       }

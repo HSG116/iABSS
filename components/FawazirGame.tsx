@@ -55,7 +55,8 @@ const parseFawazir = (txt: string): Question[] => {
 
 const RAMADAN_QUESTIONS_DYNAMIC = parseFawazir(fawazirTxt);
 
-const logoImage = "https://i.ibb.co/pvCN1NQP/95505180312.png";
+const logoImage = "https://i.ibb.co/pvCN1NQP/95505180312.png"; // Keeping for now but added fallback logic below 
+const fallbackLogo = "https://streamarena.vercel.app/logo.png"; // Potential fallback
 
 const MAIN_BACKGROUND_URL = "/pak/classic_2.png";
 const CONTENT_BACKGROUND_URL = "https://i.ibb.co/k6mHccgc/content.png";
@@ -876,7 +877,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                 <div className="absolute top-0 left-1/4 w-96 h-96 bg-green-500/20 blur-[150px] animate-pulse"></div>
                 <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500/20 blur-[150px] animate-pulse delay-700"></div>
                 <div className="text-center relative max-w-4xl w-full mx-6 p-1 bg-gradient-to-b from-white/10 to-transparent rounded-[5rem] shadow-[0_50px_100px_rgba(0,0,0,0.8)] overflow-visible">
-                  <div className="bg-[#050505] rounded-[4.9rem] p-10 relative overflow-hidden ring-1 ring-white/10">
+                  <div className="bg-[#050505] rounded-[4.9rem] p-10 relative overflow-visible ring-1 ring-white/10">
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent animate-shimmer"></div>
 
                     <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-red-600 px-10 py-3 rounded-full flex items-center justify-center shadow-[0_15px_40px_rgba(220,38,38,0.5)] z-[110] border-t-4 border-white/20 animate-bounce">
@@ -903,7 +904,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                                   url={roundWinners[0].avatar}
                                   username={roundWinners[0].user}
                                   size="w-44 h-44"
-                                  className="shadow-[0_0_80px_rgba(220,38,38,0.4)] rounded-full"
+                                  className="shadow-[0_0_80px_rgba(220,38,38,0.4)]"
                                 />
                                 <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-red-600 text-white px-6 py-1 rounded-xl font-black text-sm shadow-xl italic whitespace-nowrap z-20">WINNER</div>
                               </div>
@@ -1033,7 +1034,12 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                   </div>
                   <div className="absolute left-1/2 -translate-x-1/2 -top-6">
                     <div className="w-24 h-24 bg-black rounded-full border-4 border-red-600 shadow-[0_0_40px_rgba(220,38,38,0.8)] flex items-center justify-center relative overflow-hidden group">
-                      <img src={logoImage} className="w-16 h-16 object-contain relative z-10 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
+                      <img
+                        src={logoImage}
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).src = fallbackLogo; }}
+                        className="w-16 h-16 object-contain relative z-10 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]"
+                        alt="Logo"
+                      />
                     </div>
                   </div>
                   <button onClick={() => setGameState('PRE_START')} className="w-14 h-14 bg-red-600 rounded-full border-2 border-white/20 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all text-white">

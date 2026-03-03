@@ -27,22 +27,44 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
     const [isRefreshing, setIsRefreshing] = useState(false);
 
     useEffect(() => {
-        if (url) {
-            setSrc(url);
-        } else if (username) {
-            // Check local storage / session cache
-            const uLower = username.toLowerCase();
+        const fetchAvatarFull = async () => {
+            if (!username) return;
+            const uLower = username.toLowerCase().trim().replace('@', '');
+
+            // 1. Try Memory/Local Cache
             const cachedAv = localStorage.getItem(`av_${uLower}`);
-            if (cachedAv) {
+            if (cachedAv && cachedAv.length > 10) {
                 setSrc(cachedAv);
-            } else {
-                chatService.fetchKickAvatar(username).then(av => {
-                    if (av) {
-                        setSrc(av);
-                        localStorage.setItem(`av_${uLower}`, av);
-                    }
-                });
+                return;
             }
+
+            // 2. Initial DB Fallback (Profiles)
+            try {
+                const { data } = await supabase
+                    .from('profiles')
+                    .select('avatar_url')
+                    .ilike('username', uLower)
+                    .maybeSingle();
+
+                if (data?.avatar_url) {
+                    setSrc(data.avatar_url);
+                    localStorage.setItem(`av_${uLower}`, data.avatar_url);
+                    return;
+                }
+            } catch (e) { }
+
+            // 3. Last Resort: Live Fetch
+            const realAvatar = await chatService.fetchKickAvatar(uLower);
+            if (realAvatar) {
+                setSrc(realAvatar);
+                localStorage.setItem(`av_${uLower}`, realAvatar);
+            }
+        };
+
+        if (url && url.length > 10) {
+            setSrc(url);
+        } else {
+            fetchAvatarFull();
         }
     }, [url, username]);
 
@@ -90,7 +112,7 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
     };
 
     const handleFix = async () => {
-        if (isRefreshing) return;
+        if (isRefreshing || !username) return;
         setIsRefreshing(true);
         try {
             const realAvatar = await chatService.fetchKickAvatar(username);
@@ -100,14 +122,13 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
                 await supabase.from('profiles').update({ avatar_url: realAvatar }).eq('username', username);
             }
         } catch (e) {
-            console.warn("Failed to fix avatar for", username);
         } finally {
             setIsRefreshing(false);
         }
     };
 
     return (
-        <div className={`relative ${size} flex-shrink-0 ${className}`}>
+        <div className={`relative ${size} flex-shrink-0 !overflow-visible ${className}`}>
             {/* Avatar Container */}
             <div className={`w-[82%] h-[82%] absolute inset-[9%] rounded-full overflow-hidden border-2 border-white/10 transition-all flex-shrink-0 bg-zinc-900 shadow-lg z-0`}>
                 {src ? (
@@ -130,12 +151,12 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
                 )}
             </div>
 
-            {/* Frame Layer - Increased scale and ensured z-index */}
+            {/* Frame Layer - Increased scale and ensured absolute z-index */}
             {frameUrl && (
-                <div className="absolute inset-x-[-15%] inset-y-[-15%] z-20 pointer-events-none">
+                <div className="absolute inset-[-18%] z-50 pointer-events-none">
                     <img
                         src={getAssetUrl(frameUrl)}
-                        className="w-full h-full object-contain filter drop-shadow-[0_0_10px_rgba(0,0,0,0.5)]"
+                        className="w-full h-full object-contain filter drop-shadow-[0_0_15px_rgba(0,0,0,0.8)]"
                         alt=""
                         onError={() => setFrameUrl(undefined)}
                     />
