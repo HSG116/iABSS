@@ -65,14 +65,34 @@ const App: React.FC = () => {
   };
 
   const initialParams = getInitialParams();
-  const [currentView, setCurrentView] = useState<ViewState | 'ADMIN_LOGIN' | 'ADMIN_PANEL'>(initialParams.view);
+  const [currentView, setCurrentView] = useState<ViewState | 'ADMIN_LOGIN' | 'ADMIN_PANEL'>(() => {
+    if (initialParams.view !== 'HOME') return initialParams.view;
+    try {
+      const stored = localStorage.getItem('site_access_granted');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.valid && parsed.role === 'user') return 'USER_DASHBOARD';
+      }
+    } catch (e) { }
+    return initialParams.view;
+  });
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showWelcome, setShowWelcome] = useState(!initialParams.obs);
   const [isOBSMode, setIsOBSMode] = useState(initialParams.obs);
   const [showOBSModal, setShowOBSModal] = useState(false);
 
   // Authorization State - bypass for OBS
-  const [isAuthorized, setIsAuthorized] = useState<boolean>(initialParams.obs);
+  const [isAuthorized, setIsAuthorized] = useState<boolean>(() => {
+    if (initialParams.obs) return true;
+    try {
+      const stored = localStorage.getItem('site_access_granted');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return parsed.valid === true;
+      }
+    } catch (e) { }
+    return false;
+  });
   const [userRole, setUserRole] = useState<'admin' | 'user'>(() => {
     try {
       const stored = localStorage.getItem('site_access_granted');
@@ -431,6 +451,18 @@ const App: React.FC = () => {
       case 'FLOOR_IS_LAVA': return <FloorIsLava onHome={handleGoHome} isOBS={obsMode} />;
       case 'EMOJI_CODE': return <EmojiCode onHome={handleGoHome} isOBS={obsMode} />;
 
+      case 'USER_DASHBOARD': return (
+        <div className="flex-1 w-full max-w-7xl mx-auto flex flex-col p-4 md:p-8 animate-in slide-in-from-bottom-20 duration-1000">
+          <UserDashboard
+            onLogout={handleLogout}
+            userData={(() => {
+              const stored = localStorage.getItem('iabs_user');
+              return stored ? JSON.parse(stored) : { id: '', display_name: 'Guest', kick_username: 'guest' };
+            })()}
+          />
+        </div>
+      );
+
       case 'LEADERBOARD': return (
         <div className="animate-in fade-in zoom-in duration-500 max-w-6xl mx-auto w-full pt-10 px-6 h-full flex flex-col items-center">
           <div className="text-center mb-12">
@@ -788,17 +820,7 @@ const App: React.FC = () => {
     return (
       <div className="fixed inset-0 bg-transparent overflow-hidden flex items-center justify-center z-[99999]">
         {(currentView === 'FAWAZIR_GAME' || currentView === 'FAWAZIR_SELECT') && <SponsorsWidget />}
-        {userRole === 'user' ? (
-          <div className="w-full h-full max-w-6xl animate-in fade-in duration-1000">
-            <UserDashboard
-              onLogout={handleLogout}
-              userData={(() => {
-                const stored = localStorage.getItem('iabs_user');
-                return stored ? JSON.parse(stored) : { id: '', display_name: 'Guest', kick_username: 'guest' };
-              })()}
-            />
-          </div>
-        ) : renderContent(true)}
+        {renderContent(true)}
       </div>
     );
   }
@@ -809,29 +831,19 @@ const App: React.FC = () => {
       onChangeView={(v) => setCurrentView(v)}
       onOBSLinks={() => setShowOBSModal(true)}
       isAuthorized={isAuthorized}
+      userRole={userRole}
     >
       <OBSLinksModal isOpen={showOBSModal} onClose={() => setShowOBSModal(false)} />
       {(currentView === 'FAWAZIR_GAME' || currentView === 'FAWAZIR_SELECT') && <SponsorsWidget />}
       {!isAuthorized && <GlobalPasswordPage onSuccess={(role) => {
         setUserRole(role);
         setIsAuthorized(true);
+        if (role === 'user') setCurrentView('USER_DASHBOARD');
       }} />}
 
       {/* Only show content if authorized */}
 
-      {isAuthorized && (
-        userRole === 'user' ? (
-          <div className="flex-1 w-full max-w-7xl mx-auto flex flex-col p-4 md:p-8 animate-in slide-in-from-bottom-20 duration-1000">
-            <UserDashboard
-              onLogout={handleLogout}
-              userData={(() => {
-                const stored = localStorage.getItem('iabs_user');
-                return stored ? JSON.parse(stored) : { id: '', display_name: 'Guest', kick_username: 'guest' };
-              })()}
-            />
-          </div>
-        ) : renderContent(false)
-      )}
+      {isAuthorized && renderContent(false)}
 
       {activeAnnouncement && (
         <GlobalAnnouncement

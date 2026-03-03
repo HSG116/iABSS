@@ -229,18 +229,33 @@ const Overview = ({ userData }: any) => {
 
 const Store = ({ userId, kickUsername, points, onPurchase }: any) => {
     const [items, setItems] = useState<any[]>([]);
+    const [ownedItemsIds, setOwnedItemsIds] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchItems = async () => {
-            const { data } = await supabase.from('store_items').select('*').eq('is_active', true);
-            if (data) setItems(data);
+        const fetchData = async () => {
+            setLoading(true);
+            const [{ data: storeItems }, { data: userInv }] = await Promise.all([
+                supabase.from('store_items').select('*').eq('is_active', true).order('price', { ascending: true }),
+                supabase.from('user_inventory').select('item_id').eq('user_id', userId)
+            ]);
+
+            if (storeItems) setItems(storeItems);
+            if (userInv) {
+                const ids = new Set(userInv.map((inv: any) => inv.item_id));
+                setOwnedItemsIds(ids);
+            }
             setLoading(false);
         };
-        fetchItems();
-    }, []);
+        fetchData();
+    }, [userId]);
 
     const handleBuy = async (item: any) => {
+        if (ownedItemsIds.has(item.id)) {
+            alert('أنت تملك هذا الغرض بالفعل!');
+            return;
+        }
+
         if (points < item.price) {
             alert('نقاطك غير كافية!');
             return;
@@ -278,6 +293,7 @@ const Store = ({ userId, kickUsername, points, onPurchase }: any) => {
             });
 
             onPurchase(newPoints);
+            setOwnedItemsIds(prev => new Set([...prev, item.id]));
             alert('تم الشراء بنجاح! يمكنك تفعيله من الخزانة.');
         } catch (e) {
             console.error(e);
@@ -302,55 +318,80 @@ const Store = ({ userId, kickUsername, points, onPurchase }: any) => {
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {items.map((item) => (
-                    <div key={item.id} className="bg-white/[0.03] border border-white/10 rounded-[2rem] p-6 hover:bg-white/[0.05] transition-all group overflow-hidden relative flex flex-col">
-                        <div className="absolute -top-10 -right-10 w-32 h-32 bg-red-600/5 blur-3xl rounded-full group-hover:bg-red-600/10 transition-all"></div>
+                {items.map((item) => {
+                    const isOwned = ownedItemsIds.has(item.id);
 
-                        <div className="relative mb-6">
-                            <div className="w-full aspect-square bg-black/60 rounded-3xl border border-white/5 flex items-center justify-center relative overflow-hidden group-hover:bg-black/40 transition-colors">
-                                <div className="w-20 h-20 bg-zinc-800 rounded-2xl overflow-hidden border border-white/10 relative">
-                                    <User size={40} className="m-auto mt-5 text-zinc-700" />
-                                    {item.image_url && (
-                                        <img src={getAssetUrl(item.image_url)} className="absolute inset-0 w-full h-full object-contain scale-125" alt="" />
+                    return (
+                        <div key={item.id} className={`bg-white/[0.03] border rounded-[2rem] p-6 transition-all group overflow-hidden relative flex flex-col ${isOwned ? 'border-green-500/20 opacity-90' : 'border-white/10 hover:border-yellow-500/30'}`}>
+                            {/* Premium Glow and Patterns */}
+                            <div className="absolute -top-10 -right-10 w-32 h-32 bg-red-600/5 blur-3xl rounded-full group-hover:bg-red-600/10 transition-all"></div>
+                            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+
+                            {isOwned && (
+                                <div className="absolute -right-6 -top-6 w-20 h-20 bg-green-500 rotate-45 flex items-end justify-center pb-2 shadow-[0_0_20px_rgba(34,197,94,0.4)] z-20">
+                                    <CheckCircle size={14} className="text-white -rotate-45 mb-1" />
+                                </div>
+                            )}
+
+                            <div className="relative mb-6">
+                                <div className={`w-full aspect-square bg-black/60 rounded-3xl border flex items-center justify-center relative overflow-hidden transition-all ${isOwned ? 'border-green-500/20' : 'border-white/5 group-hover:border-yellow-500/20'}`}>
+                                    <div className="w-20 h-20 bg-zinc-800 rounded-2xl overflow-hidden border border-white/10 relative shadow-2xl">
+                                        <User size={40} className="m-auto mt-5 text-zinc-700" />
+                                        {item.image_url && (
+                                            <img src={getAssetUrl(item.image_url)} className="absolute inset-0 w-full h-full object-contain scale-125" alt="" />
+                                        )}
+                                    </div>
+
+                                    {item.type === 'FRAME' && !item.image_url && (
+                                        <div className="w-24 h-24 rounded-2xl border-4" style={item.config}>
+                                        </div>
+                                    )}
+
+                                    {item.config?.showUsername && (
+                                        <div className="absolute bottom-2 left-0 right-0 text-center">
+                                            <div className="bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded text-[8px] font-black text-white inline-block border border-white/10">
+                                                {kickUsername}
+                                            </div>
+                                        </div>
                                     )}
                                 </div>
-
-                                {item.type === 'FRAME' && !item.image_url && (
-                                    <div className="w-24 h-24 rounded-2xl border-4" style={item.config}>
-                                    </div>
-                                )}
-
-                                {item.config?.showUsername && (
-                                    <div className="absolute bottom-2 left-0 right-0 text-center">
-                                        <div className="bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded text-[8px] font-black text-white inline-block border border-white/10">
-                                            {kickUsername}
-                                        </div>
-                                    </div>
-                                )}
+                                <div className="absolute top-4 left-4">
+                                    <span className="bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black text-gray-400 border border-white/10 uppercase tracking-widest">
+                                        {item.type}
+                                    </span>
+                                </div>
                             </div>
-                            <div className="absolute top-4 left-4">
-                                <span className="bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black text-gray-400 border border-white/10 uppercase tracking-widest">
-                                    {item.type}
-                                </span>
+
+                            <div className="space-y-4 relative flex-1 flex flex-col">
+                                <div>
+                                    <h4 className="text-white font-black text-lg">{item.name}</h4>
+                                    <p className="text-gray-500 text-xs font-bold leading-relaxed">{item.description}</p>
+                                </div>
+
+                                <button
+                                    onClick={() => handleBuy(item)}
+                                    disabled={isOwned}
+                                    className={`w-full mt-auto py-4 rounded-xl font-black text-sm uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-3 group/btn relative overflow-hidden
+                                        ${isOwned
+                                            ? 'bg-green-500/10 text-green-500 border border-green-500/20 cursor-default'
+                                            : 'bg-white/5 hover:bg-yellow-500 hover:text-black border border-white/10'}`}
+                                >
+                                    {isOwned ? (
+                                        <>
+                                            <CheckCircle size={18} />
+                                            <span>مـمـتـلـك</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <ShoppingBag size={18} className="transition-transform group-hover/btn:-translate-y-1" />
+                                            <span>{item.price.toLocaleString()} نقطة</span>
+                                        </>
+                                    )}
+                                </button>
                             </div>
                         </div>
-
-                        <div className="space-y-4 relative flex-1 flex flex-col">
-                            <div>
-                                <h4 className="text-white font-black text-lg">{item.name}</h4>
-                                <p className="text-gray-500 text-xs font-bold leading-relaxed">{item.description}</p>
-                            </div>
-
-                            <button
-                                onClick={() => handleBuy(item)}
-                                className="w-full mt-auto bg-white/5 hover:bg-yellow-500 hover:text-black py-4 rounded-xl font-black text-sm uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-3 group/btn"
-                            >
-                                <ArrowRight size={16} className="opacity-0 group-hover/btn:opacity-100 -translate-x-2 group-hover/btn:translate-x-0 transition-all" />
-                                <span>{item.price.toLocaleString()} نقطة</span>
-                            </button>
-                        </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
         </div>
     );

@@ -20,6 +20,7 @@ export type Language = 'ar' | 'en';
 
 export type ViewState =
   | 'HOME'
+  | 'USER_DASHBOARD'
   | 'FAWAZIR_SELECT'
   | 'FAWAZIR_GAME'
   | 'MUSICAL_CHAIRS'

@@ -5,7 +5,7 @@ import { ChatWidget } from './ChatWidget';
 import {
   MessageSquare, X, Settings2, ChevronRight,
   Maximize2, Minimize2, PanelRightClose,
-  LayoutGrid, ArrowLeftRight, Link, Video, Home
+  LayoutGrid, ArrowLeftRight, Link, Video, Home, User
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -14,9 +14,10 @@ interface LayoutProps {
   onChangeView: (view: ViewState) => void;
   onOBSLinks?: () => void;
   isAuthorized?: boolean;
+  userRole?: 'admin' | 'user';
 }
 
-export const Layout: React.FC<LayoutProps> = ({ children, currentView, onChangeView, onOBSLinks, isAuthorized }) => {
+export const Layout: React.FC<LayoutProps> = ({ children, currentView, onChangeView, onOBSLinks, isAuthorized, userRole }) => {
   const [chatOpen, setChatOpen] = useState(true);
   const [sidebarWidth, setSidebarWidth] = useState(450); // Default Width
 
@@ -92,19 +93,36 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onChangeV
 
           <div className="w-px h-6 bg-white/10 mx-3"></div>
 
-          {/* Home Button */}
+          {/* Navigation Buttons */}
           {isAuthorized && (
-            <div className="relative group/home">
-              <div className="absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-1 bg-red-600 text-white text-[8px] font-black rounded-lg opacity-0 group-hover/home:opacity-100 transition-all duration-300 whitespace-nowrap z-50 pointer-events-none shadow-[0_0_10px_rgba(220,38,38,0.4)]">
-                العودة للرئيسية
+            <div className="flex items-center gap-2">
+              {/* Profile Button for Users */}
+              {userRole === 'user' && (
+                <div className="relative group/profile">
+                  <div className="absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-1 bg-red-600 text-white text-[8px] font-black rounded-lg opacity-0 group-hover/profile:opacity-100 transition-all duration-300 whitespace-nowrap z-50 pointer-events-none shadow-[0_0_10px_rgba(220,38,38,0.4)]">
+                    ملفي الشخصي
+                  </div>
+                  <button
+                    onClick={() => onChangeView('USER_DASHBOARD' as any)}
+                    className="relative p-2 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all rounded-xl border border-white/10 active:scale-95 group"
+                  >
+                    <User size={18} className="relative z-10" />
+                  </button>
+                </div>
+              )}
+
+              <div className="relative group/home">
+                <div className="absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-1 bg-red-600 text-white text-[8px] font-black rounded-lg opacity-0 group-hover/home:opacity-100 transition-all duration-300 whitespace-nowrap z-50 pointer-events-none shadow-[0_0_10px_rgba(220,38,38,0.4)]">
+                  العودة للرئيسية
+                </div>
+                <button
+                  onClick={() => onChangeView('HOME')}
+                  title="العودة للقائمة الرئيسية"
+                  className="relative p-2 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white transition-all rounded-xl border border-red-600/30 active:scale-95 shadow-[0_0_10px_rgba(220,38,38,0.2)] hover:shadow-[0_0_20px_rgba(220,38,38,0.6)] group"
+                >
+                  <Home size={18} className="relative z-10" />
+                </button>
               </div>
-              <button
-                onClick={() => onChangeView('HOME')}
-                title="العودة للقائمة الرئيسية"
-                className="relative p-2 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white transition-all rounded-xl border border-red-600/30 active:scale-95 shadow-[0_0_10px_rgba(220,38,38,0.2)] hover:shadow-[0_0_20px_rgba(220,38,38,0.6)] group"
-              >
-                <Home size={18} className="relative z-10" />
-              </button>
             </div>
           )}
         </div>
