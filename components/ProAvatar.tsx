@@ -7,12 +7,12 @@ import { supabase } from '../services/supabase';
 interface ProAvatarProps {
     url?: string;
     username: string;
-    frameUrl?: string;
+    frameUrl?: string; // Manual override
     size?: string;
     className?: string;
 }
 
-// Global session cache to prevent redundant DB calls
+// Session cache to avoid blinky updates
 const frameCache: Record<string, string | null> = {};
 
 export const ProAvatar: React.FC<ProAvatarProps> = ({
@@ -26,20 +26,20 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
     const [frameUrl, setFrameUrl] = useState<string | undefined>(initialFrameUrl);
     const [isRefreshing, setIsRefreshing] = useState(false);
 
-    // 1. Avatar Fetching Logic
+    // 1. Avatar Handling
     useEffect(() => {
-        const fetchAvatarFull = async () => {
+        const fetchAvatar = async () => {
             if (!username) return;
             const uLower = username.toLowerCase().trim().replace('@', '');
 
-            // Try Mem/Local Cache
+            // Check Local Cache
             const cachedAv = localStorage.getItem(`av_${uLower}`);
             if (cachedAv && cachedAv.length > 10) {
                 setSrc(cachedAv);
                 return;
             }
 
-            // Quick DB Fallback
+            // DB Check
             try {
                 const { data } = await supabase
                     .from('profiles')
@@ -54,22 +54,22 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
                 }
             } catch (e) { }
 
-            // Live Fetch via ChatService
-            const realAvatar = await chatService.fetchKickAvatar(uLower);
-            if (realAvatar) {
-                setSrc(realAvatar);
-                localStorage.setItem(`av_${uLower}`, realAvatar);
+            // Live Fetch
+            const realAv = await chatService.fetchKickAvatar(uLower);
+            if (realAv) {
+                setSrc(realAv);
+                localStorage.setItem(`av_${uLower}`, realAv);
             }
         };
 
-        if (url && url.length > 10) {
+        if (url && url.length > 5) {
             setSrc(url);
         } else {
-            fetchAvatarFull();
+            fetchAvatar();
         }
     }, [url, username]);
 
-    // 2. Frame Fetching Logic
+    // 2. Frame Handling + Real-time Subscription
     useEffect(() => {
         if (initialFrameUrl) {
             setFrameUrl(initialFrameUrl);
@@ -79,7 +79,7 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
         if (!username) return;
         const uLower = username.toLowerCase().trim().replace('@', '');
 
-        // Check cache
+        // Immediate Load from Cache
         if (frameCache[uLower] !== undefined) {
             setFrameUrl(frameCache[uLower] || undefined);
         } else {
@@ -91,28 +91,56 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
             }
         }
 
-        // Refresh from DB
-        fetchUserFrame(uLower);
+        // Fetch Fresh + Subscribe
+        loadAndSubscribe(uLower);
+
+        // Cleanup subscription
+        return () => {
+            supabase.channel(`profile_${uLower}`).unsubscribe();
+        };
     }, [initialFrameUrl, username]);
 
-    const fetchUserFrame = async (uLower: string) => {
-        try {
-            const { data } = await supabase
-                .from('profiles')
-                .select('active_frame_url')
-                .ilike('username', uLower)
-                .maybeSingle();
+    const loadAndSubscribe = async (uLower: string) => {
+        // Initial Fetch
+        const fetchOnce = async () => {
+            try {
+                const { data } = await supabase
+                    .from('profiles')
+                    .select('active_frame_url')
+                    .ilike('username', uLower)
+                    .maybeSingle();
 
-            const foundFrame = data?.active_frame_url || null;
+                const fresh = data?.active_frame_url || null;
+                updateFrameState(uLower, fresh);
+            } catch (e) { }
+        };
 
-            // Avoid state update if same to prevent re-renders
-            if (frameCache[uLower] !== foundFrame) {
-                frameCache[uLower] = foundFrame;
-                setFrameUrl(foundFrame || undefined);
-                localStorage.setItem(`frame_${uLower}`, foundFrame || 'none');
-            }
-        } catch (e) {
-            console.warn("Frame fetch failed", e);
+        fetchOnce();
+
+        // Subscribe to changes (Real-time update if user equips frame in dashboard)
+        supabase
+            .channel(`profile_${uLower}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'profiles',
+                    filter: `username=ilike.${uLower}`
+                },
+                (payload) => {
+                    const newFrame = payload.new.active_frame_url || null;
+                    updateFrameState(uLower, newFrame);
+                }
+            )
+            .subscribe();
+    };
+
+    const updateFrameState = (uLower: string, fresh: string | null) => {
+        if (frameCache[uLower] !== fresh) {
+            frameCache[uLower] = fresh;
+            setFrameUrl(fresh || undefined);
+            localStorage.setItem(`frame_${uLower}`, fresh || 'none');
         }
     };
 
@@ -120,11 +148,11 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
         if (isRefreshing || !username) return;
         setIsRefreshing(true);
         try {
-            const realAvatar = await chatService.fetchKickAvatar(username);
-            if (realAvatar) {
-                setSrc(realAvatar);
-                localStorage.setItem(`av_${username.toLowerCase()}`, realAvatar);
-                await supabase.from('profiles').update({ avatar_url: realAvatar }).eq('username', username);
+            const real = await chatService.fetchKickAvatar(username);
+            if (real) {
+                setSrc(real);
+                localStorage.setItem(`av_${username.toLowerCase()}`, real);
+                await supabase.from('profiles').update({ avatar_url: real }).eq('username', username);
             }
         } catch (e) { } finally {
             setIsRefreshing(false);
@@ -134,10 +162,10 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
     return (
         <div
             className={`relative ${size} flex-shrink-0 ${className}`}
-            style={{ overflow: 'visible' }} // Critical for frames
+            style={{ overflow: 'visible' }} // Ensure no clipping
         >
-            {/* Inner Circular Avatar Container */}
-            <div className={`w-[84%] h-[84%] absolute inset-[8%] rounded-full overflow-hidden border-2 border-white/10 bg-zinc-900 shadow-inner z-0`}>
+            {/* 1. Avatar Circle */}
+            <div className="absolute inset-[8%] rounded-full overflow-hidden border-2 border-white/10 bg-zinc-900 z-0 shadow-lg">
                 {src ? (
                     <img
                         src={src}
@@ -158,24 +186,28 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
                 )}
             </div>
 
-            {/* Outer Frame Decoration - Styled for visibility */}
+            {/* 2. Frame Layer - Top Priority Visibility */}
             {frameUrl && (
                 <div
                     className="absolute z-50 pointer-events-none"
                     style={{
-                        top: '-18%',
-                        left: '-18%',
-                        right: '-18%',
-                        bottom: '-18%',
-                        transform: 'scale(1.1)'
+                        top: '-15%',
+                        left: '-15%',
+                        right: '-15%',
+                        bottom: '-15%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
                     }}
                 >
                     <img
                         src={getAssetUrl(frameUrl)}
                         className="w-full h-full object-contain filter drop-shadow-[0_0_15px_rgba(0,0,0,0.8)]"
-                        alt="User Frame"
-                        onError={() => setFrameUrl(undefined)}
-                        style={{ display: 'block' }}
+                        alt="Frame"
+                        onError={() => {
+                            console.warn("Frame load error for", username);
+                            setFrameUrl(undefined);
+                        }}
                     />
                 </div>
             )}
