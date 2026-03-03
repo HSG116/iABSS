@@ -8,7 +8,7 @@ interface UserAuthPageProps {
     onBack?: () => void;
 }
 
-type AuthStep = 'REGISTER' | 'KICK_VERIFY' | 'VERIFYING' | 'VERIFIED' | 'UNDER_DEV';
+type AuthStep = 'REGISTER' | 'KICK_VERIFY' | 'VERIFYING' | 'VERIFIED';
 
 const generateVerificationCode = (): string => {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -168,6 +168,18 @@ export const UserAuthPage: React.FC<UserAuthPageProps> = ({ onSuccess, onBack })
                 }
             }
 
+            // Initialize Profile too (required for some game features and leaderboard)
+            try {
+                await supabase.from('profiles').upsert({
+                    username: kickUsername.trim().toLowerCase(),
+                    avatar_url: finalAvatar || '',
+                    role: 'user',
+                    created_at: new Date().toISOString()
+                });
+            } catch (err) {
+                console.error('[UserAuth] Profile init error:', err);
+            }
+
             // Initialize Leaderboard record
             try {
                 await supabase.from('leaderboard').insert([{
@@ -192,7 +204,14 @@ export const UserAuthPage: React.FC<UserAuthPageProps> = ({ onSuccess, onBack })
 
             setIsVerified(true);
             setStep('VERIFIED');
-            setTimeout(() => { setStep('UNDER_DEV'); }, 3000);
+            setTimeout(() => {
+                onSuccess({
+                    name: name.trim(),
+                    kickUsername: kickUsername.trim(),
+                    discord: discord.trim() || undefined,
+                    avatar: finalAvatar || undefined
+                });
+            }, 2500);
         } catch (err) {
             console.error('[UserAuth] Error:', err);
             setFormError('حدث خطأ غير متوقع');
@@ -617,39 +636,7 @@ export const UserAuthPage: React.FC<UserAuthPageProps> = ({ onSuccess, onBack })
                 </div>
             )}
 
-            {/* ====== UNDER DEVELOPMENT STEP ====== */}
-            {step === 'UNDER_DEV' && (
-                <div className="relative z-10 flex flex-col items-center justify-center text-center px-6 slide-up">
-                    <div className="relative mb-8">
-                        <div className="absolute inset-0 bg-yellow-500/15 blur-[80px] rounded-full animate-pulse"></div>
-                        <div className="relative w-28 h-28 rounded-full border-2 border-yellow-500/30 flex items-center justify-center bg-yellow-500/5 backdrop-blur-xl">
-                            <span className="text-6xl float-anim">🚧</span>
-                        </div>
-                    </div>
-
-                    <h2 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 to-yellow-600 italic mb-4">
-                        تحت التطوير
-                    </h2>
-                    <p className="text-yellow-500 font-bold tracking-[0.4em] text-sm uppercase mb-8">UNDER DEVELOPMENT</p>
-
-                    <div className="bg-white/[0.03] backdrop-blur-xl border border-yellow-500/10 rounded-2xl p-6 max-w-md space-y-4">
-                        <div className="flex items-center gap-3 bg-green-500/10 border border-green-500/20 px-4 py-3 rounded-xl">
-                            <CheckCircle size={18} className="text-green-500 shrink-0" />
-                            <div className="text-right">
-                                <span className="text-white font-bold text-sm block">تم تسجيل حسابك بنجاح!</span>
-                                <span className="text-gray-500 text-xs">مرحباً {name}</span>
-                            </div>
-                        </div>
-                        <p className="text-gray-400 text-sm font-bold leading-relaxed">
-                            هذا القسم قيد التطوير حالياً. سيتم إشعارك عند الانتهاء من بناء الميزات الجديدة.
-                        </p>
-                        <div className="flex items-center justify-center gap-2 text-yellow-500/60 text-xs font-bold">
-                            <Loader2 size={12} className="animate-spin" />
-                            <span>COMING SOON</span>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* REMOVED UNDER_DEV STEP */}
         </div>
     );
 };

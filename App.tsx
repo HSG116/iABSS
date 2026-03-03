@@ -283,6 +283,15 @@ const App: React.FC = () => {
 
   const handleGoHome = () => setCurrentView('HOME');
 
+  const handleLogout = () => {
+    localStorage.removeItem('site_access_granted');
+    localStorage.removeItem('iabs_user');
+    setIsAuthorized(false);
+    setUserRole('admin');
+    setCurrentView('HOME');
+    window.location.reload(); // Refresh to ensure clean state
+  };
+
   const PremiumGameButton = ({
     title, icon: Icon, onClick, isPrimary = false, isComingSoon = false,
     comingSoonText = "قريباً", hasOBS = false, index, total,
@@ -782,6 +791,7 @@ const App: React.FC = () => {
         {userRole === 'user' ? (
           <div className="w-full h-full max-w-6xl animate-in fade-in duration-1000">
             <UserDashboard
+              onLogout={handleLogout}
               userData={(() => {
                 const stored = localStorage.getItem('iabs_user');
                 return stored ? JSON.parse(stored) : { id: '', display_name: 'Guest', kick_username: 'guest' };
@@ -813,6 +823,7 @@ const App: React.FC = () => {
         userRole === 'user' ? (
           <div className="flex-1 w-full max-w-7xl mx-auto flex flex-col p-4 md:p-8 animate-in slide-in-from-bottom-20 duration-1000">
             <UserDashboard
+              onLogout={handleLogout}
               userData={(() => {
                 const stored = localStorage.getItem('iabs_user');
                 return stored ? JSON.parse(stored) : { id: '', display_name: 'Guest', kick_username: 'guest' };

@@ -3,7 +3,7 @@ import {
     User, Trophy, Settings, Layout, ShoppingBag,
     Star, Wallet, Shield, Zap, Sparkles, ChevronRight,
     Search, Filter, CheckCircle, Lock, Gem, Crown,
-    ArrowRight, Box, Palette, Image as ImageIcon
+    ArrowRight, Box, Palette, Image as ImageIcon, LogOut
 } from 'lucide-react';
 import { supabase } from '../services/supabase';
 import { getAssetUrl } from '../utils/assets';
@@ -17,11 +17,12 @@ interface UserDashboardProps {
         avatar?: string;
         points?: number;
     };
+    onLogout?: () => void;
 }
 
 type DashboardView = 'OVERVIEW' | 'STORE' | 'LOCKER' | 'RANKINGS' | 'SETTINGS';
 
-export const UserDashboard: React.FC<UserDashboardProps> = ({ userData }) => {
+export const UserDashboard: React.FC<UserDashboardProps> = ({ userData, onLogout }) => {
     const [activeView, setActiveView] = useState<DashboardView>('OVERVIEW');
     const [points, setPoints] = useState(userData.points || 0);
     const [activeFrame, setActiveFrame] = useState<string | null>(null);
@@ -114,6 +115,17 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ userData }) => {
                     ))}
                 </nav>
 
+                {/* Logout Button */}
+                {onLogout && (
+                    <button
+                        onClick={onLogout}
+                        className="mt-4 flex items-center gap-4 px-5 py-4 rounded-2xl font-black text-sm text-gray-500 hover:text-white hover:bg-red-600/20 transition-all duration-300 border border-transparent hover:border-red-600/20"
+                    >
+                        <LogOut size={18} />
+                        <span>تسجيل الخروج</span>
+                    </button>
+                )}
+
                 <div className="mt-auto pt-6 border-t border-white/5">
                     <div className="bg-gradient-to-br from-red-600/10 to-transparent p-5 rounded-3xl border border-red-500/10 relative overflow-hidden group">
                         <Sparkles size={40} className="absolute -bottom-2 -right-2 text-red-600/10 group-hover:scale-150 transition-transform duration-700" />
@@ -178,9 +190,10 @@ const Overview = ({ userData }: any) => {
 
     return (
         <div className="space-y-8 animate-in slide-in-from-bottom-10 duration-700">
-            <header>
-                <h1 className="text-4xl font-black italic text-white tracking-tighter mb-2">لوحة التحكم</h1>
-                <p className="text-gray-500 font-bold text-sm tracking-widest uppercase">Member Dashboard / Overview</p>
+            <header className="relative py-8 md:py-12 bg-gradient-to-l from-red-600/20 to-transparent rounded-[3rem] border border-red-500/10 px-8 md:px-12 overflow-hidden mb-8">
+                <Sparkles className="absolute top-4 right-4 text-red-600/20" size={100} />
+                <h1 className="text-4xl md:text-5xl font-black italic text-white tracking-tighter mb-2 relative z-10 drop-shadow-2xl">أهلاً بك، {userData.display_name}</h1>
+                <p className="text-red-500/60 font-black text-xs tracking-widest uppercase relative z-10">MEMBER DASHBOARD / OVERVIEW</p>
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

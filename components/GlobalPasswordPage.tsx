@@ -487,7 +487,8 @@ export const GlobalPasswordPage: React.FC<GlobalPasswordPageProps> = ({
                 {step === 'USER_AUTH' && (
                     <UserAuthPage
                         onSuccess={(userData) => {
-                            console.log('User registered:', userData);
+                            setRole('user');
+                            finishScan();
                         }}
                         onBack={() => setStep('PASSWORD')}
                     />
