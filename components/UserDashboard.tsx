@@ -535,12 +535,29 @@ const Rankings = () => {
 
     useEffect(() => {
         const fetchRankings = async () => {
-            const { data } = await supabase
+            const { data: leaderboardData } = await supabase
                 .from('leaderboard')
                 .select('*')
                 .order('score', { ascending: false })
                 .limit(20);
-            if (data) setPlayers(data);
+
+            if (leaderboardData) {
+                // Fetch profiles to get frames
+                const usernames = leaderboardData.map(p => p.username.toLowerCase());
+                const { data: profileData } = await supabase
+                    .from('profiles')
+                    .select('username, active_frame_url')
+                    .in('username', usernames);
+
+                const playersWithFrames = leaderboardData.map(player => {
+                    const profile = profileData?.find(p => p.username.toLowerCase() === player.username.toLowerCase());
+                    return {
+                        ...player,
+                        active_frame_url: profile?.active_frame_url
+                    };
+                });
+                setPlayers(playersWithFrames);
+            }
             setLoading(false);
         };
         fetchRankings();
@@ -577,6 +594,7 @@ const Rankings = () => {
                                             url={player.avatar_url}
                                             username={player.username}
                                             size="w-10 h-10"
+                                            frameUrl={player.active_frame_url || undefined}
                                         />
                                         <span className="text-white font-black group-hover:text-red-500 transition-colors">{player.username}</span>
                                     </div>

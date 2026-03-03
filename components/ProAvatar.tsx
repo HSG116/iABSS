@@ -35,17 +35,19 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
         const fetchAvatar = async () => {
             if (!uLower) return;
 
-            // Priority 1: Direct Prop
+            // Direct Prop
             if (url && url.length > 5) {
                 setSrc(url);
                 return;
             }
 
-            // Priority 2: Cache
+            // Memory Cache
             if (avatarCache[uLower]) {
                 setSrc(avatarCache[uLower]!);
                 return;
             }
+
+            // LocalStorage Cache
             const stored = localStorage.getItem(`av_${uLower}`);
             if (stored && stored.length > 5) {
                 setSrc(stored);
@@ -53,7 +55,7 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
                 return;
             }
 
-            // Priority 3: Database
+            // Database
             try {
                 const { data } = await supabase
                     .from('profiles')
@@ -62,15 +64,14 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
                     .maybeSingle();
 
                 if (data?.avatar_url) {
-                    const final = data.avatar_url;
-                    setSrc(final);
-                    localStorage.setItem(`av_${uLower}`, final);
-                    avatarCache[uLower] = final;
+                    setSrc(data.avatar_url);
+                    localStorage.setItem(`av_${uLower}`, data.avatar_url);
+                    avatarCache[uLower] = data.avatar_url;
                     return;
                 }
             } catch (e) { }
 
-            // Priority 4: Kick Proxy
+            // Kick Fetch
             const live = await chatService.fetchKickAvatar(uLower);
             if (live) {
                 setSrc(live);
@@ -86,15 +87,18 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
     useEffect(() => {
         if (!uLower) return;
 
-        // If explicit frame prop provided, use it
+        // Prop priority
         if (initialFrameUrl !== undefined) {
             setFrameUrl(initialFrameUrl);
+            // Also update local cache if it's a real URL
+            if (initialFrameUrl) {
+                frameCache[uLower] = initialFrameUrl;
+            }
             return;
         }
 
-        // Otherwise, fetch/sync from DB
         const syncFrame = async () => {
-            // Initial load from cache
+            // In-memory cache
             if (frameCache[uLower] !== undefined) {
                 setFrameUrl(frameCache[uLower] || undefined);
             } else {
@@ -106,7 +110,7 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
                 }
             }
 
-            // Fresh DB check
+            // Database sync
             try {
                 const { data } = await supabase
                     .from('profiles')
@@ -115,30 +119,31 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
                     .maybeSingle();
 
                 const fresh = data?.active_frame_url || null;
-                updateInternalFrame(fresh);
+                if (frameCache[uLower] !== fresh) {
+                    frameCache[uLower] = fresh;
+                    setFrameUrl(fresh || undefined);
+                    localStorage.setItem(`frame_${uLower}`, fresh || 'none');
+                }
             } catch (e) { }
         };
 
         syncFrame();
 
-        // Subscribe to any profile changes for this user
+        // Real-time subscription
         const channel = supabase
             .channel(`frame_sync_${uLower}`)
             .on(
                 'postgres_changes',
-                {
-                    event: 'UPDATE',
-                    schema: 'public',
-                    table: 'profiles'
-                    // removed strict filter to handle payloads more flexibly
-                },
+                { event: 'UPDATE', schema: 'public', table: 'profiles' },
                 (payload) => {
                     const updatedUser = payload.new.username?.toLowerCase();
-                    const updatedFrame = payload.new.active_frame_url;
-
-                    // If either this is our user, OR we don't have username but it's the right row (hypothetically)
                     if (updatedUser === uLower || (!updatedUser && payload.old?.username?.toLowerCase() === uLower)) {
-                        updateInternalFrame(updatedFrame || null);
+                        const next = payload.new.active_frame_url || null;
+                        if (frameCache[uLower] !== next) {
+                            frameCache[uLower] = next;
+                            setFrameUrl(next || undefined);
+                            localStorage.setItem(`frame_${uLower}`, next || 'none');
+                        }
                     }
                 }
             )
@@ -146,14 +151,6 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
 
         return () => { supabase.removeChannel(channel); };
     }, [initialFrameUrl, uLower, forceRefresh]);
-
-    const updateInternalFrame = (fresh: string | null) => {
-        if (frameCache[uLower] !== fresh) {
-            frameCache[uLower] = fresh;
-            setFrameUrl(fresh || undefined);
-            localStorage.setItem(`frame_${uLower}`, fresh || 'none');
-        }
-    };
 
     const handleAvatarError = async () => {
         if (isRefreshing || !uLower) return;
@@ -171,20 +168,22 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
         }
     };
 
-    // Helper to fix frame path if it's just a file name
     const resolveFramePath = (path: string) => {
         if (!path) return '';
         if (path.startsWith('http')) return path;
-        if (path.startsWith('/')) return path;
 
-        // If it looks like a frame filename but missing directory
-        if (/^\d+\.png$/.test(path) || /^[a-zA-Z0-9_-]+\.png$/.test(path)) {
-            // Check if it already has 'frame/' prefix
-            if (!path.includes('frame/')) {
-                return `/frame/${path}`;
+        // Handle names like "1.png" correctly
+        let cleanPath = path;
+        if (path.startsWith('/')) cleanPath = path.substring(1);
+
+        // If it looks like a filename in frame/ directory or is a known frame
+        if (/^\d+\.png$/.test(cleanPath) || !cleanPath.includes('/')) {
+            if (!cleanPath.startsWith('frame/')) {
+                return `/frame/${cleanPath}`;
             }
         }
-        return getAssetUrl(path) || '';
+
+        return getAssetUrl(cleanPath) || '';
     };
 
     return (
@@ -193,9 +192,7 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
             style={{ overflow: 'visible', zIndex: 10 }}
         >
             {/* Avatar Base */}
-            <div
-                className="absolute inset-[8%] rounded-full overflow-hidden border-2 border-white/10 bg-zinc-950 shadow-inner z-0"
-            >
+            <div className="absolute inset-[8%] rounded-full overflow-hidden border-2 border-white/10 bg-zinc-950 shadow-inner z-0">
                 {src ? (
                     <img
                         src={src}
@@ -216,12 +213,12 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
                 )}
             </div>
 
-            {/* Frame Layer - Enforced top-most zIndex and outer bounds */}
+            {/* Frame Layer */}
             {frameUrl && (
                 <div
                     className="absolute pointer-events-none"
                     style={{
-                        inset: '-18%',
+                        inset: '-20%',
                         zIndex: 100,
                         display: 'flex',
                         alignItems: 'center',
@@ -233,9 +230,10 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
                         className="w-full h-full object-contain filter drop-shadow-[0_0_20px_rgba(0,0,0,0.8)]"
                         alt="Frame"
                         onError={() => {
-                            console.warn("[ProAvatar] Frame load error:", frameUrl);
+                            console.warn("Frame failed:", frameUrl);
                             setFrameUrl(undefined);
                         }}
+                        style={{ transform: 'scale(1.15)' }}
                     />
                 </div>
             )}
