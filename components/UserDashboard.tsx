@@ -85,6 +85,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ userData, onLogout
                         url={userData.avatar}
                         username={userData.kick_username || (userData as any).kickUsername}
                         size="w-14 h-14"
+                        frameUrl={activeFrame || undefined}
                     />
                     <div className="overflow-hidden">
                         <div className="text-white font-black text-sm truncate">{userData.display_name}</div>
