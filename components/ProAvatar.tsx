@@ -12,7 +12,7 @@ interface ProAvatarProps {
     className?: string;
 }
 
-// Global cache for frames to avoid redundant DB calls
+// Global/Session cache for frames
 const frameCache: Record<string, string | null> = {};
 
 export const ProAvatar: React.FC<ProAvatarProps> = ({
@@ -30,10 +30,19 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
         if (url) {
             setSrc(url);
         } else if (username) {
-            // Proactive fetch if missing
-            chatService.fetchKickAvatar(username).then(av => {
-                if (av) setSrc(av);
-            });
+            // Check local storage / session cache
+            const uLower = username.toLowerCase();
+            const cachedAv = localStorage.getItem(`av_${uLower}`);
+            if (cachedAv) {
+                setSrc(cachedAv);
+            } else {
+                chatService.fetchKickAvatar(username).then(av => {
+                    if (av) {
+                        setSrc(av);
+                        localStorage.setItem(`av_${uLower}`, av);
+                    }
+                });
+            }
         }
     }, [url, username]);
 
@@ -41,10 +50,22 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
         if (initialFrameUrl) {
             setFrameUrl(initialFrameUrl);
         } else if (username) {
-            // Try to get from cache or DB
             const uLower = username.toLowerCase();
+
+            // 1. Memory Cache
             if (frameCache[uLower] !== undefined) {
                 setFrameUrl(frameCache[uLower] || undefined);
+                return;
+            }
+
+            // 2. Local Storage Cache (Persistent)
+            const cached = localStorage.getItem(`frame_${uLower}`);
+            if (cached !== null) {
+                const url = cached === 'none' ? undefined : cached;
+                setFrameUrl(url);
+                frameCache[uLower] = url || null;
+                // Still fetch in background to refresh
+                fetchUserFrame(uLower);
             } else {
                 fetchUserFrame(uLower);
             }
@@ -62,6 +83,7 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
             const foundFrame = data?.active_frame_url || null;
             frameCache[uLower] = foundFrame;
             setFrameUrl(foundFrame || undefined);
+            localStorage.setItem(`frame_${uLower}`, foundFrame || 'none');
         } catch (e) {
             console.warn("Error fetching frame for", username);
         }
@@ -74,6 +96,7 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
             const realAvatar = await chatService.fetchKickAvatar(username);
             if (realAvatar) {
                 setSrc(realAvatar);
+                localStorage.setItem(`av_${username.toLowerCase()}`, realAvatar);
                 await supabase.from('profiles').update({ avatar_url: realAvatar }).eq('username', username);
             }
         } catch (e) {
@@ -85,7 +108,8 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
 
     return (
         <div className={`relative ${size} flex-shrink-0 ${className}`}>
-            <div className={`w-[85%] h-[85%] absolute inset-[7.5%] rounded-full overflow-hidden border-2 border-white/10 transition-all flex-shrink-0 bg-zinc-900 shadow-lg`}>
+            {/* Avatar Container */}
+            <div className={`w-[82%] h-[82%] absolute inset-[9%] rounded-full overflow-hidden border-2 border-white/10 transition-all flex-shrink-0 bg-zinc-900 shadow-lg z-0`}>
                 {src ? (
                     <img
                         src={src}
@@ -95,8 +119,8 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
                         referrerPolicy="no-referrer"
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center opacity-20 bg-black/40">
-                        <User className="w-1/2 h-1/2" />
+                    <div className="w-full h-full flex items-center justify-center font-black text-white/30 text-xl bg-white/5 uppercase">
+                        {username ? username[0] : '?'}
                     </div>
                 )}
                 {isRefreshing && (
@@ -105,9 +129,16 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
                     </div>
                 )}
             </div>
+
+            {/* Frame Layer - Increased scale and ensured z-index */}
             {frameUrl && (
-                <div className="absolute inset-0 z-10 pointer-events-none scale-110">
-                    <img src={getAssetUrl(frameUrl)} className="w-full h-full object-contain" alt="" />
+                <div className="absolute inset-x-[-15%] inset-y-[-15%] z-20 pointer-events-none">
+                    <img
+                        src={getAssetUrl(frameUrl)}
+                        className="w-full h-full object-contain filter drop-shadow-[0_0_10px_rgba(0,0,0,0.5)]"
+                        alt=""
+                        onError={() => setFrameUrl(undefined)}
+                    />
                 </div>
             )}
         </div>

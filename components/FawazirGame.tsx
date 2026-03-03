@@ -836,7 +836,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                                   url={player.avatar}
                                   username={player.user}
                                   size="w-16 h-16"
-                                  className={`group-hover:border-red-500 transition-all shadow-xl rounded-full overflow-hidden ${isTop3 ? 'border-2 border-yellow-500' : ''}`}
+                                  className={`group-hover:border-red-500 transition-all shadow-xl rounded-full ${isTop3 ? 'border-2 border-yellow-500' : ''}`}
                                 />
                                 {isTop3 && (
                                   <div className={`absolute -bottom-2 -right-2 w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black border-2 border-black ${rank === 2 ? 'bg-slate-400' : 'bg-orange-600'} text-black z-20`}>

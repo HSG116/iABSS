@@ -21,6 +21,8 @@ class ChatService {
   private statusListeners: StatusCallback[] = [];
   private pusher: any = null;
   private channel: any = null;
+  private avatarCache: Record<string, string> = {};
+  private pendingAvatarFetches: Record<string, Promise<string>> = {};
 
   private KNOWN_CHATROOM_IDS: Record<string, number> = {
     // We removed 'iabs' from here to force a fresh lookup from the API, 
@@ -204,46 +206,57 @@ class ChatService {
   }
 
   async fetchKickAvatar(username: string): Promise<string> {
-    try {
-      const slug = username.toLowerCase().trim().replace('@', '');
+    const slug = username.toLowerCase().trim().replace('@', '');
 
-      // Proxies list in order of reliability
-      const proxies = [
-        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(`https://kick.com/api/v2/channels/${slug}`)}`,
-        `https://api.allorigins.win/get?url=${encodeURIComponent(`https://kick.com/api/v2/channels/${slug}`)}`,
-        `https://corsproxy.io/?${encodeURIComponent(`https://kick.com/api/v2/channels/${slug}`)}`
-      ];
+    // 1. Check Memory Cache
+    if (this.avatarCache[slug]) return this.avatarCache[slug];
 
-      for (const proxyUrl of proxies) {
-        try {
-          const response = await fetch(proxyUrl, { cache: 'no-store' });
-          if (!response.ok) continue;
+    // 2. Check Deduplication
+    if (this.pendingAvatarFetches[slug]) return this.pendingAvatarFetches[slug];
 
-          const rawData = await response.json();
-          let data: any;
+    const fetchPromise = (async () => {
+      try {
+        const proxies = [
+          `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(`https://kick.com/api/v2/channels/${slug}`)}`,
+          `https://api.allorigins.win/get?url=${encodeURIComponent(`https://kick.com/api/v2/channels/${slug}`)}`,
+          `https://corsproxy.io/?${encodeURIComponent(`https://kick.com/api/v2/channels/${slug}`)}`
+        ];
 
-          if (proxyUrl.includes('allorigins')) {
-            if (!rawData.contents) continue;
-            data = JSON.parse(rawData.contents);
-          } else {
-            data = rawData;
+        for (const proxyUrl of proxies) {
+          try {
+            const response = await fetch(proxyUrl, { cache: 'force-cache' });
+            if (!response.ok) continue;
+
+            const rawData = await response.json();
+            let data: any;
+
+            if (proxyUrl.includes('allorigins')) {
+              if (!rawData.contents) continue;
+              data = JSON.parse(rawData.contents);
+            } else {
+              data = rawData;
+            }
+
+            const avatar = data.user?.profile_pic || data.profile_pic || data.user?.profilepic || '';
+
+            if (avatar && avatar.includes('http')) {
+              this.avatarCache[slug] = avatar;
+              return avatar;
+            }
+          } catch (e) {
+            // Silently continue
           }
-
-          // Check all possible locations for avatar in Kick API v2
-          const avatar = data.user?.profile_pic || data.profile_pic || data.user?.profilepic || '';
-
-          if (avatar && avatar.includes('http')) {
-            console.log(`[ChatService] Successfully fetched avatar for ${slug}`);
-            return avatar;
-          }
-        } catch (e) {
-          console.warn(`[ChatService] Failed with proxy: ${proxyUrl.split('?')[0]}`);
         }
+      } catch (e) {
+        console.error(`[ChatService] Fatal error fetching avatar for ${username}`, e);
+      } finally {
+        delete this.pendingAvatarFetches[slug];
       }
-    } catch (e) {
-      console.error(`[ChatService] Fatal error fetching avatar for ${username}`, e);
-    }
-    return '';
+      return '';
+    })();
+
+    this.pendingAvatarFetches[slug] = fetchPromise;
+    return fetchPromise;
   }
 
   disconnect() {
