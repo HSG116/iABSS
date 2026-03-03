@@ -276,12 +276,20 @@ export const RussianRoulette: React.FC<RussianRouletteProps> = ({ channelConnect
 
             {gameState === 'WINNER' && participants[0] && (
                <div className="z-20 text-center animate-in zoom-in duration-500 flex flex-col items-center">
-                  <div className="relative mb-12">
-                     <Trophy size={160} className="text-yellow-500 drop-shadow-[0_0_60px_rgba(234,179,8,0.6)]" />
-                     <div className="absolute inset-x-0 -bottom-4 h-2 bg-yellow-500 blur-xl rounded-full"></div>
+                  <div className="relative mb-8">
+                     <div className="absolute inset-0 bg-yellow-500/20 blur-[100px] rounded-full animate-pulse scale-150"></div>
+                     <ProAvatar
+                        url={participants[0].avatar}
+                        username={participants[0].username}
+                        size="w-48 h-48"
+                        className="shadow-[0_0_80px_rgba(234,179,8,0.4)] relative z-10"
+                     />
+                     <div className="absolute -top-10 -right-10 z-20 animate-bounce">
+                        <Trophy size={100} className="text-yellow-500 drop-shadow-[0_0_30px_rgba(234,179,8,0.8)]" />
+                     </div>
                   </div>
                   <h2 className="text-xs font-black text-yellow-500 uppercase tracking-[1em] mb-4">The Last Living Being</h2>
-                  <h1 className="text-8xl font-black text-white italic tracking-tighter mb-4">{participants[0].username}</h1>
+                  <h1 className="text-8xl font-black text-white italic tracking-tighter mb-4 gold-glow-text">{participants[0].username}</h1>
                   <p className="mt-4 text-white/20 font-black tracking-[0.5em] uppercase text-xs">Survived the Roulette</p>
                </div>
             )}

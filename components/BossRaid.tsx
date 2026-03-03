@@ -236,8 +236,20 @@ export const BossRaid: React.FC<BossRaidProps> = ({ channelConnected, isOBS }) =
                   </div>
                ) : (
                   <div className="animate-in zoom-in duration-700 flex flex-col items-center">
+                     {sortedMvps[0] && (
+                        <div className="mb-8 relative z-10">
+                           <div className="absolute -inset-4 bg-red-600/20 blur-2xl rounded-full animate-pulse" />
+                           <ProAvatar
+                              url={sortedMvps[0][1].avatar}
+                              username={sortedMvps[0][0]}
+                              size="w-32 h-32"
+                              className="shadow-[0_0_50px_rgba(239,68,68,0.5)]"
+                           />
+                           <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-yellow-500 text-black px-6 py-1 rounded-xl font-black text-sm shadow-xl italic whitespace-nowrap z-20">MVP: {sortedMvps[0][0]}</div>
+                        </div>
+                     )}
                      <div className="relative">
-                        <div className="text-[200px] filter grayscale opacity-40">💀</div>
+                        <div className="text-[180px] filter grayscale opacity-40">💀</div>
                         <div className="absolute inset-0 bg-red-600/20 blur-3xl rounded-full"></div>
                      </div>
                      <h1 className="text-7xl md:text-9xl font-black text-red-600 mt-6 red-neon-text italic tracking-tighter uppercase skew-x-[-10deg]">

@@ -1246,6 +1246,26 @@ export const MasaqilWar: React.FC<MasaqilWarProps> = ({ channelConnected, onHome
                   </div>
                 </div>
               )}
+
+              {/* Queue Preview */}
+              {queue.length > 0 && (
+                <div className="mt-12 w-full border-t border-white/5 pt-10">
+                  <p className="text-xs font-black text-gray-500 uppercase tracking-[0.5em] mb-8">المقاتلون المنضمون ({queue.length})</p>
+                  <div className="flex flex-wrap justify-center gap-6 max-h-[400px] overflow-y-auto px-10 py-4 custom-scrollbar">
+                    {queue.map((p, i) => (
+                      <div key={p.username + i} className="flex flex-col items-center gap-3 animate-in zoom-in duration-300" style={{ animationDelay: `${(i % 20) * 30}ms` }}>
+                        <ProAvatar
+                          url={p.avatar}
+                          username={p.username}
+                          size="w-20 h-20"
+                          className="border-2 border-white/10 shadow-xl"
+                        />
+                        <span className="text-xs font-bold text-gray-400 truncate w-24">{p.username}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex gap-4 justify-center">

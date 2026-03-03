@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { chatService } from '../services/chatService';
 import { leaderboardService } from '../services/supabase';
 import { Eye, EyeOff, Search, Play, RotateCcw, Trophy, Image as ImageIcon, Trash2, Wand2, ChevronRight, ChevronLeft, LogOut, Home, Sparkles } from 'lucide-react';
+import { ProAvatar } from './ProAvatar';
 
 interface BlurGuessProps {
   channelConnected: boolean;
@@ -420,9 +421,12 @@ export const BlurGuess: React.FC<BlurGuessProps> = ({ channelConnected, onHome }
               <div className="text-red-600 font-black uppercase tracking-[0.8em] text-sm mb-6 italic">Champion Detected</div>
 
               <div className="flex items-center gap-10">
-                <div className="w-24 h-24 rounded-[2.5rem] bg-gradient-to-br from-red-500 to-red-800 text-white flex items-center justify-center text-5xl font-black shadow-2xl border-2 border-white/10" style={{ backgroundColor: winner.color }}>
-                  {winner.name.charAt(0).toUpperCase()}
-                </div>
+                <ProAvatar
+                  url={winner.avatar}
+                  username={winner.name}
+                  size="w-24 h-24"
+                  className="rounded-[2.5rem] shadow-2xl border-2 border-white/10"
+                />
                 <div className="text-8xl font-black text-white italic tracking-tighter drop-shadow-lg">{winner.name}</div>
               </div>
             </div>

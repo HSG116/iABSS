@@ -751,9 +751,12 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                         <div className="relative mb-10 flex justify-center">
                           <div className="relative">
                             <div className="absolute -inset-8 bg-yellow-500/20 blur-[60px] rounded-full animate-pulse"></div>
-                            <div className="w-48 h-48 rounded-[3.5rem] border-8 border-yellow-500 shadow-[0_0_50px_rgba(234,179,8,0.5)] overflow-hidden bg-zinc-900 relative z-10 transition-transform group-hover:scale-110">
-                              {top3[0]?.avatar ? <img src={top3[0].avatar} className="w-full h-full object-cover" /> : <User size={80} className="text-yellow-500 mt-14 mx-auto" />}
-                            </div>
+                            <ProAvatar
+                              url={top3[0]?.avatar}
+                              username={top3[0]?.user}
+                              size="w-48 h-48"
+                              className="z-10 transition-transform group-hover:scale-110"
+                            />
                             <div className="absolute -top-10 -right-10 animate-float z-20">
                               <Trophy size={80} className="text-yellow-400 fill-yellow-400 filter drop-shadow-[0_0_20px_rgba(255,215,0,0.8)]" />
                             </div>
@@ -822,11 +825,14 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                               <span className={`text-4xl font-black italic absolute right-6 transition-all ${rankColor} group-hover:scale-110`}>#{rank}</span>
 
                               <div className="relative">
-                                <div className={`w-16 h-16 rounded-[1.2rem] overflow-hidden border-2 ${isTop3 ? 'border-yellow-500' : 'border-white/10'} group-hover:border-red-500 transition-all shadow-xl`}>
-                                  {player.avatar ? <img src={player.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-xl text-white/20">{player.user.charAt(0)}</div>}
-                                </div>
+                                <ProAvatar
+                                  url={player.avatar}
+                                  username={player.user}
+                                  size="w-16 h-16"
+                                  className={`group-hover:border-red-500 transition-all shadow-xl rounded-[1.2rem] overflow-hidden ${isTop3 ? 'border-2 border-yellow-500' : ''}`}
+                                />
                                 {isTop3 && (
-                                  <div className={`absolute -bottom-2 -right-2 w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black border-2 border-black ${rank === 2 ? 'bg-slate-400' : 'bg-orange-600'} text-black`}>
+                                  <div className={`absolute -bottom-2 -right-2 w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black border-2 border-black ${rank === 2 ? 'bg-slate-400' : 'bg-orange-600'} text-black z-20`}>
                                     {rank === 2 ? '🥈' : '🥉'}
                                   </div>
                                 )}
@@ -885,11 +891,15 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                         {settings.winMode === 'SPEED' ? (
                           <div className="w-full flex flex-col items-center">
                             <div className="relative mb-8">
-                              <div className="absolute inset-0 bg-red-600/20 blur-[100px] rounded-full animate-pulse scale-150"></div>
-                              <div className="relative z-10 w-44 h-44 rounded-[3.5rem] border-8 border-red-600 overflow-hidden shadow-[0_0_80px_rgba(220,38,38,0.4)] bg-zinc-900 ring-8 ring-red-600/10">
-                                {roundWinners[0].avatar ? <img src={roundWinners[0].avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-white/10 font-black text-8xl">{roundWinners[0].user.charAt(0)}</div>}
+                              <div className="relative z-10">
+                                <ProAvatar
+                                  url={roundWinners[0].avatar}
+                                  username={roundWinners[0].user}
+                                  size="w-44 h-44"
+                                  className="shadow-[0_0_80px_rgba(220,38,38,0.4)]"
+                                />
+                                <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-red-600 text-white px-6 py-1 rounded-xl font-black text-sm shadow-xl italic whitespace-nowrap z-20">WINNER</div>
                               </div>
-                              <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-red-600 text-white px-6 py-1 rounded-xl font-black text-sm shadow-xl italic whitespace-nowrap">WINNER</div>
                             </div>
                             <h2 className="text-6xl font-black text-white italic tracking-tighter mb-6 red-neon-text filter drop-shadow-xl">{roundWinners[0].user}</h2>
                             <div className="flex gap-4 mb-12">
@@ -910,10 +920,13 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                               {roundWinners.map((w, idx) => (
                                 <div key={idx} className="flex flex-col items-center gap-3 group animate-in zoom-in duration-500" style={{ animationDelay: `${idx * 50}ms` }}>
                                   <div className="relative">
-                                    <div className="w-24 h-24 rounded-[2rem] border-4 border-red-600 overflow-hidden shadow-[0_0_30px_rgba(220,38,38,0.3)] bg-black">
-                                      {w.avatar ? <img src={w.avatar} className="w-full h-full object-cover group-hover:scale-125 transition-transform duration-700" /> : <div className="w-full h-full flex items-center justify-center text-white/5 font-black text-4xl">{w.user.charAt(0)}</div>}
-                                    </div>
-                                    <div className="absolute -bottom-2 -right-2 bg-red-600 text-white w-7 h-7 rounded-lg flex items-center justify-center font-black border-2 border-black text-[10px] shadow-xl">#{idx + 1}</div>
+                                    <ProAvatar
+                                      url={w.avatar}
+                                      username={w.user}
+                                      size="w-24 h-24"
+                                      className="shadow-[0_0_30px_rgba(220,38,38,0.3)] group-hover:scale-110 transition-transform duration-700"
+                                    />
+                                    <div className="absolute -bottom-2 -right-2 bg-red-600 text-white w-7 h-7 rounded-lg flex items-center justify-center font-black border-2 border-black text-[10px] shadow-xl z-20">#{idx + 1}</div>
                                   </div>
                                   <span className="text-white font-black text-sm block truncate max-w-[100px] drop-shadow-md">{w.user}</span>
                                   <div className="bg-red-600/20 px-2 py-0.5 rounded-lg border border-red-500/20 mt-1">

@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { chatService } from '../services/chatService';
 import { leaderboardService } from '../services/supabase';
 import { Swords, RotateCcw, Trophy, LogOut } from 'lucide-react';
+import { ProAvatar } from './ProAvatar';
 
 interface TeamBattleProps {
    channelConnected: boolean;
@@ -148,7 +149,26 @@ export const TeamBattle: React.FC<TeamBattleProps> = ({ channelConnected, onHome
                   {winner && (
                      <div className="text-center animate-in zoom-in duration-500 mt-10">
                         <Trophy size={64} className={`mx-auto mb-4 ${winner === 'RED' ? 'text-red-500' : 'text-green-500'}`} />
-                        <h1 className="text-6xl font-black text-white">{winner === 'RED' ? 'الفريق الأحمر فاز!' : 'الفريق الأخضر فاز!'}</h1>
+                        <h1 className="text-6xl font-black text-white mb-8">{winner === 'RED' ? 'الفريق الأحمر فاز!' : 'الفريق الأخضر فاز!'}</h1>
+
+                        <div className="flex flex-wrap justify-center gap-6">
+                           {(Object.entries(contributors) as any)
+                              .filter(([_, data]: any) => data.points > 0)
+                              .sort((a: any, b: any) => b[1].points - a[1].points)
+                              .slice(0, 5)
+                              .map(([u, data]: any) => (
+                                 <div key={u} className="flex flex-col items-center gap-2">
+                                    <ProAvatar
+                                       url={data.avatar}
+                                       username={u}
+                                       size="w-16 h-16"
+                                       className={`border-2 ${winner === 'RED' ? 'border-red-500' : 'border-green-500'}`}
+                                    />
+                                    <span className="text-white text-xs font-bold">{u}</span>
+                                    <span className="text-gray-500 text-[10px] font-mono">{data.points} pts</span>
+                                 </div>
+                              ))}
+                        </div>
                      </div>
                   )}
                </div>

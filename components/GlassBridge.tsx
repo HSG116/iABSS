@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { chatService } from '../services/chatService';
 import { ChatUser } from '../types';
 import { Footprints, RotateCcw, User, ArrowBigLeft, ArrowBigRight, Trophy, Skull, Crown, ListOrdered } from 'lucide-react';
+import { ProAvatar } from './ProAvatar';
 
 interface GlassBridgeProps {
    channelConnected: boolean;
@@ -278,13 +279,12 @@ export const GlassBridge: React.FC<GlassBridgeProps> = ({ channelConnected }) =>
                            `}>
                               <div className="flex items-center gap-2">
                                  <span className={`font-mono font-bold w-4 ${i < 3 ? 'text-yellow-400' : 'text-gray-500'}`}>#{i + 1}</span>
-                                 <div className="w-6 h-6 rounded-md overflow-hidden bg-zinc-800 flex items-center justify-center border border-white/10">
-                                    {p.avatar ? (
-                                       <img src={p.avatar} className="w-full h-full object-cover" alt="" />
-                                    ) : (
-                                       <User size={10} className="text-gray-400" />
-                                    )}
-                                 </div>
+                                 <ProAvatar
+                                    url={p.avatar}
+                                    username={p.username}
+                                    size="w-6 h-6"
+                                    className="rounded-md overflow-hidden"
+                                 />
                                  <span className={isActive ? 'text-cyan-400 font-bold' : 'text-gray-300'}>{p.username}</span>
                               </div>
                               <div className="flex items-center gap-3">
@@ -344,13 +344,12 @@ export const GlassBridge: React.FC<GlassBridgeProps> = ({ channelConnected }) =>
                         <div className="text-xs bg-cyan-900 text-cyan-200 px-2 py-1 rounded">الخطوة {currentStep + 1} / {BRIDGE_LENGTH}</div>
                      </div>
                      <div className="text-5xl font-black text-white mb-6 flex items-center justify-center gap-6">
-                        <div className="w-16 h-16 rounded-[1.5rem] border-4 border-cyan-500 overflow-hidden shadow-lg flex items-center justify-center bg-black/40">
-                           {queue[activePlayerIndex].avatar ? (
-                              <img src={queue[activePlayerIndex].avatar} className="w-full h-full object-cover" alt="" />
-                           ) : (
-                              <User size={32} className="text-cyan-400" />
-                           )}
-                        </div>
+                        <ProAvatar
+                           url={queue[activePlayerIndex].avatar}
+                           username={queue[activePlayerIndex].username}
+                           size="w-16 h-16"
+                           className="shadow-lg"
+                        />
                         {queue[activePlayerIndex].username}
                      </div>
 
@@ -427,11 +426,11 @@ export const GlassBridge: React.FC<GlassBridgeProps> = ({ channelConnected }) =>
                         {/* Player Avatar */}
                         {!isProcessing && lastResult !== 'BROKEN' && (
                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-white rounded-full border-4 border-cyan-500 flex items-center justify-center text-black font-black z-20 shadow-xl animate-bounce overflow-hidden">
-                              {queue[activeIndexRef.current]?.avatar ? (
-                                 <img src={queue[activeIndexRef.current].avatar} className="w-full h-full object-cover" alt="" />
-                              ) : (
-                                 queue[activeIndexRef.current]?.username.charAt(0).toUpperCase()
-                              )}
+                              <ProAvatar
+                                 url={queue[activeIndexRef.current]?.avatar}
+                                 username={queue[activeIndexRef.current]?.username || ''}
+                                 size="w-full h-full"
+                              />
                            </div>
                         )}
                      </div>

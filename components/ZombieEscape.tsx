@@ -5,6 +5,7 @@ import { chatService } from '../services/chatService';
 import { ZOMBIE_OBSTACLES } from '../constants';
 import { ChatUser } from '../types';
 import { Biohazard, Play, RotateCcw, UserPlus, Timer, Skull, ShieldCheck, Ghost } from 'lucide-react';
+import { ProAvatar } from './ProAvatar';
 
 interface ZombieEscapeProps {
     channelConnected: boolean;
@@ -155,9 +156,12 @@ export const ZombieEscape: React.FC<ZombieEscapeProps> = ({ channelConnected, is
                             {players.map(p => (
                                 <div key={p.user.username} className={`flex items-center justify-between px-4 py-3 rounded-2xl border transition-all ${p.status === 'ZOMBIE' ? 'bg-red-950/20 border-red-500/20 text-red-500 grayscale' : 'bg-green-950/20 border-green-500/20 text-green-500'}`}>
                                     <div className="flex items-center gap-3">
-                                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs ${p.status === 'ZOMBIE' ? 'bg-red-500/20' : 'bg-green-500/20'}`}>
-                                            {p.user.username[0].toUpperCase()}
-                                        </div>
+                                        <ProAvatar
+                                            url={p.user.avatar}
+                                            username={p.user.username}
+                                            size="w-8 h-8"
+                                            className={p.status === 'ZOMBIE' ? 'grayscale opacity-50' : ''}
+                                        />
                                         <span className="text-xs font-black truncate w-24">{p.user.username}</span>
                                     </div>
                                     <div className="flex items-center gap-2">

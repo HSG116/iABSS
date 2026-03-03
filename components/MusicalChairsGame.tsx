@@ -1439,32 +1439,18 @@ export const MusicalChairsGame: React.FC<MusicalChairsGameProps> = ({ onHome, is
                                                    </div>
 
                                                    {/* Avatar Container */}
-                                                   <div className="relative mb-4">
-                                                      <div className="w-28 h-28 mx-auto rounded-[2rem] border-4 border-red-800/50 overflow-hidden shadow-2xl bg-gradient-to-br from-gray-900 to-black relative group-hover:border-red-600/70 transition-all duration-500"
-                                                         style={{
-                                                            boxShadow: '0 0 40px rgba(220, 38, 38, 0.4), inset 0 0 20px rgba(0, 0, 0, 0.8)'
-                                                         }}
-                                                      >
-                                                         {/* Red overlay */}
-                                                         <div className="absolute inset-0 bg-gradient-to-br from-red-600/40 via-red-900/30 to-black/50 z-10 mix-blend-multiply" />
-
-                                                         {p.avatar ? (
-                                                            <img
-                                                               src={p.avatar}
-                                                               className="w-full h-full object-cover grayscale brightness-75 contrast-125 group-hover:grayscale-0 group-hover:brightness-90 transition-all duration-500 relative z-0"
-                                                               alt={p.username}
-                                                            />
-                                                         ) : (
-                                                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-900 to-black">
-                                                               <User size={48} className="text-red-800/40" />
-                                                            </div>
-                                                         )}
-
-                                                         {/* X mark overlay */}
-                                                         <div className="absolute inset-0 flex items-center justify-center z-20">
-                                                            <div className="w-16 h-16 rounded-full bg-red-600/90 border-4 border-white/90 flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform">
-                                                               <span className="text-white text-4xl font-black leading-none">✕</span>
-                                                            </div>
+                                                   <div className="w-28 h-28 mx-auto relative group-hover:scale-105 transition-transform duration-500">
+                                                      <div className="absolute inset-0 bg-gradient-to-br from-red-600/40 via-red-900/30 to-black/50 z-10 mix-blend-multiply rounded-[2rem]" />
+                                                      <ProAvatar
+                                                         url={p.avatar}
+                                                         username={p.username}
+                                                         size="w-full h-full"
+                                                         className="grayscale brightness-75 contrast-125 group-hover:grayscale-0 group-hover:brightness-90 transition-all duration-500"
+                                                      />
+                                                      {/* X mark overlay */}
+                                                      <div className="absolute inset-0 flex items-center justify-center z-20">
+                                                         <div className="w-16 h-16 rounded-full bg-red-600/90 border-4 border-white/90 flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform">
+                                                            <span className="text-white text-4xl font-black leading-none">✕</span>
                                                          </div>
                                                       </div>
                                                    </div>
@@ -1653,17 +1639,12 @@ export const MusicalChairsGame: React.FC<MusicalChairsGameProps> = ({ onHome, is
                               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 z-20" />
 
                               {/* Avatar */}
-                              {winner.avatar ? (
-                                 <img
-                                    src={winner.avatar}
-                                    className="w-full h-full object-cover relative z-10 group-hover:scale-110 transition-transform duration-700"
-                                    alt={winner.username}
-                                 />
-                              ) : (
-                                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-900 to-black">
-                                    <User size={140} className="text-yellow-600/40" />
-                                 </div>
-                              )}
+                              <ProAvatar
+                                 url={winner.avatar}
+                                 username={winner.username}
+                                 size="w-full h-full"
+                                 className="relative z-10 group-hover:scale-110 transition-transform duration-700"
+                              />
 
                               {/* Champion Badge */}
                               <div className="absolute bottom-0 w-full bg-gradient-to-r from-yellow-600 via-yellow-500 to-yellow-600 text-white font-black py-3 text-lg tracking-[0.5em] italic z-30 border-t-4 border-yellow-300/50 relative overflow-hidden">

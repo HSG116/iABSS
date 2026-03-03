@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Settings, Play, Users, Trophy, Clock, ChevronLeft, User, Skull, Sword, Crown, Ban, Zap, Sparkles, RefreshCw, PaintBucket } from 'lucide-react';
+import { ProAvatar } from './ProAvatar';
 import { ChatUser } from '../types';
 import { chatService } from '../services/chatService';
 import { leaderboardService } from '../services/supabase';
@@ -456,10 +457,13 @@ export const FruitWar: React.FC<FruitWarProps> = ({ onHome, isOBS }) => {
                     <div className="flex flex-wrap justify-center gap-4 max-w-4xl px-8 overflow-y-auto max-h-[30vh] custom-scrollbar">
                         {winningTeam.players.map((p, i) => (
                             <div key={p.username} className="flex flex-col items-center animate-in zoom-in duration-500" style={{ animationDelay: `${i * 50}ms` }}>
-                                <div className="w-20 h-20 rounded-full border-4 border-yellow-400 overflow-hidden mb-2 shadow-lg">
-                                    {p.avatar ? <img src={p.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-2 bg-zinc-800 text-white/50" />}
-                                </div>
-                                <span className="text-xs font-bold text-white/90 truncate w-24 text-center">{p.username}</span>
+                                <ProAvatar
+                                    url={p.avatar}
+                                    username={p.username}
+                                    size="w-20 h-20"
+                                    className="border-4 border-yellow-400 shadow-xl"
+                                />
+                                <span className="text-xs font-bold text-white/90 truncate w-24 text-center mt-2">{p.username}</span>
                             </div>
                         ))}
                     </div>
@@ -490,9 +494,12 @@ export const FruitWar: React.FC<FruitWarProps> = ({ onHome, isOBS }) => {
                         <div className="w-full flex-1 overflow-y-auto grid grid-cols-4 gap-4 custom-scrollbar p-2">
                             {participants.filter(p => p.fruitId === selectedFruitVoters.id).map(p => (
                                 <div key={p.username} className="flex flex-col items-center gap-2 group">
-                                    <div className="w-16 h-16 rounded-full border-2 border-white/10 overflow-hidden bg-zinc-900 group-hover:border-blue-500 transition-all shadow-lg">
-                                        {p.avatar ? <img src={p.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-3 text-white/20" />}
-                                    </div>
+                                    <ProAvatar
+                                        url={p.avatar}
+                                        username={p.username}
+                                        size="w-16 h-16"
+                                        className="border-2 border-white/10 group-hover:border-blue-500 transition-all shadow-lg"
+                                    />
                                     <span className="text-[10px] font-bold text-gray-400 truncate w-full text-center">{p.username}</span>
                                 </div>
                             ))}
