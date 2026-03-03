@@ -372,7 +372,14 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
 
         setRoundWinners(prev => {
           const next = [...prev, winnerObj];
-          return next.sort((a, b) => a.responseTime - b.responseTime);
+          const sorted = next.sort((a, b) => a.responseTime - b.responseTime);
+
+          // Immediate end for SPEED mode (Requested to be more responsive)
+          if (settingsRef.current.winMode === 'SPEED' && sorted.length === 1) {
+            handleRoundEnd(winnerObj);
+          }
+
+          return sorted;
         });
       }
     });
@@ -382,8 +389,8 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
   const handleRoundEnd = async (singleWinner: RoundWinnerInfo | null) => {
     if (gameStateRef.current !== 'PLAYING') return;
 
-    // Use the collected winners from the round
-    const winners = [...roundWinnersRef.current].sort((a, b) => a.responseTime - b.responseTime);
+    // Use the collected winners OR the single winner if it's the first one
+    const winners = singleWinner ? [singleWinner] : [...roundWinnersRef.current].sort((a, b) => a.responseTime - b.responseTime);
 
     setGameState('ROUND_WIN');
     setRoundWinners(winners);
@@ -829,7 +836,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                                   url={player.avatar}
                                   username={player.user}
                                   size="w-16 h-16"
-                                  className={`group-hover:border-red-500 transition-all shadow-xl rounded-[1.2rem] overflow-hidden ${isTop3 ? 'border-2 border-yellow-500' : ''}`}
+                                  className={`group-hover:border-red-500 transition-all shadow-xl rounded-full overflow-hidden ${isTop3 ? 'border-2 border-yellow-500' : ''}`}
                                 />
                                 {isTop3 && (
                                   <div className={`absolute -bottom-2 -right-2 w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black border-2 border-black ${rank === 2 ? 'bg-slate-400' : 'bg-orange-600'} text-black z-20`}>
@@ -896,7 +903,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                                   url={roundWinners[0].avatar}
                                   username={roundWinners[0].user}
                                   size="w-44 h-44"
-                                  className="shadow-[0_0_80px_rgba(220,38,38,0.4)]"
+                                  className="shadow-[0_0_80px_rgba(220,38,38,0.4)] rounded-full"
                                 />
                                 <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-red-600 text-white px-6 py-1 rounded-xl font-black text-sm shadow-xl italic whitespace-nowrap z-20">WINNER</div>
                               </div>
@@ -924,7 +931,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                                       url={w.avatar}
                                       username={w.user}
                                       size="w-24 h-24"
-                                      className="shadow-[0_0_30px_rgba(220,38,38,0.3)] group-hover:scale-110 transition-transform duration-700"
+                                      className="shadow-[0_0_30px_rgba(220,38,38,0.3)] group-hover:scale-110 transition-transform duration-700 rounded-full"
                                     />
                                     <div className="absolute -bottom-2 -right-2 bg-red-600 text-white w-7 h-7 rounded-lg flex items-center justify-center font-black border-2 border-black text-[10px] shadow-xl z-20">#{idx + 1}</div>
                                   </div>
@@ -959,7 +966,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                                   url={player.avatar}
                                   username={player.user}
                                   size="w-14 h-14"
-                                  className={idx === 0 ? 'animate-pulse' : ''}
+                                  className={idx === 0 ? 'animate-pulse rounded-full' : 'rounded-full'}
                                 />
                                 <div className="min-w-0">
                                   <div className="text-lg font-black text-white truncate">{player.user}</div>
@@ -979,6 +986,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                                   url={player.avatar}
                                   username={player.user}
                                   size="w-10 h-10"
+                                  className="rounded-full"
                                 />
                                 <div className="min-w-0">
                                   <div className="text-xs font-black text-white truncate">{player.user}</div>

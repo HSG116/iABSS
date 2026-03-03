@@ -27,8 +27,15 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
     const [isRefreshing, setIsRefreshing] = useState(false);
 
     useEffect(() => {
-        setSrc(url);
-    }, [url]);
+        if (url) {
+            setSrc(url);
+        } else if (username) {
+            // Proactive fetch if missing
+            chatService.fetchKickAvatar(username).then(av => {
+                if (av) setSrc(av);
+            });
+        }
+    }, [url, username]);
 
     useEffect(() => {
         if (initialFrameUrl) {
@@ -78,7 +85,7 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
 
     return (
         <div className={`relative ${size} flex-shrink-0 ${className}`}>
-            <div className={`w-[85%] h-[85%] absolute inset-[7.5%] rounded-2xl overflow-hidden border-2 border-white/10 transition-all flex-shrink-0 bg-zinc-900 shadow-lg`}>
+            <div className={`w-[85%] h-[85%] absolute inset-[7.5%] rounded-full overflow-hidden border-2 border-white/10 transition-all flex-shrink-0 bg-zinc-900 shadow-lg`}>
                 {src ? (
                     <img
                         src={src}
