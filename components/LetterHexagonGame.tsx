@@ -1,31 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
 import { chatService } from '../services/chatService';
 import { supabase } from '../services/supabase';
 import { LETTER_GAME_QUESTIONS } from '../data/letter_game_data';
 import { HexCellData, LetterQuestion } from '../types';
-import { Home, LogOut, Check, X, Shield, Trophy, Smartphone, AlertTriangle, Users, Play, Settings, Paintbrush, Clock, ListOrdered, BrainCircuit } from 'lucide-react';
+import { Home, LogOut, Check, X, Shield, Trophy, Smartphone, AlertTriangle, Users, Play, Settings, Paintbrush, Clock, ListOrdered, BrainCircuit, PartyPopper, RefreshCw, ArrowLeft, ArrowRight, Stars, Sparkles, Crown } from 'lucide-react';
 import { ProAvatar } from './ProAvatar';
 
 interface LetterHexagonGameProps {
     onHome: () => void;
 }
 
-const SidebarPortal = ({ children }: { children?: React.ReactNode }) => {
-    const [mounted, setMounted] = useState(false);
-    useEffect(() => { setMounted(true); return () => setMounted(false); }, []);
-    const el = document.getElementById('game-sidebar-portal');
-    if (!mounted || !el) return null;
-    return createPortal(children, el);
-};
-
 // 28 Arabic letters exactly matching our 28-cell grid (6,5,6,5,6)
 const ARABIC_LETTERS = ['أ', 'ب', 'ت', 'ث', 'ج', 'ح', 'خ', 'د', 'ذ', 'ر', 'ز', 'س', 'ش', 'ص', 'ض', 'ط', 'ظ', 'ع', 'غ', 'ف', 'ق', 'ك', 'ل', 'م', 'ن', 'هـ', 'و', 'ي'];
 const GRID_LAYOUT = [6, 5, 6, 5, 6];
 
-// Helper to classify kick colors into Girls (Pink, Purple, White) vs Boys (Blue, Green, etc)
 function getTeamByColor(hexColor: string): 'team1' | 'team2' {
-    if (!hexColor) return 'team2'; // Default Boys
+    if (!hexColor) return 'team2';
     let hex = hexColor.replace(/^#/, '');
     if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
 
@@ -43,15 +33,10 @@ function getTeamByColor(hexColor: string): 'team1' | 'team2' {
         h /= 6;
     }
     h *= 360;
-
     const s = max === 0 ? 0 : (max - min) / max;
     const v = max / 255;
-
-    // White, Pink, Red, Purple -> Girls (team1)
-    if (s < 0.15 && v > 0.8) return 'team1'; // White
-    if (h >= 250 || h <= 20) return 'team1'; // Pink, Purple, Red
-
-    // Blue, Cyan, Green, Yellow -> Boys (team2)
+    if (s < 0.15 && v > 0.8) return 'team1';
+    if (h >= 250 || h <= 20) return 'team1';
     return 'team2';
 }
 
@@ -62,17 +47,22 @@ interface Player {
     team: 'team1' | 'team2';
 }
 
+type Stage = 'settings' | 'lobby' | 'playing' | 'ended';
+
 export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome }) => {
-    // Game States
+    // Stage Management
+    const [stage, setStage] = useState<Stage>('settings');
+
+    // Game Data States
     const [lobbyPlayers, setLobbyPlayers] = useState<Player[]>([]);
-    const [gameStage, setGameStage] = useState<'lobby' | 'playing' | 'ended'>('lobby');
     const [cells, setCells] = useState<HexCellData[]>([]);
     const [activeCell, setActiveCell] = useState<HexCellData | null>(null);
     const [currentQuestion, setCurrentQuestion] = useState<LetterQuestion | null>(null);
     const [fastestPlayer, setFastestPlayer] = useState<{ name: string, team: 'team1' | 'team2', time: number, avatar?: string } | null>(null);
     const [winner, setWinner] = useState<'team1' | 'team2' | null>(null);
+    const [winningPath, setWinningPath] = useState<number[]>([]);
 
-    // Settings (6+)
+    // Settings
     const [entryKeyword, setEntryKeyword] = useState('دخول');
     const [allowJoin, setAllowJoin] = useState(false);
     const [difficulty, setDifficulty] = useState<'normal' | 'hard'>('normal');
@@ -83,11 +73,32 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome }) 
 
     const channelRef = useRef<any>(null);
 
-    // Chat listener for Lobby (Joining) & Gameplay (Answering if Chat Mode)
+    // Board Geometry (Matching image-match quality)
+    const HEX_SIZE = 55;
+    const HEX_WIDTH = Math.sqrt(3) * HEX_SIZE;
+    const HEX_HEIGHT = 2 * HEX_SIZE;
+    const X_OFFSET = HEX_WIDTH;
+    const Y_OFFSET = HEX_HEIGHT * 0.75;
+    const STROKE_WIDTH = 8;
+    const SVG_WIDTH = HEX_WIDTH + STROKE_WIDTH;
+    const SVG_HEIGHT = HEX_HEIGHT + STROKE_WIDTH;
+
+    const hexPoints = [
+        [0 + STROKE_WIDTH / 2, HEX_SIZE / 2 + STROKE_WIDTH / 2],
+        [HEX_WIDTH / 2 + STROKE_WIDTH / 2, 0 + STROKE_WIDTH / 2],
+        [HEX_WIDTH + STROKE_WIDTH / 2, HEX_SIZE / 2 + STROKE_WIDTH / 2],
+        [HEX_WIDTH + STROKE_WIDTH / 2, HEX_SIZE * 1.5 + STROKE_WIDTH / 2],
+        [HEX_WIDTH / 2 + STROKE_WIDTH / 2, HEX_HEIGHT + STROKE_WIDTH / 2],
+        [0 + STROKE_WIDTH / 2, HEX_SIZE * 1.5 + STROKE_WIDTH / 2]
+    ].map(p => `${p[0].toFixed(2)},${p[1].toFixed(2)}`).join(' ');
+
+    const boardWidth = 6 * X_OFFSET + X_OFFSET / 2;
+    const boardHeight = 4 * Y_OFFSET + HEX_HEIGHT + STROKE_WIDTH;
+
+    // Chat listener
     useEffect(() => {
         const cleanup = chatService.onMessage(async (msg) => {
-            // Join Logic
-            if (gameStage === 'lobby' && allowJoin && msg.content.trim() === entryKeyword) {
+            if (stage === 'lobby' && allowJoin && msg.content.trim() === entryKeyword) {
                 const u = msg.user.username;
                 const c = msg.user.color || '#ffffff';
                 setLobbyPlayers(prev => {
@@ -95,59 +106,48 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome }) 
                     const team = getTeamByColor(c);
                     return [...prev, { username: u, color: c, team, avatar: '' }];
                 });
-
-                // Fetch avatar async and update
                 chatService.fetchKickAvatar(u).then(avatar => {
                     setLobbyPlayers(prev => prev.map(p => p.username === u ? { ...p, avatar } : p));
                 });
             }
-
-            // Chat Answer Logic
-            if (gameStage === 'playing' && answerMode === 'chat' && activeCell && currentQuestion && !fastestPlayer) {
-                // Anyone answers in chat
+            if (stage === 'playing' && answerMode === 'chat' && activeCell && currentQuestion && !fastestPlayer) {
                 setFastestPlayer({
                     name: msg.user.username,
                     team: lobbyPlayers.find(p => p.username === msg.user.username)?.team || getTeamByColor(msg.user.color),
                     time: Date.now(),
                     avatar: msg.user.avatar || '',
                 });
-                try {
-                    const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-                    audio.volume = 0.8;
-                    audio.play();
-                } catch (e) { }
+                playSfx('buzz');
             }
         });
         return cleanup;
-    }, [gameStage, allowJoin, entryKeyword, answerMode, activeCell, currentQuestion, fastestPlayer, lobbyPlayers]);
+    }, [stage, allowJoin, entryKeyword, answerMode, activeCell, currentQuestion, fastestPlayer, lobbyPlayers]);
 
-    // Setup Realtime for Smart Buzzers
+    // Buzzer listener
     useEffect(() => {
         if (answerMode !== 'buzzer') return;
-
         channelRef.current = supabase.channel('buzzer_channel')
             .on('broadcast', { event: 'BUZZ' }, (payload) => {
-                if (gameStage !== 'playing' || !currentQuestion || fastestPlayer) return;
-
+                if (stage !== 'playing' || !currentQuestion || fastestPlayer) return;
                 const { username, team, timestamp, avatar } = payload.payload;
                 setFastestPlayer({ name: username, team: team, time: timestamp, avatar: avatar });
-
-                try {
-                    const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-                    audio.volume = 0.8;
-                    audio.play();
-                } catch (e) { }
+                playSfx('buzz');
             })
             .subscribe();
+        return () => { if (channelRef.current) supabase.removeChannel(channelRef.current); };
+    }, [stage, currentQuestion, fastestPlayer, answerMode]);
 
-        return () => {
-            if (channelRef.current) supabase.removeChannel(channelRef.current);
+    const playSfx = (type: 'buzz' | 'correct' | 'wrong' | 'win') => {
+        const urls = {
+            buzz: 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3',
+            correct: 'https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3',
+            wrong: 'https://assets.mixkit.co/active_storage/sfx/2959/2959-preview.mp3',
+            win: 'https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3'
         };
-    }, [gameStage, currentQuestion, fastestPlayer, answerMode]);
-
+        try { const audio = new Audio(urls[type]); audio.volume = 0.6; audio.play(); } catch (e) { }
+    };
 
     const startGame = () => {
-        // Shuffle letters
         const shuffled = [...ARABIC_LETTERS].sort(() => Math.random() - 0.5);
         let lIdx = 0;
         const initialCells: HexCellData[] = [];
@@ -157,9 +157,87 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome }) 
             }
         });
         setCells(initialCells);
-        setGameStage('playing');
+        setStage('playing');
         setWinner(null);
+        setWinningPath([]);
         setAllowJoin(false);
+    };
+
+    const getNeighbors = (id: number) => {
+        const cell = cells.find(c => c.id === id);
+        if (!cell) return [];
+        const neighbors: number[] = [];
+        const evenRowNeighbors = [[-1, 0], [-1, 1], [0, -1], [0, 1], [1, 0], [1, 1]];
+        const oddRowNeighbors = [[-1, -1], [-1, 0], [0, -1], [0, 1], [1, -1], [1, 0]];
+        const deltas = (cell.row % 2 === 0) ? evenRowNeighbors : oddRowNeighbors;
+
+        deltas.forEach(([dr, dc]) => {
+            const nr = cell.row + dr, nc = cell.col + dc;
+            const found = cells.find(c => c.row === nr && c.col === nc);
+            if (found) neighbors.push(found.id);
+        });
+        return neighbors;
+    };
+
+    const checkWin = (updatedCells: HexCellData[]) => {
+        // Team 1 (Girls): Top to Bottom
+        const team1Cells = updatedCells.filter(c => c.owner === 'team1').map(c => c.id);
+        const start1 = updatedCells.filter(c => c.row === 0 && c.owner === 'team1').map(c => c.id);
+        const end1 = updatedCells.filter(c => c.row === 4 && c.owner === 'team1').map(c => c.id);
+
+        const path1 = findPath(start1, end1, team1Cells);
+        if (path1) { setWinner('team1'); setWinningPath(path1); setStage('ended'); playSfx('win'); return; }
+
+        // Team 2 (Boys): Left to Right
+        const team2Cells = updatedCells.filter(c => c.owner === 'team2').map(c => c.id);
+        const leftColIndices = [0, 6, 11, 17, 22];
+        const rightColIndices = [5, 10, 16, 21, 27];
+        const start2 = updatedCells.filter(c => leftColIndices.includes(c.id) && c.owner === 'team2').map(c => c.id);
+        const end2 = updatedCells.filter(c => rightColIndices.includes(c.id) && c.owner === 'team2').map(c => c.id);
+
+        const path2 = findPath(start2, end2, team2Cells);
+        if (path2) { setWinner('team2'); setWinningPath(path2); setStage('ended'); playSfx('win'); return; }
+    };
+
+    const findPath = (start: number[], end: number[], validSet: number[]) => {
+        if (start.length === 0 || end.length === 0) return null;
+        let queue: { id: number, path: number[] }[] = start.map(id => ({ id, path: [id] }));
+        let visited = new Set(start);
+
+        while (queue.length > 0) {
+            let { id, path } = queue.shift()!;
+            if (end.includes(id)) return path;
+            for (let n of getNeighbors(id)) {
+                if (validSet.includes(n) && !visited.has(n)) {
+                    visited.add(n);
+                    queue.push({ id: n, path: [...path, n] });
+                }
+            }
+        }
+        return null;
+    };
+
+    const markAnswer = (isCorrect: boolean) => {
+        if (!activeCell || !fastestPlayer) return;
+        const winningTeam = isCorrect ? fastestPlayer.team : (fastestPlayer.team === 'team1' ? 'team2' : 'team1');
+        isCorrect ? playSfx('correct') : playSfx('wrong');
+
+        const nextCells = cells.map(c => c.id === activeCell.id ? { ...c, owner: winningTeam } : c);
+        setCells(nextCells);
+        setActiveCell(null);
+        setCurrentQuestion(null);
+        setFastestPlayer(null);
+        checkWin(nextCells);
+    };
+
+    const assignCellManually = (team: 'team1' | 'team2') => {
+        if (!activeCell) return;
+        const nextCells = cells.map(c => c.id === activeCell.id ? { ...c, owner: team } : c);
+        setCells(nextCells);
+        setActiveCell(null);
+        setCurrentQuestion(null);
+        setFastestPlayer(null);
+        checkWin(nextCells);
     };
 
     const selectCell = (cell: HexCellData) => {
@@ -167,333 +245,299 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome }) 
         setActiveCell(cell);
         setFastestPlayer(null);
 
-        // Fetch difficulty-based questions later (simulated for now by using different offset or filtering if we add hard ones)
-        // Since we only have 100 in data, we just randomize from all for now.
         const availableQs = LETTER_GAME_QUESTIONS.filter(q => q.letter === cell.letter);
         const randomQ = availableQs[Math.floor(Math.random() * availableQs.length)];
         setCurrentQuestion(randomQ || { id: 999, letter: cell.letter, question: `سؤال صعب لحرف ${cell.letter}؟`, answer: 'الجواب' });
     };
 
-    const markAnswer = (isCorrect: boolean) => {
-        if (!activeCell || !fastestPlayer) return;
-        const winningTeam = isCorrect ? fastestPlayer.team : (fastestPlayer.team === 'team1' ? 'team2' : 'team1');
-        setCells(prev => prev.map(c => c.id === activeCell.id ? { ...c, owner: winningTeam } : c));
-        setActiveCell(null);
-        setCurrentQuestion(null);
-        setFastestPlayer(null);
-    };
-
-    const assignCellManually = (team: 'team1' | 'team2') => {
-        if (!activeCell) return;
-        setCells(prev => prev.map(c => c.id === activeCell.id ? { ...c, owner: team } : c));
-        setActiveCell(null);
-        setCurrentQuestion(null);
-        setFastestPlayer(null);
-    };
-
-    // Styling helpers
-    const getTeamStyle = (teamId: 'team1' | 'team2' | 'none') => {
-        if (teamId === 'team1') return 'from-pink-500 to-purple-600 border-pink-400 shadow-[0_0_20px_rgba(236,72,153,0.8)]'; // Girls
-        if (teamId === 'team2') return 'from-blue-500 to-emerald-500 border-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.8)]'; // Boys
-        return 'from-white to-gray-200 border-white shadow-[inset_0_5px_15px_rgba(0,0,0,0.1)]';
-    };
-
-    const getTeamTextColor = (teamId: 'team1' | 'team2' | 'none') => {
-        if (teamId === 'none') return 'text-[#2e1065]';
-        return 'text-white drop-shadow-md';
-    };
-
-    // Render logic
     const girls = lobbyPlayers.filter(p => p.team === 'team1');
     const boys = lobbyPlayers.filter(p => p.team === 'team2');
 
     return (
-        <>
-            <SidebarPortal>
-                <div className="bg-black/80 backdrop-blur-2xl p-6 rounded-[2.5rem] border-2 border-white/5 space-y-6 animate-in slide-in-from-right duration-500 shadow-2xl relative w-full h-[85vh] overflow-y-auto custom-scrollbar">
-                    <div className="flex items-center justify-between sticky top-0 bg-black/50 p-2 rounded-xl backdrop-blur-md z-10">
-                        <h4 className="text-[14px] font-black text-white uppercase tracking-widest flex items-center gap-3">
-                            <Shield size={18} className="text-blue-500" /> إعدادات حروف
-                        </h4>
-                        <button onClick={onHome} className="p-2.5 bg-red-500/20 hover:bg-red-500/40 text-red-500 rounded-2xl transition-all border border-red-500/30"><LogOut size={16} /></button>
+        <div className="w-full h-full relative overflow-hidden bg-[#0A0A14] select-none text-white font-sans" dir="rtl">
+
+            {/* GLOBAL BACKGROUND - Exact Image Match Quality */}
+            <div className="absolute inset-0 z-0">
+                <div className="absolute inset-0 z-0 pointer-events-none" style={{ background: 'conic-gradient(from -45deg at 50% 50%, #FF6B52 0deg 90deg, #14b8a6 90deg 180deg, #FF6B52 180deg 270deg, #14b8a6 270deg 360deg)' }} />
+                <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"></div>
+                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
+            </div>
+
+            {/* STAGE: SETTINGS */}
+            {stage === 'settings' && (
+                <div className="relative z-20 w-full h-full flex flex-col items-center justify-center p-10 animate-in fade-in duration-700">
+                    <div className="max-w-4xl w-full bg-black/60 backdrop-blur-3xl border-4 border-white/10 rounded-[4rem] p-12 shadow-[0_30px_100px_rgba(0,0,0,0.8)] relative overflow-hidden">
+
+                        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-yellow-500 via-pink-500 to-blue-500"></div>
+
+                        <div className="flex items-center justify-between mb-12">
+                            <div className="flex items-center gap-6">
+                                <div className="w-20 h-20 bg-yellow-500/20 rounded-3xl flex items-center justify-center border-2 border-yellow-500/50 shadow-2xl shadow-yellow-500/20">
+                                    <Settings size={40} className="text-yellow-400 animate-spin-slow" />
+                                </div>
+                                <div>
+                                    <h1 className="text-5xl font-black italic tracking-tighter text-white">إعدادات اللعبة</h1>
+                                    <p className="text-gray-400 font-bold uppercase tracking-widest mt-1">تجهيز ساحة المعركة</p>
+                                </div>
+                            </div>
+                            <button onClick={onHome} className="p-5 bg-red-600/20 border-2 border-red-600/40 text-red-500 rounded-3xl hover:bg-red-600 hover:text-white transition-all shadow-xl group">
+                                <LogOut size={28} className="group-hover:rotate-12 transition-transform" />
+                            </button>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-8 mb-12">
+                            <div className="space-y-6">
+                                <div className="bg-white/5 p-6 rounded-[2rem] border-2 border-white/5 group hover:border-yellow-500/30 transition-all">
+                                    <label className="flex items-center gap-3 text-sm font-black text-gray-400 mb-4 tracking-widest uppercase"><Stars size={18} className="text-yellow-500" /> كلمة دخول المشاركين</label>
+                                    <input value={entryKeyword} onChange={e => setEntryKeyword(e.target.value)} className="w-full bg-black/50 border-2 border-white/10 rounded-2xl p-5 text-center text-white font-black text-2xl focus:border-yellow-500 transition-all outline-none shadow-inner" />
+                                </div>
+                                <div className="bg-white/5 p-6 rounded-[2rem] border-2 border-white/5 group hover:border-pink-500/30 transition-all">
+                                    <label className="flex items-center gap-3 text-sm font-black text-gray-400 mb-4 tracking-widest uppercase"><Heart size={18} className="text-pink-500" /> اسم فريق البنات</label>
+                                    <input value={team1Name} onChange={e => setTeam1Name(e.target.value)} className="w-full bg-black/50 border-2 border-white/10 rounded-2xl p-5 text-center text-white font-black text-2xl focus:border-pink-500 transition-all outline-none shadow-inner" />
+                                </div>
+                                <div className="bg-white/5 p-6 rounded-[2rem] border-2 border-white/5 group hover:border-blue-500/30 transition-all">
+                                    <label className="flex items-center gap-3 text-sm font-black text-gray-400 mb-4 tracking-widest uppercase"><Sparkles size={18} className="text-blue-500" /> اسم فريق الأولاد</label>
+                                    <input value={team2Name} onChange={e => setTeam2Name(e.target.value)} className="w-full bg-black/50 border-2 border-white/10 rounded-2xl p-5 text-center text-white font-black text-2xl focus:border-blue-500 transition-all outline-none shadow-inner" />
+                                </div>
+                            </div>
+                            <div className="space-y-6">
+                                <div className="bg-white/5 p-6 rounded-[2rem] border-2 border-white/5">
+                                    <label className="flex items-center gap-3 text-sm font-black text-gray-400 mb-4 tracking-widest uppercase"><Smartphone size={18} className="text-purple-500" /> نظام الإجابة</label>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <button onClick={() => setAnswerMode('buzzer')} className={`py-5 rounded-2xl text-lg font-black border-2 transition-all ${answerMode === 'buzzer' ? 'bg-purple-600 border-white text-white shadow-xl' : 'bg-black/50 border-white/10 text-gray-500 opacity-50'}`}>جرس ذكي</button>
+                                        <button onClick={() => setAnswerMode('chat')} className={`py-5 rounded-2xl text-lg font-black border-2 transition-all ${answerMode === 'chat' ? 'bg-purple-600 border-white text-white shadow-xl' : 'bg-black/50 border-white/10 text-gray-500 opacity-50'}`}>شات المباشر</button>
+                                    </div>
+                                </div>
+                                <div className="bg-white/5 p-6 rounded-[2rem] border-2 border-white/5">
+                                    <label className="flex items-center gap-3 text-sm font-black text-gray-400 mb-4 tracking-widest uppercase"><BrainCircuit size={18} className="text-orange-500" /> مستوى الصعوبة</label>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <button onClick={() => setDifficulty('normal')} className={`py-5 rounded-2xl text-lg font-black border-2 transition-all ${difficulty === 'normal' ? 'bg-orange-600 border-white text-white shadow-xl' : 'bg-black/50 border-white/10 text-gray-500 opacity-50'}`}>عادي</button>
+                                        <button onClick={() => setDifficulty('hard')} className={`py-5 rounded-2xl text-lg font-black border-2 transition-all ${difficulty === 'hard' ? 'bg-orange-600 border-white text-white shadow-xl' : 'bg-black/50 border-white/10 text-gray-500 opacity-50'}`}>صعب جداً</button>
+                                    </div>
+                                </div>
+                                <div className="bg-white/5 p-6 rounded-[2rem] border-2 border-white/5">
+                                    <label className="flex items-center justify-between text-sm font-black text-gray-400 mb-4 tracking-widest uppercase">
+                                        <span className="flex items-center gap-3"><Clock size={18} className="text-emerald-500" /> وقت السؤال</span>
+                                        <span className="text-emerald-400">{timerDuration} ثانية</span>
+                                    </label>
+                                    <input type="range" min="10" max="60" step="5" value={timerDuration} onChange={e => setTimerDuration(parseInt(e.target.value))} className="w-full h-3 bg-black rounded-full appearance-none accent-emerald-500 shadow-inner" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <button onClick={() => setStage('lobby')} className="w-full bg-gradient-to-r from-emerald-600 to-emerald-400 hover:scale-[1.02] active:scale-95 transition-all py-8 rounded-3xl font-black text-4xl text-white shadow-[0_20px_50px_rgba(16,185,129,0.4)] border-b-8 border-black/20 flex items-center justify-center gap-6 group">
+                            فتح قاعة الانتظار <ArrowRight size={48} className="group-hover:translate-x-4 transition-transform" />
+                        </button>
                     </div>
+                </div>
+            )}
 
-                    <div className="space-y-6 pb-20">
-                        {/* 6+ SETTINGS */}
-                        <div className="grid grid-cols-1 gap-4">
-                            {/* 1. Keyword */}
-                            <div className="bg-white/5 p-4 rounded-2xl border border-white/10">
-                                <label className="flex items-center gap-2 text-xs text-gray-400 font-bold mb-2 uppercase tracking-widest"><Play size={14} className="text-yellow-500" /> كلمة الدخول</label>
-                                <input value={entryKeyword} onChange={e => setEntryKeyword(e.target.value)} disabled={gameStage !== 'lobby'} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-white font-bold disabled:opacity-50 text-center" />
-                                {gameStage === 'lobby' && (
-                                    <button
-                                        onClick={() => setAllowJoin(!allowJoin)}
-                                        className={`w-full mt-3 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${allowJoin ? 'bg-red-500/20 text-red-500 border border-red-500/30' : 'bg-green-500/20 text-green-500 border border-green-500/30'}`}
-                                    >
-                                        <Users size={16} /> {allowJoin ? 'إيقاف الانضمام' : 'فتح باب الانضمام'}
-                                    </button>
-                                )}
-                            </div>
-
-                            {/* 2 & 3. Team Names */}
-                            <div className="bg-white/5 p-4 rounded-2xl border border-white/10 grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="text-[10px] text-pink-400 font-bold mb-1 block">اسم فريق البنات (زهري/ابيض/بنفسجي)</label>
-                                    <input value={team1Name} onChange={e => setTeam1Name(e.target.value)} disabled={gameStage !== 'lobby'} className="w-full bg-black/50 border border-pink-500/30 rounded-lg p-2 text-white text-xs font-bold" />
-                                </div>
-                                <div>
-                                    <label className="text-[10px] text-blue-400 font-bold mb-1 block">اسم فريق الأولاد (أزرق/أخضر)</label>
-                                    <input value={team2Name} onChange={e => setTeam2Name(e.target.value)} disabled={gameStage !== 'lobby'} className="w-full bg-black/50 border border-blue-500/30 rounded-lg p-2 text-white text-xs font-bold" />
+            {/* STAGE: LOBBY */}
+            {stage === 'lobby' && (
+                <div className="relative z-20 w-full h-full flex items-center justify-center p-12 animate-in slide-in-from-bottom duration-700">
+                    <div className="w-full max-w-7xl h-full flex flex-col gap-10">
+                        <div className="flex items-center justify-between">
+                            <button onClick={() => setStage('settings')} className="flex items-center gap-4 bg-white/5 hover:bg-white/10 px-8 py-4 rounded-full border-2 border-white/10 transition-all font-black text-xl italic"><ArrowLeft /> العودة للإعدادات</button>
+                            <div className="text-center">
+                                <h1 className="text-7xl font-black italic text-white drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]">بإنتظار المحاربين...</h1>
+                                <div className={`inline-block mt-4 px-10 py-3 rounded-full border-4 border-white font-black text-2xl transition-all shadow-xl ${allowJoin ? 'bg-emerald-500 animate-bounce' : 'bg-red-600'}`}>
+                                    {allowJoin ? `أكتب [ ${entryKeyword} ] في الشات!` : 'الانضمام مغلق الآن'}
                                 </div>
                             </div>
+                            <button onClick={() => { setAllowJoin(false); startGame(); }} className="flex items-center gap-6 bg-gradient-to-r from-yellow-500 to-orange-600 px-12 py-6 rounded-[2rem] font-black text-4xl italic text-white shadow-2xl hover:scale-105 active:scale-95 transition-all select-none">بـدء الـتـحـدي <Play fill="currentColor" size={32} /></button>
+                        </div>
 
-                            {/* 4. Answer Mode */}
-                            <div className="bg-white/5 p-4 rounded-2xl border border-white/10">
-                                <label className="flex items-center gap-2 text-xs text-gray-400 font-bold mb-2 uppercase tracking-widest"><Smartphone size={14} className="text-purple-500" /> طريقة الإجابة</label>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <button onClick={() => setAnswerMode('buzzer')} disabled={gameStage !== 'lobby'} className={`py-2 rounded-xl text-xs font-bold transition-all border ${answerMode === 'buzzer' ? 'bg-purple-600 border-purple-400 text-white shadow-[0_0_15px_rgba(147,51,234,0.5)]' : 'bg-black/50 border-white/10 text-gray-400'}`}>جرس ذكي</button>
-                                    <button onClick={() => setAnswerMode('chat')} disabled={gameStage !== 'lobby'} className={`py-2 rounded-xl text-xs font-bold transition-all border ${answerMode === 'chat' ? 'bg-purple-600 border-purple-400 text-white shadow-[0_0_15px_rgba(147,51,234,0.5)]' : 'bg-black/50 border-white/10 text-gray-400'}`}>مباشرة من الشات</button>
+                        <div className="flex-1 grid grid-cols-2 gap-12 overflow-hidden">
+                            {/* Girls Section */}
+                            <div className="bg-[#FF6B52]/10 backdrop-blur-2xl border-4 border-[#FF6B52]/50 rounded-[4rem] p-10 flex flex-col items-center relative overflow-hidden shadow-2xl">
+                                <div className="absolute top-0 left-0 w-full h-2 bg-[#FF6B52]"></div>
+                                <div className="flex items-center gap-4 mb-10 w-full justify-center">
+                                    <div className="text-8xl font-black text-[#FF6B52] drop-shadow-lg">{girls.length}</div>
+                                    <div className="text-right">
+                                        <h3 className="text-4xl font-black text-white">{team1Name}</h3>
+                                        <p className="text-[#FF6B52] font-black tracking-widest opacity-60">نخبة البنات</p>
+                                    </div>
                                 </div>
-                            </div>
-
-                            {/* 5. Difficulty */}
-                            <div className="bg-white/5 p-4 rounded-2xl border border-white/10">
-                                <label className="flex items-center gap-2 text-xs text-gray-400 font-bold mb-2 uppercase tracking-widest"><BrainCircuit size={14} className="text-orange-500" /> مستوى الصعوبة</label>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <button onClick={() => setDifficulty('normal')} disabled={gameStage !== 'lobby'} className={`py-2 rounded-xl text-xs font-bold transition-all border ${difficulty === 'normal' ? 'bg-orange-600 border-orange-400 text-white shadow-[0_0_15px_rgba(234,88,12,0.5)]' : 'bg-black/50 border-white/10 text-gray-400'}`}>عادي</button>
-                                    <button onClick={() => setDifficulty('hard')} disabled={gameStage !== 'lobby'} className={`py-2 rounded-xl text-xs font-bold transition-all border ${difficulty === 'hard' ? 'bg-orange-600 border-orange-400 text-white shadow-[0_0_15px_rgba(234,88,12,0.5)]' : 'bg-black/50 border-white/10 text-gray-400'}`}>صعب ومتقدم (200 سؤال)</button>
+                                <div className="flex-1 w-full grid grid-cols-6 gap-6 overflow-y-auto content-start custom-scrollbar-pink pr-4 pb-10">
+                                    {girls.map(p => (
+                                        <div key={p.username} className="flex flex-col items-center gap-2 animate-in zoom-in duration-500">
+                                            <ProAvatar username={p.username} url={p.avatar} size="w-20 h-20" />
+                                            <span className="text-[10px] font-black text-white/50 truncate w-full text-center">{p.username}</span>
+                                        </div>
+                                    ))}
+                                    {allowJoin && <div className="w-20 h-20 rounded-[1.5rem] border-4 border-dashed border-white/10 flex items-center justify-center text-white/10 animate-pulse"><Users /></div>}
                                 </div>
-                            </div>
-
-                            {/* 6. Timer Duration */}
-                            <div className="bg-white/5 p-4 rounded-2xl border border-white/10">
-                                <label className="flex items-center justify-between text-xs text-gray-400 font-bold mb-2 uppercase tracking-widest">
-                                    <span className="flex items-center gap-2"><Clock size={14} className="text-emerald-500" /> الوقت (ثواني)</span>
-                                    <span className="text-emerald-400">{timerDuration} ثانية</span>
-                                </label>
-                                <input type="range" min="10" max="60" step="5" value={timerDuration} onChange={e => setTimerDuration(parseInt(e.target.value))} disabled={gameStage !== 'lobby'} className="w-full accent-emerald-500" />
-                            </div>
-
-                            {gameStage === 'lobby' && (
-                                <button onClick={startGame} className="w-full bg-gradient-to-r from-emerald-500 to-emerald-700 hover:scale-[1.02] active:scale-95 transition-all py-4 rounded-2xl font-black text-white text-xl mt-4 shadow-[0_10px_30px_rgba(16,185,129,0.4)] flex items-center justify-center gap-3 uppercase">
-                                    <Play fill="currentColor" /> جــــــــــــاهز
+                                <button onClick={() => setAllowJoin(!allowJoin)} className={`mt-auto w-full py-5 rounded-3xl font-black text-xl border-2 transition-all ${allowJoin ? 'bg-red-500/20 border-red-500/50 text-red-500' : 'bg-emerald-500/20 border-emerald-500/50 text-emerald-500'}`}>
+                                    {allowJoin ? 'إيقاف استقبال البنات' : 'فتح استقبال البنات'}
                                 </button>
-                            )}
-                        </div>
+                            </div>
 
-                        {/* Host Game Controls (During Game) */}
-                        {gameStage === 'playing' && (
-                            <div className="space-y-4 animate-in fade-in pt-4 border-t border-white/10">
-                                {answerMode === 'buzzer' && (
-                                    <div className="flex items-center gap-2 p-3 bg-indigo-500/20 border border-indigo-500/40 rounded-xl relative overflow-hidden group">
-                                        <div className="absolute inset-0 bg-indigo-500/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
-                                        <Smartphone className="text-indigo-400" size={24} />
-                                        <div className="text-xs font-bold text-indigo-300 leading-tight">
-                                            <span>رابط جرس الذكي للمشاركين:</span><br />
-                                            <span className="text-white text-base font-black tracking-widest">iabs-arena.com/?view=BUZZER_PAD</span>
+                            {/* Boys Section */}
+                            <div className="bg-[#14b8a6]/10 backdrop-blur-2xl border-4 border-[#14b8a6]/50 rounded-[4rem] p-10 flex flex-col items-center relative overflow-hidden shadow-2xl">
+                                <div className="absolute top-0 left-0 w-full h-2 bg-[#14b8a6]"></div>
+                                <div className="flex items-center gap-4 mb-10 w-full justify-center">
+                                    <div className="text-8xl font-black text-[#14b8a6] drop-shadow-lg">{boys.length}</div>
+                                    <div className="text-right">
+                                        <h3 className="text-4xl font-black text-white">{team2Name}</h3>
+                                        <p className="text-[#14b8a6] font-black tracking-widest opacity-60">نخبة الأولاد</p>
+                                    </div>
+                                </div>
+                                <div className="flex-1 w-full grid grid-cols-6 gap-6 overflow-y-auto content-start custom-scrollbar-blue pr-4 pb-10">
+                                    {boys.map(p => (
+                                        <div key={p.username} className="flex flex-col items-center gap-2 animate-in zoom-in duration-500">
+                                            <ProAvatar username={p.username} url={p.avatar} size="w-20 h-20" />
+                                            <span className="text-[10px] font-black text-white/50 truncate w-full text-center">{p.username}</span>
                                         </div>
+                                    ))}
+                                    {allowJoin && <div className="w-20 h-20 rounded-[1.5rem] border-4 border-dashed border-white/10 flex items-center justify-center text-white/10 animate-pulse"><Users /></div>}
+                                </div>
+                                <button onClick={() => setAllowJoin(!allowJoin)} className={`mt-auto w-full py-5 rounded-3xl font-black text-xl border-2 transition-all ${allowJoin ? 'bg-red-500/20 border-red-500/50 text-red-500' : 'bg-emerald-500/20 border-emerald-500/50 text-emerald-500'}`}>
+                                    {allowJoin ? 'إيقاف استقبال الأولاد' : 'فتح استقبال الأولاد'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* STAGE: PLAYING (EXACT IMAGE MATCH DESIGN) */}
+            {stage === 'playing' && (
+                <div className="w-full h-full flex flex-col items-center justify-center relative p-8 animate-in fade-in duration-1000">
+
+                    {/* Background Stage Overlays */}
+                    <div className="absolute inset-0 z-0 pointer-events-none" style={{ background: 'conic-gradient(from -45deg at 50% 50%, #FF6B52 0deg 90deg, #14b8a6 90deg 180deg, #FF6B52 180deg 270deg, #14b8a6 270deg 360deg)' }} />
+
+                    {/* Left Panel: Girls */}
+                    <div className="absolute top-10 right-10 z-30 flex flex-col items-center">
+                        <div className="bg-[#FF6B52] border-4 border-[#5A22A3] rounded-[2rem] px-10 py-5 text-center shadow-[0_12px_0_#5A22A3] transform -rotate-2">
+                            <h2 className="text-white font-black text-3xl drop-shadow-md">{team1Name}</h2>
+                            <div className="mt-4 flex flex-wrap justify-center gap-1 max-w-[200px]">
+                                {girls.slice(0, 15).map(p => <ProAvatar key={p.username} username={p.username} url={p.avatar} size="w-8 h-8" />)}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right Panel: Boys */}
+                    <div className="absolute top-10 left-10 z-30 flex flex-col items-center">
+                        <div className="bg-[#14b8a6] border-4 border-[#5A22A3] rounded-[2rem] px-10 py-5 text-center shadow-[0_12px_0_#5A22A3] transform rotate-2">
+                            <h2 className="text-white font-black text-3xl drop-shadow-md">{team2Name}</h2>
+                            <div className="mt-4 flex flex-wrap justify-center gap-1 max-w-[200px]">
+                                {boys.slice(0, 15).map(p => <ProAvatar key={p.username} username={p.username} url={p.avatar} size="w-8 h-8" />)}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Center Header */}
+                    <div className="absolute top-10 left-1/2 transform -translate-x-1/2 z-20 text-center">
+                        <h1 className="text-8xl font-black italic text-white drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]">حروف</h1>
+                    </div>
+
+                    {/* BOARD */}
+                    <div className="relative z-10 animate-in zoom-in duration-1000" style={{ width: `${boardWidth}px`, height: `${boardHeight}px` }}>
+                        {cells.map(cell => {
+                            const isOffset = cell.row % 2 !== 0;
+                            const left = (cell.col * X_OFFSET) + (isOffset ? X_OFFSET / 2 : 0);
+                            const top = cell.row * Y_OFFSET;
+                            const isActive = activeCell?.id === cell.id;
+                            const isWinning = winningPath.includes(cell.id);
+
+                            let fill = '#FFFFFF';
+                            if (cell.owner === 'team1') fill = '#FF6B52';
+                            if (cell.owner === 'team2') fill = '#14b8a6';
+
+                            return (
+                                <div key={cell.id} onClick={() => selectCell(cell)} className={`absolute flex items-center justify-center cursor-pointer transition-all duration-300 ${isActive ? 'scale-110 z-50 animate-pulse drop-shadow-[0_0_50px_white]' : 'hover:scale-105 hover:z-40 z-10'} ${isWinning ? 'animate-bounce drop-shadow-[0_0_30px_gold]' : ''}`} style={{ left: `${left}px`, top: `${top}px`, width: `${SVG_WIDTH}px`, height: `${SVG_HEIGHT}px`, filter: 'drop-shadow(2px 8px 6px rgba(0,0,0,0.3))' }}>
+                                    <svg width={SVG_WIDTH} height={SVG_HEIGHT} className="absolute inset-0 overflow-visible z-0">
+                                        <polygon points={hexPoints} fill={fill} stroke="#5A22A3" strokeWidth={STROKE_WIDTH} strokeLinejoin="round" />
+                                        {isWinning && <polygon points={hexPoints} fill="none" stroke="gold" strokeWidth="12" strokeOpacity="0.8" />}
+                                    </svg>
+                                    {cell.owner === 'none' && <span className="relative z-10 text-[3.5rem] font-black text-[#5A22A3] mt-2 select-none">{cell.letter}</span>}
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* QUESTION OVERLAY */}
+                    {activeCell && currentQuestion && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-10 animate-in zoom-in duration-300">
+                            <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setActiveCell(null)}></div>
+                            <div className="w-full max-w-4xl bg-[#1a1a2e] border-[10px] border-[#5A22A3] rounded-[4rem] p-16 shadow-[0_40px_100px_rgba(0,0,0,0.9)] relative z-10 text-center animate-in slide-in-from-bottom-20 duration-500">
+                                <div className="absolute top-[-40px] left-1/2 transform -translate-x-1/2 bg-white px-12 py-3 rounded-full border-8 border-[#5A22A3] text-[#5A22A3] font-black text-5xl italic shadow-2xl">حرف {activeCell.letter}</div>
+
+                                <p className="text-5xl font-black text-white leading-tight mb-12 mt-6">{currentQuestion.question}</p>
+
+                                <div className="bg-emerald-500/20 border-4 border-emerald-500/40 rounded-3xl p-8 mb-10 group relative">
+                                    <span className="text-gray-400 font-bold block mb-2 uppercase tracking-[0.4em] text-xs">إجابة المقدم (مخفي)</span>
+                                    <span className="text-4xl font-black text-emerald-100 blur-lg group-hover:blur-0 transition-all duration-300">{currentQuestion.answer}</span>
+                                </div>
+
+                                {fastestPlayer ? (
+                                    <div className="space-y-8 animate-in zoom-in">
+                                        <div className={`p-8 rounded-[2rem] border-8 flex items-center justify-between gap-8 ${fastestPlayer.team === 'team1' ? 'border-[#FF6B52] bg-[#FF6B52]/10' : 'border-[#14b8a6] bg-[#14b8a6]/10'}`}>
+                                            <div className="flex items-center gap-6">
+                                                <ProAvatar username={fastestPlayer.name} url={fastestPlayer.avatar} size="w-32 h-32" />
+                                                <div className="text-right">
+                                                    <div className="text-white font-black text-5xl italic">{fastestPlayer.name}</div>
+                                                    <div className={`text-2xl font-black mt-2 ${fastestPlayer.team === 'team1' ? 'text-[#FF6B52]' : 'text-[#14b8a6]'}`}>{fastestPlayer.team === 'team1' ? team1Name : team2Name}</div>
+                                                </div>
+                                            </div>
+                                            <div className="text-6xl font-black text-white/20 italic tracking-tighter">🔔 CLICKED!</div>
+                                        </div>
+                                        <div className="flex gap-6">
+                                            <button onClick={() => markAnswer(true)} className="flex-1 bg-emerald-600 hover:bg-emerald-500 py-8 rounded-3xl font-black text-4xl text-white shadow-2xl border-b-8 border-emerald-800 transition-all flex items-center justify-center gap-4"><Check size={40} /> صحيح</button>
+                                            <button onClick={() => markAnswer(false)} className="flex-1 bg-red-600 hover:bg-red-500 py-8 rounded-3xl font-black text-4xl text-white shadow-2xl border-b-8 border-red-800 transition-all flex items-center justify-center gap-4"><X size={40} /> خـطـأ</button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col items-center gap-6 animate-pulse p-10 bg-white/5 rounded-3xl border-2 border-dashed border-white/10">
+                                        <Smartphone size={64} className="text-purple-500" />
+                                        <h4 className="text-3xl font-black text-white italic">بإنتظار ضغطة الجرس...</h4>
+                                        <p className="text-gray-500 font-bold uppercase tracking-widest text-sm">أو الإجابة في الشات (حسب الإعدادات)</p>
                                     </div>
                                 )}
 
-                                {activeCell && currentQuestion && (
-                                    <div className="bg-white/5 p-5 rounded-3xl border border-white/10 space-y-5 animate-in slide-in-from-bottom duration-300 shadow-[0_10px_40px_rgba(0,0,0,0.5)] relative overflow-hidden">
-
-                                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500"></div>
-
-                                        <div className="flex justify-between items-center text-sm font-black text-gray-400 bg-black/40 px-4 py-2 rounded-full border border-white/5 inline-flex w-fit mx-auto">
-                                            <span>سؤال حرف: <span className="text-white text-lg">{activeCell.letter}</span></span>
-                                        </div>
-
-                                        <p className="text-white text-2xl font-black leading-relaxed mt-2 text-center drop-shadow-lg">{currentQuestion.question}</p>
-
-                                        <div className="p-4 bg-emerald-500/10 border-2 border-emerald-500/30 rounded-2xl text-center relative overflow-hidden">
-                                            <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-500/20 rounded-full blur-xl translate-x-1/2 -translate-y-1/2"></div>
-                                            <span className="text-xs font-black text-emerald-500 uppercase block mb-1 tracking-widest">الجواب الصحيح المخفي</span>
-                                            <span className="text-3xl font-black text-emerald-50 drop-shadow-[0_2px_5px_rgba(16,185,129,0.5)]">{currentQuestion.answer}</span>
-                                        </div>
-
-                                        {fastestPlayer ? (
-                                            <div className="space-y-4 pt-2">
-                                                <div className="text-center text-xs font-bold text-gray-500 uppercase tracking-widest">🔔 تم الضغط!</div>
-                                                <div className={`p-4 rounded-2xl border-[3px] flex flex-col items-center justify-center gap-3 animate-in zoom-in duration-300 shadow-2xl ${fastestPlayer.team === 'team1' ? 'bg-pink-950/50 border-pink-500' : 'bg-blue-950/50 border-blue-500'}`}>
-                                                    <div className="relative">
-                                                        {fastestPlayer.avatar ? (
-                                                            <img src={fastestPlayer.avatar} className="w-16 h-16 rounded-full border-4 border-white/20 shadow-lg" />
-                                                        ) : (
-                                                            <div className="w-16 h-16 rounded-full bg-white/10 border-4 border-white/20 flex items-center justify-center font-black text-white text-xl">{fastestPlayer.name[0]}</div>
-                                                        )}
-                                                        <div className={`absolute -bottom-2 -right-2 w-8 h-8 rounded-full border-2 border-white flex items-center justify-center ${fastestPlayer.team === 'team1' ? 'bg-pink-500' : 'bg-blue-500'}`}>
-                                                            {fastestPlayer.team === 'team1' ? '🌸' : '🧊'}
-                                                        </div>
-                                                    </div>
-                                                    <div className="text-center">
-                                                        <div className="text-white font-black text-2xl drop-shadow-md">{fastestPlayer.name}</div>
-                                                        <div className={`text-xs font-bold px-3 py-1 mt-1 rounded-full border mx-auto w-fit ${fastestPlayer.team === 'team1' ? 'text-pink-300 border-pink-500/30 bg-pink-500/10' : 'text-blue-300 border-blue-500/30 bg-blue-500/10'}`}>
-                                                            {fastestPlayer.team === 'team1' ? team1Name : team2Name}
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div className="grid grid-cols-2 gap-3 mt-4">
-                                                    <button onClick={() => markAnswer(true)} className="bg-gradient-to-t from-emerald-700 to-emerald-500 hover:opacity-90 active:scale-95 text-white font-black text-lg py-4 rounded-2xl flex flex-col justify-center items-center gap-1 shadow-[0_10px_20px_rgba(16,185,129,0.3)] border border-emerald-400">
-                                                        <Check size={24} /> صحيح
-                                                    </button>
-                                                    <button onClick={() => markAnswer(false)} className="bg-gradient-to-t from-red-700 to-red-500 hover:opacity-90 active:scale-95 text-white font-black text-lg py-4 rounded-2xl flex flex-col justify-center items-center gap-1 shadow-[0_10px_20px_rgba(220,38,38,0.3)] border border-red-400">
-                                                        <X size={24} /> خاطئ
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div className="flex flex-col items-center justify-center gap-3 p-8 bg-black/40 rounded-2xl border border-white/5 animate-pulse">
-                                                <div className="w-12 h-12 rounded-full border-b-2 border-r-2 border-purple-500 animate-spin"></div>
-                                                <span className="text-sm font-bold text-gray-400">بانتظار إجابة الأبطال...</span>
-                                            </div>
-                                        )}
-
-                                        {/* Fallback override */}
-                                        <div className="pt-4 mt-2">
-                                            <p className="text-[10px] text-center text-gray-500 mb-2 uppercase tracking-widest border-b border-white/10 pb-2 w-fit mx-auto">تجاوز وتعيين الخلية يدوياً</p>
-                                            <div className="grid grid-cols-2 gap-2 mt-2">
-                                                <button onClick={() => assignCellManually('team1')} className="bg-pink-600/10 hover:bg-pink-600/30 text-pink-400 hover:text-white text-xs font-bold py-2 rounded-xl border border-pink-500/30 transition-all">للبنات 🌸</button>
-                                                <button onClick={() => assignCellManually('team2')} className="bg-blue-600/10 hover:bg-blue-600/30 text-blue-400 hover:text-white text-xs font-bold py-2 rounded-xl border border-blue-500/30 transition-all">للأولاد 🧊</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </SidebarPortal>
-
-            {/* Main Full-Screen Game Area */}
-            <div className="w-full h-full flex flex-col relative overflow-hidden bg-[#0A0A14] select-none" dir="rtl">
-
-                {/* Background Styling */}
-                <div className="absolute inset-0 flex z-0">
-                    <div className="w-1/2 h-full bg-gradient-to-br from-pink-900/40 via-purple-900/30 to-black/90"></div>
-                    <div className="w-1/2 h-full bg-gradient-to-bl from-blue-900/40 via-cyan-900/30 to-black/90"></div>
-                    {/* Add some grid overlay */}
-                    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] mix-blend-overlay"></div>
-                    <div className="absolute inset-x-0 bottom-0 h-[50vh] bg-gradient-to-t from-black via-black/80 to-transparent"></div>
-                </div>
-
-                {/* Top Headers */}
-                <div className="relative z-10 w-full flex justify-between items-start p-8 pb-0">
-                    {/* Logo */}
-                    <div className="absolute top-8 left-1/2 transform -translate-x-1/2 text-center animate-in slide-in-from-top-10 duration-1000">
-                        <h1 className="text-6xl md:text-8xl font-black italic">
-                            <span className="text-yellow-400 mr-4 drop-shadow-[0_5px_15px_rgba(250,204,21,0.5)]">حروف</span>
-                            <span className="text-blue-500 mr-4 drop-shadow-[0_5px_15px_rgba(59,130,246,0.5)]">مع</span>
-                            <span className="text-red-500 drop-shadow-[0_5px_20px_rgba(239,68,68,0.7)] uppercase tracking-tighter">حمودي</span>
-                        </h1>
-                        <p className="text-white/40 font-black tracking-[0.5em] text-sm mt-4 uppercase">حرب البنات والأولاد</p>
-                    </div>
-
-                    {/* Team 1 Score Info / Girls */}
-                    <div className="bg-black/60 backdrop-blur-md border-[3px] border-pink-500/50 rounded-[2rem] p-6 text-center w-72 shadow-[0_10px_30px_rgba(236,72,153,0.3)] animate-in slide-in-from-right duration-700 z-20">
-                        <div className="w-16 h-16 rounded-full bg-pink-500/20 border-2 border-pink-400 mx-auto mb-3 flex items-center justify-center text-3xl">🌸</div>
-                        <h2 className="text-pink-400 font-black text-2xl truncate">{team1Name}</h2>
-                        <p className="text-xs text-pink-500/60 font-bold mt-1 uppercase tracking-widest">من الأعلى للأسفل</p>
-                        <div className="mt-4 pt-4 border-t border-pink-500/20 grid grid-cols-5 gap-1 max-h-48 overflow-y-auto custom-scrollbar-pink">
-                            {girls.map(p => (
-                                <ProAvatar key={p.username} username={p.username} url={p.avatar} size="w-10 h-10" />
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Team 2 Score Info / Boys */}
-                    <div className="bg-black/60 backdrop-blur-md border-[3px] border-blue-500/50 rounded-[2rem] p-6 text-center w-72 shadow-[0_10px_30px_rgba(59,130,246,0.3)] animate-in slide-in-from-left duration-700 z-20">
-                        <div className="w-16 h-16 rounded-full bg-blue-500/20 border-2 border-blue-400 mx-auto mb-3 flex items-center justify-center text-3xl">🧊</div>
-                        <h2 className="text-blue-400 font-black text-2xl truncate">{team2Name}</h2>
-                        <p className="text-xs text-blue-500/60 font-bold mt-1 uppercase tracking-widest">من اليمين لليسار</p>
-                        <div className="mt-4 pt-4 border-t border-blue-500/20 grid grid-cols-5 gap-1 max-h-48 overflow-y-auto custom-scrollbar-blue">
-                            {boys.map(p => (
-                                <ProAvatar key={p.username} username={p.username} url={p.avatar} size="w-10 h-10" />
-                            ))}
-                        </div>
-                    </div>
-                </div>
-
-                {/* THE LOBBY OR BOARD */}
-                <div className="flex-1 w-full relative z-10 flex items-center justify-center p-8 mt-12 md:mt-24">
-                    {gameStage === 'lobby' ? (
-                        <div className="max-w-4xl w-full bg-black/60 border border-white/10 rounded-[3rem] p-16 text-center backdrop-blur-xl shadow-2xl animate-in fade-in zoom-in duration-700">
-                            <Trophy className="mx-auto text-yellow-500 w-24 h-24 mb-6 drop-shadow-[0_0_30px_rgba(234,179,8,0.5)]" />
-                            <h2 className="text-5xl font-black text-white italic mb-4">قائمة الانتظار</h2>
-                            {allowJoin ? (
-                                <div className="inline-block bg-white/10 px-8 py-4 rounded-full border-2 border-white/20 text-white font-bold text-2xl mb-8 shadow-inner animate-pulse">
-                                    أكتب <span className="text-yellow-400 font-black mx-2 text-3xl">[{entryKeyword}]</span> في الشات للانضمام!
-                                </div>
-                            ) : (
-                                <div className="text-gray-500 font-bold text-xl uppercase tracking-widest mb-8">الانضمام مغلق حالياً</div>
-                            )}
-
-                            <div className="flex items-center justify-center gap-12 mt-8">
-                                <div className="text-center">
-                                    <div className="text-6xl font-black text-pink-500 drop-shadow-md mb-2">{girls.length}</div>
-                                    <div className="text-pink-400 font-bold uppercase tracking-widest text-sm">البنات</div>
-                                </div>
-                                <div className="h-20 w-px bg-white/20"></div>
-                                <div className="text-center">
-                                    <div className="text-6xl font-black text-blue-500 drop-shadow-md mb-2">{boys.length}</div>
-                                    <div className="text-blue-400 font-bold uppercase tracking-widest text-sm">الأولاد</div>
+                                <div className="mt-12 pt-8 border-t border-white/5 flex gap-4">
+                                    <button onClick={() => assignCellManually('team1')} className="flex-1 bg-[#FF6B52]/10 p-5 rounded-2xl border-2 border-[#FF6B52]/30 text-[#FF6B52] font-black text-xl hover:bg-[#FF6B52] hover:text-white transition-all">للبنات 🌸</button>
+                                    <button onClick={() => assignCellManually('team2')} className="flex-1 bg-[#14b8a6]/10 p-5 rounded-2xl border-2 border-[#14b8a6]/30 text-[#14b8a6] font-black text-xl hover:bg-[#14b8a6] hover:text-white transition-all">للأولاد 🧊</button>
                                 </div>
                             </div>
-                        </div>
-                    ) : (
-                        /* The Hexagon Board */
-                        <div className="relative animate-in zoom-in duration-1000 delay-300" style={{ width: `${110 * 6 + 110 / 2}px`, height: `${127 * 0.75 * 5 + 127 / 4}px` }}> {/* Scaled up 1.2x */}
-                            {cells.map(cell => {
-                                const hexW = 110;
-                                const hexH = 127;
-                                const rowH = hexH * 0.75;
-                                const colW = hexW;
-
-                                const isOffset = cell.row % 2 !== 0;
-                                const left = (cell.col * colW) + (isOffset ? colW / 2 : 0);
-                                const top = cell.row * rowH;
-
-                                const isActive = activeCell?.id === cell.id;
-
-                                return (
-                                    <div
-                                        key={cell.id}
-                                        onClick={() => gameStage === 'playing' && selectCell(cell)}
-                                        className={`absolute flex items-center justify-center cursor-pointer transition-all duration-300
-                                            ${isActive ? 'scale-[1.15] z-50 animate-pulse drop-shadow-[0_0_30px_rgba(255,255,255,0.8)]' : 'hover:scale-105 hover:z-40 z-10'}
-                                        `}
-                                        style={{
-                                            left: `${left}px`,
-                                            top: `${top}px`,
-                                            width: `${hexW}px`,
-                                            height: `${hexH}px`,
-                                            clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
-                                        }}
-                                    >
-                                        <div className={`w-full h-full flex flex-col items-center justify-center border-4 border-black/50 bg-gradient-to-br ${getTeamStyle(cell.owner)} transition-colors duration-500 relative`}>
-                                            <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/30 to-transparent"></div> {/* Glass shine */}
-                                            <span className={`text-5xl font-black drop-shadow-xl ${getTeamTextColor(cell.owner)} mt-2`}>
-                                                {cell.letter}
-                                            </span>
-                                        </div>
-                                    </div>
-                                );
-                            })}
                         </div>
                     )}
                 </div>
+            )}
 
-            </div>
+            {/* STAGE: ENDED */}
+            {stage === 'ended' && (
+                <div className="absolute inset-0 z-[200] flex items-center justify-center p-12 bg-black/90 backdrop-blur-3xl animate-in zoom-in duration-700">
+                    <div className="max-w-4xl w-full text-center space-y-12">
+                        <div className="relative inline-block scale-150 mb-20 animate-bounce">
+                            <Crown size={120} className="text-yellow-400 absolute top-[-80px] left-1/2 transform -translate-x-1/2 drop-shadow-[0_0_50px_rgba(250,204,21,0.8)]" />
+                            <div className={`p-16 rounded-[4rem] border-[12px] border-white/20 shadow-2xl transform rotate-3 ${winner === 'team1' ? 'bg-[#FF6B52]' : 'bg-[#14b8a6]'}`}>
+                                <h1 className="text-9xl font-black text-white italic drop-shadow-2xl">{winner === 'team1' ? team1Name : team2Name}</h1>
+                            </div>
+                        </div>
+
+                        <h2 className="text-6xl font-black text-white uppercase tracking-[0.2em] italic drop-shadow-lg">أبطال الإتصال الذهبي! 🏆</h2>
+                        <p className="text-2xl text-gray-400 font-bold max-w-2xl mx-auto leading-relaxed italic">لقد تمكنتم من السيطرة على ساحة الحروف وتحقيق الفوز الساحق بهذا الطريق العبقري. كفـوووووويا أبطاااااال!</p>
+
+                        <div className="flex gap-8 justify-center pt-10">
+                            <button onClick={() => setStage('settings')} className="flex items-center gap-4 bg-white/10 hover:bg-white text-white hover:text-black px-12 py-6 rounded-3xl font-black text-3xl transition-all border-4 border-white/20 hover:scale-105 active:scale-95"><RefreshCw size={32} /> إعادة التحدي</button>
+                            <button onClick={onHome} className="flex items-center gap-4 bg-red-600 hover:bg-red-500 px-12 py-6 rounded-3xl font-black text-3xl text-white transition-all border-4 border-red-400/30 hover:scale-105 active:scale-95"><Home size={32} /> الرئيسية</button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <style>{`
-                .custom-scrollbar-pink::-webkit-scrollbar { width: 4px; }
-                .custom-scrollbar-pink::-webkit-scrollbar-track { background: rgba(236,72,153,0.1); border-radius: 4px; }
-                .custom-scrollbar-pink::-webkit-scrollbar-thumb { background: rgba(236,72,153,0.5); border-radius: 4px; }
-                .custom-scrollbar-blue::-webkit-scrollbar { width: 4px; }
-                .custom-scrollbar-blue::-webkit-scrollbar-track { background: rgba(59,130,246,0.1); border-radius: 4px; }
-                .custom-scrollbar-blue::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.5); border-radius: 4px; }
+                .animate-spin-slow { animation: spin 8s linear infinite; }
+                @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+                .custom-scrollbar-pink::-webkit-scrollbar { width: 6px; }
+                .custom-scrollbar-pink::-webkit-scrollbar-track { background: rgba(255,107,82,0.1); border-radius: 4px; }
+                .custom-scrollbar-pink::-webkit-scrollbar-thumb { background: #FF6B52; border-radius: 4px; }
+                .custom-scrollbar-blue::-webkit-scrollbar { width: 6px; }
+                .custom-scrollbar-blue::-webkit-scrollbar-track { background: rgba(20,184,166,0.1); border-radius: 4px; }
+                .custom-scrollbar-blue::-webkit-scrollbar-thumb { background: #14b8a6; border-radius: 4px; }
             `}</style>
-        </>
+        </div>
     );
 };
