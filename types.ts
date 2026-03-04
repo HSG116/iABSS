@@ -51,10 +51,28 @@ export type ViewState =
   | 'WORD_BUILDER'
   | 'GLASS_BRIDGE_V2'
   | 'FLOOR_IS_LAVA'
-  | 'EMOJI_CODE';
+  | 'EMOJI_CODE'
+  | 'LETTER_GAME'
+  | 'BUZZER_PAD';
 
 // Added GameType to fix import error in TournamentManager.tsx
-export type GameType = 'TRIVIA' | 'BLUR' | 'FLAGS' | 'TYPING' | 'CUPS' | 'GRID' | 'WHEEL' | 'PAINT' | 'BATTLE' | 'BOMB' | 'VOTE' | 'DRAW' | 'FRUIT' | 'LOGO' | 'FORBIDDEN' | 'BOSS' | 'ROULETTE' | 'ZOMBIE' | 'BRIDGE' | 'AUCTION';
+export type GameType = 'TRIVIA' | 'BLUR' | 'FLAGS' | 'TYPING' | 'CUPS' | 'GRID' | 'WHEEL' | 'PAINT' | 'BATTLE' | 'BOMB' | 'VOTE' | 'DRAW' | 'FRUIT' | 'LOGO' | 'FORBIDDEN' | 'BOSS' | 'ROULETTE' | 'ZOMBIE' | 'BRIDGE' | 'AUCTION' | 'LETTER';
+
+export interface LetterQuestion {
+  id: number;
+  letter: string;
+  question: string;
+  answer: string;
+}
+
+export interface HexCellData {
+  id: number;
+  row: number;
+  col: number;
+  letter: string;
+  owner: 'none' | 'team1' | 'team2';
+  isConnecting?: boolean;
+}
 
 export interface Question {
   id: number;

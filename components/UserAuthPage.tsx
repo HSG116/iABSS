@@ -202,6 +202,9 @@ export const UserAuthPage: React.FC<UserAuthPageProps> = ({ onSuccess, onBack })
             };
             localStorage.setItem('iabs_user', JSON.stringify(userData));
 
+            // Mark this device as having an account
+            localStorage.setItem('iabs_device_registered', 'true');
+
             setIsVerified(true);
             setStep('VERIFIED');
             setTimeout(() => {
@@ -252,6 +255,15 @@ export const UserAuthPage: React.FC<UserAuthPageProps> = ({ onSuccess, onBack })
             setFormError('كلمة المرور غير متطابقة'); triggerShake();
             setConfirmPassword(['', '', '', '', '', '']); confirmRefs.current[0]?.focus(); return;
         }
+
+        // --- NEW: Prevent multiple accounts from same device ---
+        const deviceCheck = localStorage.getItem('iabs_device_registered');
+        if (deviceCheck) {
+            setFormError('عذراً، لا يمكنك إنشاء أكثر من حساب واحد من هذا الجهاز.');
+            triggerShake();
+            return;
+        }
+        // ----------------------------------------------------
 
         // Check if kick_username already exists in Supabase
         try {

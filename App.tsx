@@ -25,6 +25,8 @@ import { WordBuilder } from './components/WordBuilder';
 import { GlassBridgeV2 } from './components/GlassBridgeV2';
 import { FloorIsLava } from './components/FloorIsLava';
 import { EmojiCode } from './components/EmojiCode';
+import { LetterHexagonGame } from './components/LetterHexagonGame';
+import { BuzzerPad } from './components/BuzzerPad';
 import { AdminDashboard } from './components/AdminDashboard';
 import { GlobalAnnouncement } from './components/GlobalAnnouncement';
 import { ViewState } from './types';
@@ -450,6 +452,8 @@ const App: React.FC = () => {
       case 'GLASS_BRIDGE_V2': return <GlassBridgeV2 onHome={handleGoHome} isOBS={obsMode} />;
       case 'FLOOR_IS_LAVA': return <FloorIsLava onHome={handleGoHome} isOBS={obsMode} />;
       case 'EMOJI_CODE': return <EmojiCode onHome={handleGoHome} isOBS={obsMode} />;
+      case 'LETTER_GAME': return <LetterHexagonGame onHome={handleGoHome} />;
+      case 'BUZZER_PAD': return <BuzzerPad />;
 
       case 'USER_DASHBOARD': return (
         <div className="flex-1 w-full max-w-7xl mx-auto flex flex-col p-4 md:p-8 animate-in slide-in-from-bottom-20 duration-1000">
@@ -808,6 +812,21 @@ const App: React.FC = () => {
                   </button>
                 )
               )}
+            </div>
+
+            {/* Custom Game Button at the very bottom as requested */}
+            <div className="w-full flex justify-center items-center pb-20 animate-in slide-in-from-bottom duration-1000">
+              <button
+                onClick={() => setCurrentView('LETTER_GAME')}
+                className="group relative bg-[#1a1a2e] px-16 py-8 rounded-[3rem] border-[4px] border-[#31315c] shadow-[0_20px_50px_rgba(0,0,0,0.8)] hover:scale-105 active:scale-95 transition-all overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-[150%] group-hover:translate-x-[150%] transition-transform duration-1000 skew-x-[-35deg] pointer-events-none z-20"></div>
+                <div className="relative z-30 flex items-center justify-center gap-4">
+                  <span className="text-6xl md:text-8xl font-black italic tracking-tighter text-yellow-400 drop-shadow-[0_0_20px_rgba(250,204,21,0.6)] uppercase">حروف</span>
+                  <span className="text-4xl md:text-5xl font-black italic tracking-tighter text-blue-500 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]">مع</span>
+                  <span className="text-6xl md:text-8xl font-black italic tracking-tighter text-red-600 drop-shadow-[0_0_25px_rgba(220,38,38,0.7)] uppercase">حمودي</span>
+                </div>
+              </button>
             </div>
           </div>
         );

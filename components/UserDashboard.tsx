@@ -116,17 +116,6 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ userData, onLogout
                     ))}
                 </nav>
 
-                {/* Logout Button */}
-                {onLogout && (
-                    <button
-                        onClick={onLogout}
-                        className="mt-4 flex items-center gap-4 px-5 py-4 rounded-2xl font-black text-sm text-gray-500 hover:text-white hover:bg-red-600/20 transition-all duration-300 border border-transparent hover:border-red-600/20"
-                    >
-                        <LogOut size={18} />
-                        <span>تسجيل الخروج</span>
-                    </button>
-                )}
-
                 <div className="mt-auto pt-6 border-t border-white/5">
                     <div className="bg-gradient-to-br from-red-600/10 to-transparent p-5 rounded-3xl border border-red-500/10 relative overflow-hidden group">
                         <Sparkles size={40} className="absolute -bottom-2 -right-2 text-red-600/10 group-hover:scale-150 transition-transform duration-700" />
