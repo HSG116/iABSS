@@ -777,6 +777,38 @@ const App: React.FC = () => {
               </div>
             </div>
 
+            {/* Custom Game Button - Under Development State */}
+            <div className="w-full flex flex-col items-center pt-10 pb-10 gap-6 animate-in slide-in-from-bottom duration-1000">
+              <div className="relative">
+                {/* Main Locked Game Button */}
+                <div className="group relative bg-[#0f0f1b] px-16 py-8 rounded-[3rem] border-[4px] border-white/5 shadow-2xl overflow-hidden grayscale opacity-50 cursor-not-allowed">
+                  <div className="relative z-30 flex items-center justify-center gap-4">
+                    <span className="text-6xl md:text-8xl font-black italic tracking-tighter text-yellow-400/50 uppercase">حروف</span>
+                    <span className="text-4xl md:text-5xl font-black italic tracking-tighter text-blue-500/50">مع</span>
+                    <span className="text-6xl md:text-8xl font-black italic tracking-tighter text-red-600/50 uppercase">حمودي</span>
+                  </div>
+                  {/* Badge Overlay */}
+                  <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
+                    <div className="bg-orange-500 text-black px-10 py-2 rounded-full font-black text-2xl -rotate-12 shadow-[0_0_30px_rgba(249,115,22,0.6)] animate-pulse border-4 border-black">
+                      قيد التطوير 🚧
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Development Preview Invitation Button */}
+              <button
+                onClick={() => setCurrentView('LETTER_GAME')}
+                className="group flex flex-col items-center gap-2 hover:scale-105 transition-all active:scale-95"
+              >
+                <div className="bg-gradient-to-r from-violet-600 to-indigo-600 px-10 py-4 rounded-2xl border-2 border-white/20 shadow-xl flex items-center gap-4 text-white font-black text-xl italic hover:from-violet-500 hover:to-indigo-500 transition-all">
+                  <Sparkles className="text-yellow-400 group-hover:rotate-12 transition-transform" />
+                  هل تريد رؤيتها وهي قيد التطوير؟
+                </div>
+                <span className="text-white/30 text-xs font-bold uppercase tracking-[0.3em] group-hover:text-white/50 transition-colors">BETA ACCESS AVAILABLE</span>
+              </button>
+            </div>
+
             <div className="flex flex-wrap justify-center gap-10 md:gap-20 mt-10 pb-10">
               <button onClick={() => setCurrentView('LEADERBOARD')} className="flex items-center gap-4 text-white/40 hover:text-iabs-red font-black text-2xl tracking-[0.2em] transition-all hover:scale-105 group italic">
                 <Trophy size={28} className="group-hover:animate-bounce text-yellow-500 drop-shadow-[0_0_15px_rgba(255,215,0,0.5)]" />
@@ -814,20 +846,6 @@ const App: React.FC = () => {
               )}
             </div>
 
-            {/* Custom Game Button at the very bottom as requested */}
-            <div className="w-full flex justify-center items-center pb-20 animate-in slide-in-from-bottom duration-1000">
-              <button
-                onClick={() => setCurrentView('LETTER_GAME')}
-                className="group relative bg-[#1a1a2e] px-16 py-8 rounded-[3rem] border-[4px] border-[#31315c] shadow-[0_20px_50px_rgba(0,0,0,0.8)] hover:scale-105 active:scale-95 transition-all overflow-hidden"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-[150%] group-hover:translate-x-[150%] transition-transform duration-1000 skew-x-[-35deg] pointer-events-none z-20"></div>
-                <div className="relative z-30 flex items-center justify-center gap-4">
-                  <span className="text-6xl md:text-8xl font-black italic tracking-tighter text-yellow-400 drop-shadow-[0_0_20px_rgba(250,204,21,0.6)] uppercase">حروف</span>
-                  <span className="text-4xl md:text-5xl font-black italic tracking-tighter text-blue-500 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]">مع</span>
-                  <span className="text-6xl md:text-8xl font-black italic tracking-tighter text-red-600 drop-shadow-[0_0_25px_rgba(220,38,38,0.7)] uppercase">حمودي</span>
-                </div>
-              </button>
-            </div>
           </div>
         );
     }
