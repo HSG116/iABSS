@@ -106,7 +106,6 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
     // OBS SYNC - Broadcast state if manager
     useEffect(() => {
         if (isOBS) {
-            // Listen for state updates
             const channel = supabase.channel('letter_game_sync')
                 .on('broadcast', { event: 'STATE_UPDATE' }, (payload) => {
                     const data = payload.payload;
@@ -122,30 +121,52 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                     if (data.winner !== undefined) setWinner(data.winner);
                     if (data.winningPath !== undefined) setWinningPath(data.winningPath);
                     if (data.lobbyPlayers !== undefined) setLobbyPlayers(data.lobbyPlayers);
+                    if (data.team1Name !== undefined) setTeam1Name(data.team1Name);
+                    if (data.team2Name !== undefined) setTeam2Name(data.team2Name);
+                    if (data.entryKeyword !== undefined) setEntryKeyword(data.entryKeyword);
+                    if (data.allowJoin !== undefined) setAllowJoin(data.allowJoin);
                 })
-                .subscribe();
+                .subscribe((status) => {
+                    if (status === 'SUBSCRIBED') {
+                        // Request full state from manager on join
+                        channel.send({ type: 'broadcast', event: 'SYNC_REQUEST', payload: {} });
+                    }
+                });
             return () => { supabase.removeChannel(channel); };
         } else {
-            // Manager: setup channel to broadcast
-            broadcastRef.current = supabase.channel('letter_game_sync').subscribe();
+            // Manager: setup channel and handle sync requests
+            const channel = supabase.channel('letter_game_sync')
+                .on('broadcast', { event: 'SYNC_REQUEST' }, () => {
+                    // Send full state to joining OBS
+                    broadcastFullState(channel);
+                })
+                .subscribe();
+            broadcastRef.current = channel;
+            return () => { supabase.removeChannel(channel); };
         }
     }, [isOBS]);
 
-    // Broadcast logic
-    useEffect(() => {
-        if (!isOBS && broadcastRef.current) {
-            broadcastRef.current.send({
+    const broadcastFullState = (channelOverride?: any) => {
+        const chan = channelOverride || broadcastRef.current;
+        if (!isOBS && chan) {
+            chan.send({
                 type: 'broadcast',
                 event: 'STATE_UPDATE',
                 payload: {
                     cells, stage, activeCell, currentQuestion,
                     buzzedTeam, buzzedPlayer, answerTimer,
                     lastAnswer, triedTeams, winner, winningPath,
-                    lobbyPlayers
+                    lobbyPlayers, team1Name, team2Name, entryKeyword, allowJoin
                 }
             });
         }
-    }, [cells, stage, activeCell, currentQuestion, buzzedTeam, buzzedPlayer, answerTimer, lastAnswer, triedTeams, winner, winningPath, lobbyPlayers, isOBS]);
+    };
+
+    useEffect(() => {
+        if (!isOBS && broadcastRef.current) {
+            broadcastFullState();
+        }
+    }, [cells, stage, activeCell, currentQuestion, buzzedTeam, buzzedPlayer, answerTimer, lastAnswer, triedTeams, winner, winningPath, lobbyPlayers, team1Name, team2Name, entryKeyword, allowJoin, isOBS]);
 
     // Chat listener (Main Bell Game logic)
     useEffect(() => {
@@ -625,15 +646,6 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                     {/* Background elements - Hide in OBS for transparency if needed */}
                     {!isOBS && <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,#5A22A322,transparent)] pointer-events-none"></div>}
 
-                    {/* LOBBY / JOIN BUTTONS - Only for Manager */}
-                    {!isOBS && stage === 'lobby' && (
-                        <div className="absolute bottom-10 left-10 z-50 flex gap-4">
-                            <button onClick={() => setAllowJoin(!allowJoin)} className={`px-8 py-4 rounded-2xl font-black text-xl transition-all shadow-xl ${allowJoin ? 'bg-kick-green text-black border-4 border-white animate-pulse' : 'bg-red-600 text-white'}`}>
-                                {allowJoin ? '🔴 إيقاف الإنتظام' : '🟢 فتح الإنتظام'}
-                            </button>
-                            <button onClick={startGame} className="bg-white text-black px-12 py-4 rounded-2xl font-black text-2xl shadow-2xl hover:scale-105 active:scale-95 transition-all">ابدأ اللعبة 🚀</button>
-                        </div>
-                    )}
                     <div className="absolute inset-0 z-0 pointer-events-none" style={{ background: 'conic-gradient(from -45deg at 50% 50%, #FF6B52 0deg 90deg, #14b8a6 90deg 180deg, #FF6B52 180deg 270deg, #14b8a6 270deg 360deg)' }} />
 
                     {/* Left Panel: Girls */}
