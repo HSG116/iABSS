@@ -3,7 +3,7 @@ import { chatService } from '../services/chatService';
 import { supabase } from '../services/supabase';
 import { LETTER_GAME_QUESTIONS } from '../data/letter_game_data';
 import { HexCellData, LetterQuestion } from '../types';
-import { Home, LogOut, Check, X, Shield, Trophy, Smartphone, AlertTriangle, Users, Play, Settings, Paintbrush, Clock, ListOrdered, BrainCircuit, PartyPopper, RefreshCw, ArrowLeft, ArrowRight, Stars, Sparkles, Crown, Heart } from 'lucide-react';
+import { Home, LogOut, Check, X, Shield, Trophy, Smartphone, AlertTriangle, Users, Play, Settings, Paintbrush, Clock, ListOrdered, BrainCircuit, PartyPopper, RefreshCw, ArrowLeft, ArrowRight, Stars, Sparkles, Crown, Heart, BellRing, Volume2 } from 'lucide-react';
 import { ProAvatar } from './ProAvatar';
 
 interface LetterHexagonGameProps {
@@ -58,7 +58,6 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome }) 
     const [cells, setCells] = useState<HexCellData[]>([]);
     const [activeCell, setActiveCell] = useState<HexCellData | null>(null);
     const [currentQuestion, setCurrentQuestion] = useState<LetterQuestion | null>(null);
-    const [fastestPlayer, setFastestPlayer] = useState<{ name: string, team: 'team1' | 'team2', time: number, avatar?: string } | null>(null);
     const [winner, setWinner] = useState<'team1' | 'team2' | null>(null);
     const [winningPath, setWinningPath] = useState<number[]>([]);
 
@@ -66,10 +65,17 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome }) 
     const [entryKeyword, setEntryKeyword] = useState('دخول');
     const [allowJoin, setAllowJoin] = useState(false);
     const [difficulty, setDifficulty] = useState<'normal' | 'hard'>('normal');
-    const [answerMode, setAnswerMode] = useState<'buzzer' | 'chat'>('buzzer');
-    const [timerDuration, setTimerDuration] = useState(15);
+    const [answerMode, setAnswerMode] = useState<'buzzer' | 'chat'>('chat');
+    const [timerDuration, setTimerDuration] = useState(7);
     const [team1Name, setTeam1Name] = useState('فريق البنات 🌸');
     const [team2Name, setTeam2Name] = useState('فريق الأولاد 🧊');
+
+    // Chat Bell Game Logic
+    const [buzzedTeam, setBuzzedTeam] = useState<'team1' | 'team2' | null>(null);
+    const [buzzedPlayer, setBuzzedPlayer] = useState<Player | null>(null);
+    const [answerTimer, setAnswerTimer] = useState<number>(0);
+    const [triedTeams, setTriedTeams] = useState<('team1' | 'team2')[]>([]);
+    const [lastAnswer, setLastAnswer] = useState<{ text: string, correct: boolean | null }>({ text: '', correct: null });
 
     const channelRef = useRef<any>(null);
 
@@ -95,7 +101,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome }) 
     const boardWidth = 6 * X_OFFSET + X_OFFSET / 2;
     const boardHeight = 4 * Y_OFFSET + HEX_HEIGHT + STROKE_WIDTH;
 
-    // Chat listener
+    // Chat listener (Main Bell Game logic)
     useEffect(() => {
         const cleanup = chatService.onMessage(async (msg) => {
             if (stage === 'lobby' && allowJoin && msg.content.trim() === entryKeyword) {
@@ -110,39 +116,77 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome }) 
                     setLobbyPlayers(prev => prev.map(p => p.username === u ? { ...p, avatar } : p));
                 });
             }
-            if (stage === 'playing' && answerMode === 'chat' && activeCell && currentQuestion && !fastestPlayer) {
-                setFastestPlayer({
-                    name: msg.user.username,
-                    team: lobbyPlayers.find(p => p.username === msg.user.username)?.team || getTeamByColor(msg.user.color),
-                    time: Date.now(),
+
+            if (stage === 'playing' && activeCell && currentQuestion) {
+                const content = msg.content.trim();
+                const u = msg.user.username;
+                const player = lobbyPlayers.find(p => p.username === u) || {
+                    username: u,
+                    team: getTeamByColor(msg.user.color || '#ffffff'),
                     avatar: msg.user.avatar || '',
-                });
-                playSfx('buzz');
+                    color: msg.user.color || '#ffffff'
+                };
+
+                // Phase 1: Wait for "جرس"
+                if (!buzzedTeam) {
+                    const isBell = content === 'جرس' || content.toLowerCase() === 'jaras';
+                    if (isBell) {
+                        // Check if this team is allowed to buzz
+                        // If one team tried and failed, only the other team can buzz
+                        if (triedTeams.length === 1 && triedTeams[0] === player.team) {
+                            return; // Not your turn
+                        }
+
+                        setBuzzedTeam(player.team);
+                        setBuzzedPlayer(player);
+                        setAnswerTimer(timerDuration);
+                        setLastAnswer({ text: '', correct: null });
+                        playSfx('buzz');
+                        return;
+                    }
+                }
+
+                // Phase 2: Wait for answer from the buzzed player/team
+                if (buzzedTeam && player.team === buzzedTeam) {
+                    const normAns = normalize(content);
+                    const normCorrect = normalize(currentQuestion.answer);
+
+                    if (normAns === normCorrect) {
+                        // Correct!
+                        setLastAnswer({ text: content, correct: true });
+                        playSfx('correct');
+                        setTimeout(() => finalizeRound(true, buzzedTeam), 1500);
+                    } else {
+                        // Wrong!
+                        setLastAnswer({ text: content, correct: false });
+                        playSfx('wrong');
+                        setTimeout(() => handleWrongAnswer(), 1500);
+                    }
+                }
             }
         });
         return cleanup;
-    }, [stage, allowJoin, entryKeyword, answerMode, activeCell, currentQuestion, fastestPlayer, lobbyPlayers]);
+    }, [stage, allowJoin, entryKeyword, activeCell, currentQuestion, buzzedTeam, lobbyPlayers, triedTeams, timerDuration]);
 
-    // Buzzer listener
-    useEffect(() => {
-        if (answerMode !== 'buzzer') return;
-        channelRef.current = supabase.channel('buzzer_channel')
-            .on('broadcast', { event: 'BUZZ' }, (payload) => {
-                if (stage !== 'playing' || !currentQuestion || fastestPlayer) return;
-                const { username, team, timestamp, avatar } = payload.payload;
-                setFastestPlayer({ name: username, team: team, time: timestamp, avatar: avatar });
-                playSfx('buzz');
-            })
-            .subscribe();
-        return () => { if (channelRef.current) supabase.removeChannel(channelRef.current); };
-    }, [stage, currentQuestion, fastestPlayer, answerMode]);
+    // No longer using Supabase buzzer channel as the game is now "Direct Chat Only"
 
-    const playSfx = (type: 'buzz' | 'correct' | 'wrong' | 'win') => {
+    const normalize = (val: string) => {
+        return val.trim().toLowerCase()
+            .replace(/[أإآ]/g, 'ا')
+            .replace(/ة/g, 'ه')
+            .replace(/ى/g, 'ي')
+            .replace(/[ؤئ]/g, 'ء')
+            .replace(/[\u064B-\u0652]/g, '')
+            .trim();
+    };
+
+    const playSfx = (type: 'buzz' | 'correct' | 'wrong' | 'win' | 'timer') => {
         const urls = {
             buzz: 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3',
             correct: 'https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3',
             wrong: 'https://assets.mixkit.co/active_storage/sfx/2959/2959-preview.mp3',
-            win: 'https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3'
+            win: 'https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3',
+            timer: 'https://assets.mixkit.co/active_storage/sfx/2803/2803-preview.mp3'
         };
         try { const audio = new Audio(urls[type]); audio.volume = 0.6; audio.play(); } catch (e) { }
     };
@@ -217,38 +261,71 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome }) 
         return null;
     };
 
-    const markAnswer = (isCorrect: boolean) => {
-        if (!activeCell || !fastestPlayer) return;
-        const winningTeam = isCorrect ? fastestPlayer.team : (fastestPlayer.team === 'team1' ? 'team2' : 'team1');
-        isCorrect ? playSfx('correct') : playSfx('wrong');
+    const handleWrongAnswer = () => {
+        if (!buzzedTeam) return;
 
-        const nextCells = cells.map(c => c.id === activeCell.id ? { ...c, owner: winningTeam } : c);
-        setCells(nextCells);
-        setActiveCell(null);
-        setCurrentQuestion(null);
-        setFastestPlayer(null);
-        checkWin(nextCells);
+        const newTried = [...triedTeams, buzzedTeam];
+        setTriedTeams(newTried);
+        setBuzzedTeam(null);
+        setBuzzedPlayer(null);
+        setAnswerTimer(0);
+        setLastAnswer({ text: '', correct: null });
+
+        if (newTried.length >= 2) {
+            // Both teams failed, reset to allow anyone
+            setTriedTeams([]);
+            // Keep question open for anyone
+        }
     };
 
-    const assignCellManually = (team: 'team1' | 'team2') => {
+    const finalizeRound = (isCorrect: boolean, team: 'team1' | 'team2') => {
         if (!activeCell) return;
-        const nextCells = cells.map(c => c.id === activeCell.id ? { ...c, owner: team } : c);
+        const owner = isCorrect ? team : (team === 'team1' ? 'team2' : 'team1');
+        const nextCells = cells.map(c => c.id === activeCell.id ? { ...c, owner } : c);
         setCells(nextCells);
         setActiveCell(null);
         setCurrentQuestion(null);
-        setFastestPlayer(null);
+        setBuzzedTeam(null);
+        setBuzzedPlayer(null);
+        setAnswerTimer(0);
+        setTriedTeams([]);
+        setLastAnswer({ text: '', correct: null });
         checkWin(nextCells);
     };
 
     const selectCell = (cell: HexCellData) => {
         if (cell.owner !== 'none' || winner) return;
         setActiveCell(cell);
-        setFastestPlayer(null);
+        setBuzzedTeam(null);
+        setBuzzedPlayer(null);
+        setAnswerTimer(0);
+        setTriedTeams([]);
+        setLastAnswer({ text: '', correct: null });
 
         const availableQs = LETTER_GAME_QUESTIONS.filter(q => q.letter === cell.letter);
         const randomQ = availableQs[Math.floor(Math.random() * availableQs.length)];
         setCurrentQuestion(randomQ || { id: 999, letter: cell.letter, question: `سؤال صعب لحرف ${cell.letter}؟`, answer: 'الجواب' });
     };
+
+    // Timer Effect
+    useEffect(() => {
+        if (answerTimer > 0 && buzzedTeam) {
+            const t = setInterval(() => {
+                setAnswerTimer(prev => {
+                    if (prev <= 1) {
+                        clearInterval(t);
+                        // Show "Time Out" for a brief moment
+                        setLastAnswer({ text: 'انتهى الوقت!', correct: false });
+                        playSfx('wrong');
+                        setTimeout(() => handleWrongAnswer(), 2000);
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+            return () => clearInterval(t);
+        }
+    }, [answerTimer, buzzedTeam]);
 
     const girls = lobbyPlayers.filter(p => p.team === 'team1');
     const boys = lobbyPlayers.filter(p => p.team === 'team2');
@@ -302,10 +379,10 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome }) 
                             </div>
                             <div className="space-y-6">
                                 <div className="bg-white/5 p-6 rounded-[2rem] border-2 border-white/5">
-                                    <label className="flex items-center gap-3 text-sm font-black text-gray-400 mb-4 tracking-widest uppercase"><Smartphone size={18} className="text-purple-500" /> نظام الإجابة</label>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <button onClick={() => setAnswerMode('buzzer')} className={`py-5 rounded-2xl text-lg font-black border-2 transition-all ${answerMode === 'buzzer' ? 'bg-purple-600 border-white text-white shadow-xl' : 'bg-black/50 border-white/10 text-gray-500 opacity-50'}`}>جرس ذكي</button>
-                                        <button onClick={() => setAnswerMode('chat')} className={`py-5 rounded-2xl text-lg font-black border-2 transition-all ${answerMode === 'chat' ? 'bg-purple-600 border-white text-white shadow-xl' : 'bg-black/50 border-white/10 text-gray-500 opacity-50'}`}>شات المباشر</button>
+                                    <label className="flex items-center gap-3 text-sm font-black text-gray-400 mb-4 tracking-widest uppercase"><BellRing size={18} className="text-purple-500" /> نظام اللعب</label>
+                                    <div className="bg-purple-600/20 border-2 border-purple-500/50 p-5 rounded-2xl text-center">
+                                        <div className="text-xl font-black text-purple-400 italic">نظام الجرس المباشر (شات)</div>
+                                        <div className="text-[10px] text-white/40 mt-1 uppercase tracking-widest font-black">اكتب "جرس" في الشات للرن</div>
                                     </div>
                                 </div>
                                 <div className="bg-white/5 p-6 rounded-[2rem] border-2 border-white/5">
@@ -471,34 +548,73 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome }) 
                                     <span className="text-4xl font-black text-emerald-100 blur-lg group-hover:blur-0 transition-all duration-300">{currentQuestion.answer}</span>
                                 </div>
 
-                                {fastestPlayer ? (
+                                {buzzedTeam ? (
                                     <div className="space-y-8 animate-in zoom-in">
-                                        <div className={`p-8 rounded-[2rem] border-8 flex items-center justify-between gap-8 ${fastestPlayer.team === 'team1' ? 'border-[#FF6B52] bg-[#FF6B52]/10' : 'border-[#14b8a6] bg-[#14b8a6]/10'}`}>
+                                        <div className={`p-8 rounded-[2rem] border-8 flex items-center justify-between gap-8 ${buzzedTeam === 'team1' ? 'border-[#FF6B52] bg-[#FF6B52]/10' : 'border-[#14b8a6] bg-[#14b8a6]/10'}`}>
                                             <div className="flex items-center gap-6">
-                                                <ProAvatar username={fastestPlayer.name} url={fastestPlayer.avatar} size="w-32 h-32" />
+                                                {buzzedPlayer && <ProAvatar username={buzzedPlayer.username} url={buzzedPlayer.avatar} size="w-32 h-32" />}
                                                 <div className="text-right">
-                                                    <div className="text-white font-black text-5xl italic">{fastestPlayer.name}</div>
-                                                    <div className={`text-2xl font-black mt-2 ${fastestPlayer.team === 'team1' ? 'text-[#FF6B52]' : 'text-[#14b8a6]'}`}>{fastestPlayer.team === 'team1' ? team1Name : team2Name}</div>
+                                                    <div className="text-white font-black text-5xl italic">{buzzedPlayer?.username}</div>
+                                                    <div className={`text-2xl font-black mt-2 ${buzzedTeam === 'team1' ? 'text-[#FF6B52]' : 'text-[#14b8a6]'}`}>{buzzedTeam === 'team1' ? team1Name : team2Name}</div>
                                                 </div>
                                             </div>
-                                            <div className="text-6xl font-black text-white/20 italic tracking-tighter">🔔 CLICKED!</div>
+                                            <div className="flex flex-col items-center gap-2">
+                                                <div className="text-7xl font-black text-white italic tracking-tighter tabular-nums drop-shadow-[0_0_20px_rgba(255,255,255,0.4)]">
+                                                    {answerTimer}s
+                                                </div>
+                                                <div className="text-xs font-black text-white/40 uppercase tracking-widest">المتبقي للإجابة</div>
+                                            </div>
                                         </div>
-                                        <div className="flex gap-6">
-                                            <button onClick={() => markAnswer(true)} className="flex-1 bg-emerald-600 hover:bg-emerald-500 py-8 rounded-3xl font-black text-4xl text-white shadow-2xl border-b-8 border-emerald-800 transition-all flex items-center justify-center gap-4"><Check size={40} /> صحيح</button>
-                                            <button onClick={() => markAnswer(false)} className="flex-1 bg-red-600 hover:bg-red-500 py-8 rounded-3xl font-black text-4xl text-white shadow-2xl border-b-8 border-red-800 transition-all flex items-center justify-center gap-4"><X size={40} /> خـطـأ</button>
-                                        </div>
+
+                                        {lastAnswer.text ? (
+                                            <div className={`p-6 rounded-3xl border-4 text-center animate-in slide-in-from-bottom flex flex-col items-center gap-3 ${lastAnswer.correct === true ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' : 'bg-red-500/20 border-red-500 text-red-400'}`}>
+                                                <div className="text-sm font-black uppercase tracking-widest opacity-60">الإجابة المكتوبة:</div>
+                                                <div className="text-4xl font-black">{lastAnswer.text}</div>
+                                                <div className="p-3 bg-white/10 rounded-full">
+                                                    {lastAnswer.correct === true ? <Check size={32} /> : <X size={32} />}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-col items-center gap-6 animate-pulse p-10 bg-white/5 rounded-3xl border-2 border-dashed border-white/10">
+                                                <BrainCircuit size={64} className="text-purple-500" />
+                                                <h4 className="text-3xl font-black text-white italic">اكتب الإجابة في الشات !!</h4>
+                                            </div>
+                                        )}
                                     </div>
                                 ) : (
-                                    <div className="flex flex-col items-center gap-6 animate-pulse p-10 bg-white/5 rounded-3xl border-2 border-dashed border-white/10">
-                                        <Smartphone size={64} className="text-purple-500" />
-                                        <h4 className="text-3xl font-black text-white italic">بإنتظار ضغطة الجرس...</h4>
-                                        <p className="text-gray-500 font-bold uppercase tracking-widest text-sm">أو الإجابة في الشات (حسب الإعدادات)</p>
+                                    <div className="flex flex-col items-center gap-8 p-10 bg-white/5 rounded-3xl border-2 border-dashed border-white/10 relative overflow-hidden">
+                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-[shimmer_2s_infinite]"></div>
+
+                                        <div className="flex gap-12 items-center">
+                                            <div className={`flex flex-col items-center gap-2 transition-opacity ${triedTeams.includes('team1') ? 'opacity-20 grayscale' : 'opacity-100'}`}>
+                                                <div className="w-16 h-16 rounded-2xl bg-[#FF6B52] border-4 border-[#5A22A3] flex items-center justify-center text-white shadow-lg">🌸</div>
+                                                <span className="text-[10px] font-black text-[#FF6B52] uppercase mt-1">البنات</span>
+                                            </div>
+
+                                            <div className="flex flex-col items-center gap-4">
+                                                <div className="w-24 h-24 bg-[#5A22A3] rounded-[2rem] flex items-center justify-center shadow-2xl animate-bounce border-4 border-white/20">
+                                                    <BellRing size={48} className="text-white" />
+                                                </div>
+                                                <h4 className="text-4xl font-black text-white italic tracking-tight">أكتب "جرس" للرن!</h4>
+                                            </div>
+
+                                            <div className={`flex flex-col items-center gap-2 transition-opacity ${triedTeams.includes('team2') ? 'opacity-20 grayscale' : 'opacity-100'}`}>
+                                                <div className="w-16 h-16 rounded-2xl bg-[#14b8a6] border-4 border-[#5A22A3] flex items-center justify-center text-white shadow-lg">🧊</div>
+                                                <span className="text-[10px] font-black text-[#14b8a6] uppercase mt-1">الأولاد</span>
+                                            </div>
+                                        </div>
+
+                                        {triedTeams.length === 1 && (
+                                            <div className="bg-red-500/20 text-red-500 px-6 py-2 rounded-full font-black text-sm border border-red-500/30 animate-pulse">
+                                                ⚠️ الفريق الأول أخطأ.. الدور للفريق الثاني!
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 
-                                <div className="mt-12 pt-8 border-t border-white/5 flex gap-4">
-                                    <button onClick={() => assignCellManually('team1')} className="flex-1 bg-[#FF6B52]/10 p-5 rounded-2xl border-2 border-[#FF6B52]/30 text-[#FF6B52] font-black text-xl hover:bg-[#FF6B52] hover:text-white transition-all">للبنات 🌸</button>
-                                    <button onClick={() => assignCellManually('team2')} className="flex-1 bg-[#14b8a6]/10 p-5 rounded-2xl border-2 border-[#14b8a6]/30 text-[#14b8a6] font-black text-xl hover:bg-[#14b8a6] hover:text-white transition-all">للأولاد 🧊</button>
+                                <div className="mt-12 pt-8 border-t border-white/5 flex gap-4 opacity-30 hover:opacity-100 transition-opacity">
+                                    <button onClick={() => finalizeRound(true, 'team1')} className="flex-1 bg-[#FF6B52]/10 p-5 rounded-2xl border-2 border-[#FF6B52]/30 text-[#FF6B52] font-black text-xl hover:bg-[#FF6B52] hover:text-white transition-all">تخطي للبنات 🌸</button>
+                                    <button onClick={() => finalizeRound(true, 'team2')} className="flex-1 bg-[#14b8a6]/10 p-5 rounded-2xl border-2 border-[#14b8a6]/30 text-[#14b8a6] font-black text-xl hover:bg-[#14b8a6] hover:text-white transition-all">تخطي للأولاد 🧊</button>
                                 </div>
                             </div>
                         </div>
