@@ -781,12 +781,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                 <h1 className="text-7xl font-black italic text-white drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]">بإنتظار المحاربين...</h1>
                                 <div className="flex items-center justify-center gap-4 mt-4">
                                     <div className={`px-10 py-3 rounded-full border-4 border-white font-black text-2xl transition-all shadow-xl ${allowJoin ? 'bg-emerald-500 animate-bounce' : 'bg-red-600'}`}>
-                                        {allowJoin ? (
-                                            <div className="flex flex-col items-center">
-                                                <span>أكتب [ {entryKeyword} ] في الشات للانضمام!</span>
-                                                <span className="text-sm opacity-80 mt-1">(اللون الأحمر/الوردي للنساء • اللون الأزرق/الأخضر للرجال)</span>
-                                            </div>
-                                        ) : 'الانضمام مغلق الآن'}
+                                        {allowJoin ? `أكتب [ ${entryKeyword} ] في الشات للانضمام!` : 'الانضمام مغلق الآن'}
                                     </div>
                                     <button onClick={() => broadcastFullState()} title="تحديث OBS يدوياً" className="p-3 bg-white/10 hover:bg-white/20 rounded-full border-2 border-white/20 text-white transition-all active:scale-95">
                                         <RefreshCw size={24} />
@@ -815,19 +810,47 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                         <div className="flex-1 grid grid-cols-2 gap-12 overflow-hidden">
                             {/* Girls Section */}
                             <div className="bg-[#FF6B52]/10 backdrop-blur-2xl border-4 border-[#FF6B52]/50 rounded-[4rem] p-10 flex flex-col items-center relative overflow-hidden shadow-2xl">
-                                <div className="absolute top-0 left-0 w-full h-2 bg-[#FF6B52]"></div>
-                                <div className="flex items-center gap-4 mb-10 w-full justify-center">
-                                    <div className="text-8xl font-black text-[#FF6B52] drop-shadow-lg">{women.length}</div>
+                                <div className="absolute top-0 left-0 w-full h-3 flex overflow-hidden">
+                                    {women.length > 0 ? (
+                                        women.slice(-50).map((p, i) => (
+                                            <div key={i} className="flex-1 h-full animate-in slide-in-from-right duration-500" style={{ backgroundColor: p.color, boxShadow: `0 0 15px ${p.color}` }}></div>
+                                        ))
+                                    ) : (
+                                        <div className="w-full h-full bg-[#FF6B52]"></div>
+                                    )}
+                                </div>
+                                <div className="flex items-center gap-4 mb-6 w-full justify-center mt-4">
+                                    <div className="text-9xl font-black text-[#FF6B52] drop-shadow-[0_0_30px_rgba(255,107,82,0.5)]">{women.length}</div>
                                     <div className="text-right">
-                                        <h3 className="text-4xl font-black text-white">{team1Name}</h3>
-                                        <p className="text-[#FF6B52] font-black tracking-widest opacity-60">نخبة النساء</p>
+                                        <h3 className="text-5xl font-black text-white italic tracking-tighter drop-shadow-lg">{team1Name}</h3>
+                                        <div className="flex items-center gap-3 mt-2">
+                                            <span className="text-[10px] font-bold text-[#FF6B52]/60 uppercase tracking-widest">ألوان الفريق:</span>
+                                            <div className="flex gap-1.5">
+                                                {['#FF0000', '#FF6B52', '#FF1493', '#800080', '#FFFFFF'].map(c => (
+                                                    <div key={c} className="w-3 h-3 rounded-full border border-white/20 shadow-sm" style={{ backgroundColor: c }}></div>
+                                                ))}
+                                            </div>
+                                        </div>
                                     </div>
+                                </div>
+                                {/* Live Color Spectrum */}
+                                <div className="w-full px-12 mb-10">
+                                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden flex gap-0.5 p-0.5 border border-white/10">
+                                        {women.map((p, i) => (
+                                            <div key={i} className="flex-1 h-full rounded-sm" style={{ backgroundColor: p.color }}></div>
+                                        ))}
+                                        {women.length === 0 && <div className="w-full h-full bg-transparent"></div>}
+                                    </div>
+                                    <p className="text-[10px] font-black text-[#FF6B52]/40 text-center uppercase tracking-[0.3em] mt-2">Team Color Spectrum</p>
                                 </div>
                                 <div className="flex-1 w-full grid grid-cols-6 gap-6 overflow-y-auto content-start custom-scrollbar-pink pr-4 pb-10">
                                     {women.map(p => (
-                                        <div key={p.username} className="flex flex-col items-center gap-2 animate-in zoom-in duration-500">
-                                            <ProAvatar username={p.username} url={p.avatar} size="w-20 h-20" />
-                                            <span className="text-[10px] font-black text-white/50 truncate w-full text-center">{p.username}</span>
+                                        <div key={p.username} className="flex flex-col items-center gap-2 animate-in zoom-in duration-500 group">
+                                            <div className="relative p-1.5 rounded-[2rem] transition-all group-hover:scale-110 shadow-2xl" style={{ background: `conic-gradient(from 0deg, ${p.color}, transparent, ${p.color})` }}>
+                                                <ProAvatar username={p.username} url={p.avatar} size="w-24 h-24" />
+                                                <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full border-4 border-[#0f0f1b] shadow-xl animate-pulse" style={{ backgroundColor: p.color }}></div>
+                                            </div>
+                                            <span className="text-xs font-black truncate w-full text-center mt-2 group-hover:scale-110 transition-transform" style={{ color: p.color, textShadow: `0 0 10px ${p.color}44` }}>{p.username}</span>
                                         </div>
                                     ))}
                                     {allowJoin && <div className="w-20 h-20 rounded-[1.5rem] border-4 border-dashed border-white/10 flex items-center justify-center text-white/10 animate-pulse"><Users /></div>}
@@ -839,19 +862,47 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
 
                             {/* Boys Section */}
                             <div className="bg-[#14b8a6]/10 backdrop-blur-2xl border-4 border-[#14b8a6]/50 rounded-[4rem] p-10 flex flex-col items-center relative overflow-hidden shadow-2xl">
-                                <div className="absolute top-0 left-0 w-full h-2 bg-[#14b8a6]"></div>
-                                <div className="flex items-center gap-4 mb-10 w-full justify-center">
-                                    <div className="text-8xl font-black text-[#14b8a6] drop-shadow-lg">{men.length}</div>
+                                <div className="absolute top-0 left-0 w-full h-3 flex overflow-hidden">
+                                    {men.length > 0 ? (
+                                        men.slice(-50).map((p, i) => (
+                                            <div key={i} className="flex-1 h-full animate-in slide-in-from-left duration-500" style={{ backgroundColor: p.color, boxShadow: `0 0 15px ${p.color}` }}></div>
+                                        ))
+                                    ) : (
+                                        <div className="w-full h-full bg-[#14b8a6]"></div>
+                                    )}
+                                </div>
+                                <div className="flex items-center gap-4 mb-6 w-full justify-center mt-4">
+                                    <div className="text-9xl font-black text-[#14b8a6] drop-shadow-[0_0_30px_rgba(20,184,166,0.5)]">{men.length}</div>
                                     <div className="text-right">
-                                        <h3 className="text-4xl font-black text-white">{team2Name}</h3>
-                                        <p className="text-[#14b8a6] font-black tracking-widest opacity-60">نخبة الرجال</p>
+                                        <h3 className="text-5xl font-black text-white italic tracking-tighter drop-shadow-lg">{team2Name}</h3>
+                                        <div className="flex items-center gap-3 mt-2">
+                                            <span className="text-[10px] font-bold text-[#14b8a6]/60 uppercase tracking-widest">ألوان الفريق:</span>
+                                            <div className="flex gap-1.5">
+                                                {['#FFA500', '#FFFF00', '#00FF00', '#14b8a6', '#00BFFF'].map(c => (
+                                                    <div key={c} className="w-3 h-3 rounded-full border border-white/20 shadow-sm" style={{ backgroundColor: c }}></div>
+                                                ))}
+                                            </div>
+                                        </div>
                                     </div>
+                                </div>
+                                {/* Live Color Spectrum */}
+                                <div className="w-full px-12 mb-10">
+                                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden flex gap-0.5 p-0.5 border border-white/10">
+                                        {men.map((p, i) => (
+                                            <div key={i} className="flex-1 h-full rounded-sm" style={{ backgroundColor: p.color }}></div>
+                                        ))}
+                                        {men.length === 0 && <div className="w-full h-full bg-transparent"></div>}
+                                    </div>
+                                    <p className="text-[10px] font-black text-[#14b8a6]/40 text-center uppercase tracking-[0.3em] mt-2">Team Color Spectrum</p>
                                 </div>
                                 <div className="flex-1 w-full grid grid-cols-6 gap-6 overflow-y-auto content-start custom-scrollbar-blue pr-4 pb-10">
                                     {men.map(p => (
-                                        <div key={p.username} className="flex flex-col items-center gap-2 animate-in zoom-in duration-500">
-                                            <ProAvatar username={p.username} url={p.avatar} size="w-20 h-20" />
-                                            <span className="text-[10px] font-black text-white/50 truncate w-full text-center">{p.username}</span>
+                                        <div key={p.username} className="flex flex-col items-center gap-2 animate-in zoom-in duration-500 group">
+                                            <div className="relative p-1.5 rounded-[2rem] transition-all group-hover:scale-110 shadow-2xl" style={{ background: `conic-gradient(from 0deg, ${p.color}, transparent, ${p.color})` }}>
+                                                <ProAvatar username={p.username} url={p.avatar} size="w-24 h-24" />
+                                                <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full border-4 border-[#0f0f1b] shadow-xl animate-pulse" style={{ backgroundColor: p.color }}></div>
+                                            </div>
+                                            <span className="text-xs font-black truncate w-full text-center mt-2 group-hover:scale-110 transition-transform" style={{ color: p.color, textShadow: `0 0 10px ${p.color}44` }}>{p.username}</span>
                                         </div>
                                     ))}
                                     {allowJoin && <div className="w-20 h-20 rounded-[1.5rem] border-4 border-dashed border-white/10 flex items-center justify-center text-white/10 animate-pulse"><Users /></div>}
