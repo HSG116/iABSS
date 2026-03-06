@@ -85,7 +85,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
     const broadcastRef = useRef<any>(null);
 
     // Board Geometry (Matching image-match quality)
-    const HEX_SIZE = 55;
+    const HEX_SIZE = isOBS ? 75 : 55; // Increased for OBS to fit large letters
     const HEX_WIDTH = Math.sqrt(3) * HEX_SIZE;
     const HEX_HEIGHT = 2 * HEX_SIZE;
     const X_OFFSET = HEX_WIDTH;
@@ -766,7 +766,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                     <div className={`w-full h-full flex flex-col items-center justify-center transition-all duration-700 ${isOBS ? 'scale-[0.5] overflow-visible' : ''} ${isOBS && activeCell ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
 
                         {/* Left Panel: Girls (Repositioned to corner for OBS) */}
-                        <div className={`absolute z-30 flex flex-col items-center transition-all ${isOBS ? 'top-10 right-10 scale-90' : 'top-10 right-10'}`}>
+                        <div className={`absolute z-30 flex flex-col items-center transition-all ${isOBS ? 'top-[-80px] right-10 scale-90' : 'top-10 right-10'}`}>
                             <div className={`${isOBS ? 'bg-[#FF6B52]/90 backdrop-blur-xl border-white/30' : 'bg-[#FF6B52] border-[#5A22A3]'} border-4 rounded-[2.5rem] px-8 py-4 text-center shadow-[0_12px_24px_rgba(0,0,0,0.3)] transform -rotate-1`}>
                                 <h2 className="text-white font-black text-2xl drop-shadow-md">{team1Name}</h2>
                                 <div className="mt-3 flex flex-wrap justify-center gap-1 max-w-[150px]">
@@ -776,7 +776,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                         </div>
 
                         {/* Right Panel: Boys (Repositioned to corner for OBS) */}
-                        <div className={`absolute z-30 flex flex-col items-center transition-all ${isOBS ? 'top-10 left-10 scale-90' : 'top-10 left-10'}`}>
+                        <div className={`absolute z-30 flex flex-col items-center transition-all ${isOBS ? 'top-[-80px] left-10 scale-90' : 'top-10 left-10'}`}>
                             <div className={`${isOBS ? 'bg-[#14b8a6]/90 backdrop-blur-xl border-white/30' : 'bg-[#14b8a6] border-[#5A22A3]'} border-4 rounded-[2.5rem] px-8 py-4 text-center shadow-[0_12px_24px_rgba(0,0,0,0.3)] transform rotate-1`}>
                                 <h2 className="text-white font-black text-2xl drop-shadow-md">{team2Name}</h2>
                                 <div className="mt-3 flex flex-wrap justify-center gap-1 max-w-[150px]">
@@ -786,7 +786,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                         </div>
 
                         {/* Center Header */}
-                        <div className={`absolute ${isOBS ? 'top-[-50px]' : 'top-10'} left-1/2 transform -translate-x-1/2 z-20 text-center`}>
+                        <div className={`absolute ${isOBS ? 'top-[-180px]' : 'top-10'} left-1/2 transform -translate-x-1/2 z-20 text-center`}>
                             <h1 className={`${isOBS ? 'text-7xl' : 'text-8xl'} font-black italic text-white drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]`}>حروف</h1>
                         </div>
 
