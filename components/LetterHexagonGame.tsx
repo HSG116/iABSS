@@ -109,6 +109,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
             const channel = supabase.channel('letter_game_sync')
                 .on('broadcast', { event: 'STATE_UPDATE' }, (payload) => {
                     const data = payload.payload;
+                    if (!data) return;
                     if (data.cells) setCells(data.cells);
                     if (data.stage) setStage(data.stage);
                     if (data.activeCell !== undefined) setActiveCell(data.activeCell);
@@ -128,8 +129,10 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                 })
                 .subscribe((status) => {
                     if (status === 'SUBSCRIBED') {
-                        // Request full state from manager on join
-                        channel.send({ type: 'broadcast', event: 'SYNC_REQUEST', payload: {} });
+                        // Small delay before requesting initial sync to ensure manager is ready
+                        setTimeout(() => {
+                            channel.send({ type: 'broadcast', event: 'SYNC_REQUEST', payload: {} });
+                        }, 500);
                     }
                 });
             return () => { supabase.removeChannel(channel); };
@@ -272,6 +275,9 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
         setWinner(null);
         setWinningPath([]);
         setAllowJoin(false);
+
+        // Immediate broadcast for stage transition reliability
+        setTimeout(() => broadcastFullState(), 50);
     };
 
     const getNeighbors = (id: number) => {
