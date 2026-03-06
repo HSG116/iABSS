@@ -750,8 +750,8 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                         </>
                     )}
 
-                    {/* Scale Wrapper for OBS */}
-                    <div className={`w-full h-full flex flex-col items-center justify-center transition-all duration-500 ${isOBS ? 'scale-[0.5] overflow-visible' : ''}`}>
+                    {/* Scale Wrapper for OBS - Hide board elements when a cell is active in OBS */}
+                    <div className={`w-full h-full flex flex-col items-center justify-center transition-all duration-700 ${isOBS ? 'scale-[0.5] overflow-visible' : ''} ${isOBS && activeCell ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
 
                         {/* Left Panel: Girls */}
                         <div className={`absolute z-30 flex flex-col items-center transition-all ${isOBS ? 'top-32 right-32' : 'top-10 right-10'}`}>
@@ -780,6 +780,35 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
 
                         {/* BOARD */}
                         <div className="relative z-10 animate-in zoom-in duration-1000" style={{ width: `${boardWidth}px`, height: `${boardHeight}px` }}>
+                            {/* SVG Filters and Gradients Definitions - Reusable for all cells */}
+                            <svg className="absolute w-0 h-0 overflow-hidden">
+                                <defs>
+                                    <linearGradient id="grad-neutral" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style={{ stopColor: '#ffffff' }} />
+                                        <stop offset="100%" style={{ stopColor: '#e2e8f0' }} />
+                                    </linearGradient>
+                                    <linearGradient id="grad-team1" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" style={{ stopColor: '#FF8A75' }} />
+                                        <stop offset="100%" style={{ stopColor: '#FF6B52' }} />
+                                    </linearGradient>
+                                    <linearGradient id="grad-team2" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" style={{ stopColor: '#2DD4BF' }} />
+                                        <stop offset="100%" style={{ stopColor: '#14b8a6' }} />
+                                    </linearGradient>
+                                    <linearGradient id="grad-winning" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style={{ stopColor: '#FDE047' }} />
+                                        <stop offset="100%" style={{ stopColor: '#EAB308' }} />
+                                    </linearGradient>
+                                    <linearGradient id="grad-obs-empty" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style={{ stopColor: 'rgba(255,255,255,0.1)' }} />
+                                        <stop offset="100%" style={{ stopColor: 'rgba(255,255,255,0.02)' }} />
+                                    </linearGradient>
+                                    <filter id="neon-glow" x="-20%" y="-20%" width="140%" height="140%">
+                                        <feGaussianBlur stdDeviation="5" result="blur" />
+                                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                                    </filter>
+                                </defs>
+                            </svg>
                             {cells.map(cell => {
                                 const isOffset = cell.row % 2 !== 0;
                                 const left = (cell.col * X_OFFSET) + (isOffset ? X_OFFSET / 2 : 0);
@@ -787,17 +816,51 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                 const isActive = activeCell?.id === cell.id;
                                 const isWinning = winningPath.includes(cell.id);
 
-                                let fill = isOBS ? 'rgba(255,255,255,0.03)' : '#FFFFFF';
-                                if (cell.owner === 'team1') fill = '#FF6B52';
-                                if (cell.owner === 'team2') fill = '#14b8a6';
+                                let fillId = isOBS ? 'url(#grad-obs-empty)' : 'url(#grad-neutral)';
+                                // Fix: Add solid background for active cell in OBS
+                                if (isOBS && isActive && cell.owner === 'none') fillId = 'url(#grad-neutral)';
+
+                                let strokeColor = isOBS ? 'rgba(255,255,255,0.3)' : '#5A22A3';
+                                let letterColor = isOBS ? 'white' : '#5A22A3';
+
+                                if (cell.owner === 'team1') {
+                                    fillId = 'url(#grad-team1)';
+                                    strokeColor = '#5A22A3';
+                                    letterColor = 'white';
+                                } else if (cell.owner === 'team2') {
+                                    fillId = 'url(#grad-team2)';
+                                    strokeColor = '#5A22A3';
+                                    letterColor = 'white';
+                                }
 
                                 return (
-                                    <div key={cell.id} onClick={() => selectCell(cell)} className={`absolute flex items-center justify-center cursor-pointer transition-all duration-300 ${isActive ? 'scale-110 z-50 animate-pulse drop-shadow-[0_0_50px_white]' : 'hover:scale-105 hover:z-40 z-10'} ${isWinning ? 'animate-bounce drop-shadow-[0_0_30px_gold]' : ''}`} style={{ left: `${left}px`, top: `${top}px`, width: `${SVG_WIDTH}px`, height: `${SVG_HEIGHT}px`, filter: 'drop-shadow(2px 8px 6px rgba(0,0,0,0.3))' }}>
+                                    <div key={cell.id} onClick={() => selectCell(cell)} className={`absolute flex items-center justify-center cursor-pointer transition-all duration-300 ${isActive ? 'scale-110 z-50 animate-pulse drop-shadow-[0_0_50px_rgba(255,255,255,0.8)]' : 'hover:scale-105 hover:z-40 z-10'} ${isWinning ? 'animate-bounce drop-shadow-[0_0_30px_#EAB308]' : ''}`} style={{ left: `${left}px`, top: `${top}px`, width: `${SVG_WIDTH}px`, height: `${SVG_HEIGHT}px` }}>
                                         <svg width={SVG_WIDTH} height={SVG_HEIGHT} className="absolute inset-0 overflow-visible z-0">
-                                            <polygon points={hexPoints} fill={fill} stroke={isOBS ? 'rgba(255,255,255,0.2)' : '#5A22A3'} strokeWidth={STROKE_WIDTH} strokeLinejoin="round" />
-                                            {isWinning && <polygon points={hexPoints} fill="none" stroke="gold" strokeWidth="12" strokeOpacity="0.8" />}
+                                            {/* Main Hex Body */}
+                                            <polygon points={hexPoints} fill={fillId} stroke={strokeColor} strokeWidth={STROKE_WIDTH} strokeLinejoin="round" />
+
+                                            {/* Glass/Gloss Overlay */}
+                                            <polygon
+                                                points={hexPoints}
+                                                fill="url(#grad-obs-empty)"
+                                                style={{ opacity: isOBS ? 0.1 : 0.3, transform: 'scale(0.95)', transformOrigin: 'center' }}
+                                                className="pointer-events-none"
+                                            />
+
+                                            {isWinning && (
+                                                <polygon points={hexPoints} fill="none" stroke="url(#grad-winning)" strokeWidth="12" strokeLinejoin="round" style={{ filter: 'url(#neon-glow)' }} />
+                                            )}
                                         </svg>
-                                        {cell.owner === 'none' && <span className={`relative z-10 font-black mt-2 select-none ${isOBS ? 'text-[5.5rem] text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]' : 'text-[3.5rem] text-[#5A22A3]'}`}>{cell.letter}</span>}
+
+                                        {/* Stylized Letter */}
+                                        <div className={`relative z-10 font-black mt-2 select-none transition-all duration-500 ${isOBS ? 'text-[6rem]' : 'text-[3.5rem]'} ${cell.owner !== 'none' ? 'scale-90 opacity-40' : 'scale-100'}`} style={{ color: letterColor, textShadow: isOBS ? '0 10px 20px rgba(0,0,0,0.5), 0 0 20px rgba(255,255,255,0.4)' : '0 4px 8px rgba(0,0,0,0.2)' }}>
+                                            {cell.letter}
+                                        </div>
+
+                                        {/* Active Selection Ring */}
+                                        {isActive && (
+                                            <div className="absolute inset-[-15px] border-4 border-dashed border-white rounded-full animate-[spin_8s_linear_infinite] opacity-40 z-[-1]"></div>
+                                        )}
                                     </div>
                                 );
                             })}
@@ -807,9 +870,12 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                     {/* QUESTION OVERLAY */}
                     {activeCell && currentQuestion && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-10 animate-in zoom-in duration-300">
+                            {/* In OBS, use a solid black background for the modal area when active */}
+                            {isOBS && <div className="absolute inset-0 bg-black/90 backdrop-blur-3xl animate-in fade-in duration-500"></div>}
                             {!isOBS && <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setActiveCell(null)}></div>}
-                            <div className={`w-full max-w-4xl bg-[#1a1a2e] border-[10px] border-[#5A22A3] rounded-[4rem] p-16 shadow-[0_40px_100px_rgba(0,0,0,0.9)] relative z-10 text-center animate-in slide-in-from-bottom-20 duration-500 ${isOBS ? 'scale-[0.5] bg-black/20 backdrop-blur-md border-opacity-30 shadow-none' : ''}`}>
-                                <div className={`absolute top-[-40px] left-1/2 transform -translate-x-1/2 px-12 py-3 rounded-full border-8 border-[#5A22A3] font-black text-5xl italic shadow-2xl ${isOBS ? 'bg-black/80 text-white border-white/20' : 'bg-white text-[#5A22A3]'}`}>حرف {activeCell.letter}</div>
+
+                            <div className={`w-full max-w-5xl bg-[#0a0a1a] border-[12px] border-[#5A22A3] rounded-[5rem] p-20 shadow-[0_0_100px_rgba(0,0,0,1)] relative z-10 text-center transition-all duration-500 ${isOBS ? 'scale-[0.6] ring-[20px] ring-white/10' : ''}`}>
+                                <div className={`absolute top-[-50px] left-1/2 transform -translate-x-1/2 px-16 py-4 rounded-full border-8 border-[#5A22A3] font-black text-6xl italic shadow-2xl ${isOBS ? 'bg-white text-black border-white' : 'bg-white text-[#5A22A3]'}`}>حرف {activeCell.letter}</div>
 
                                 <p className="text-5xl font-black text-white leading-tight mb-12 mt-6">{currentQuestion.question}</p>
 
