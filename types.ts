@@ -63,6 +63,7 @@ export interface LetterQuestion {
   letter: string;
   question: string;
   answer: string;
+  level?: number; // Optional: if set, this question is exclusive to that level
 }
 
 export interface HexCellData {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { chatService } from '../services/chatService';
 import { supabase } from '../services/supabase';
-import { LETTER_GAME_QUESTIONS } from '../data/letter_game_data';
+import { LETTER_GAME_QUESTIONS, getQuestionsForLevel, getWorldForLevel } from '../data/letter_game_data';
 import { HexCellData, LetterQuestion } from '../types';
 import { Home, LogOut, Check, X, Shield, Trophy, Smartphone, AlertTriangle, Users, Play, Settings, Paintbrush, Clock, ListOrdered, BrainCircuit, PartyPopper, RefreshCw, ArrowLeft, ArrowRight, Stars, Sparkles, Crown, Heart, BellRing, Volume2, ChevronDown, Link, Video } from 'lucide-react';
 import { ProAvatar } from './ProAvatar';
@@ -50,7 +50,7 @@ interface Player {
     team: 'team1' | 'team2';
 }
 
-type Stage = 'settings' | 'lobby' | 'playing' | 'ended';
+type Stage = 'settings' | 'levelSelect' | 'lobby' | 'playing' | 'ended';
 
 export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, isOBS, onToggleOBSPreview, obsPreviewActive }) => {
     // Stage Management
@@ -85,6 +85,15 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
     useEffect(() => {
         localStorage.setItem('iabs_letter_game_level', currentLevel.toString());
     }, [currentLevel]);
+
+    // Highest unlocked level (saves progress lock)
+    const [highestUnlocked, setHighestUnlocked] = useState<number>(() => {
+        if (typeof window !== 'undefined') {
+            return parseInt(localStorage.getItem('iabs_letter_game_highest') || '1');
+        }
+        return 1;
+    });
+    useEffect(() => { localStorage.setItem('iabs_letter_game_highest', highestUnlocked.toString()); }, [highestUnlocked]);
 
     // Chat Bell Game Logic
     const [buzzedTeam, setBuzzedTeam] = useState<'team1' | 'team2' | null>(null);
@@ -351,7 +360,11 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
             setWinningPath(path1);
             setStage('ended');
             playSfx('win');
-            if (currentLevel < 100) setCurrentLevel(prev => prev + 1);
+            if (currentLevel < 100) {
+                const next = currentLevel + 1;
+                setCurrentLevel(next);
+                if (next > highestUnlocked) setHighestUnlocked(next);
+            }
             return;
         }
 
@@ -368,7 +381,11 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
             setWinningPath(path2);
             setStage('ended');
             playSfx('win');
-            if (currentLevel < 100) setCurrentLevel(prev => prev + 1);
+            if (currentLevel < 100) {
+                const next = currentLevel + 1;
+                setCurrentLevel(next);
+                if (next > highestUnlocked) setHighestUnlocked(next);
+            }
             return;
         }
     };
@@ -431,11 +448,10 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
         setAnswerTimer(0);
         setTriedTeams([]);
         setLastAnswer({ text: '', correct: null });
-        // Load a question as a HINT (answer verification is by first-letter logic)
-        const availableQs = LETTER_GAME_QUESTIONS.filter(q => q.letter === cell.letter);
-        if (availableQs.length > 0) {
-            const randomQ = availableQs[Math.floor(Math.random() * availableQs.length)];
-            setCurrentQuestion(randomQ);
+        // Load a question specific to current level
+        const levelQs = getQuestionsForLevel(cell.letter, currentLevel);
+        if (levelQs.length > 0) {
+            setCurrentQuestion(levelQs[Math.floor(Math.random() * levelQs.length)]);
         } else {
             setCurrentQuestion(null);
         }
@@ -663,35 +679,114 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                     <input type="range" min="10" max="60" step="5" value={timerDuration} onChange={e => setTimerDuration(parseInt(e.target.value))} className="w-full h-3 bg-black rounded-full appearance-none accent-emerald-500 shadow-inner" />
                                 </div>
                                 <div className="bg-indigo-600/10 p-6 rounded-[2rem] border-2 border-indigo-500/30 shadow-2xl">
-                                    <label className="flex items-center justify-between text-sm font-black text-indigo-400 mb-4 tracking-widest uppercase">
-                                        <span className="flex items-center gap-3"><Trophy size={18} /> المرحلة الحالية</span>
-                                        <span className="text-white text-xl">{currentLevel} / 100</span>
+                                    <label className="flex items-center justify-between text-sm font-black text-indigo-400 mb-2 tracking-widest uppercase">
+                                        <span className="flex items-center gap-3"><Trophy size={18} /> أعلى مرحلة وصلتها</span>
+                                        <span className="text-white text-xl">{highestUnlocked} / 100</span>
                                     </label>
-                                    <input type="range" min="1" max="100" step="1" value={currentLevel} onChange={e => setCurrentLevel(parseInt(e.target.value))} className="w-full h-3 bg-black rounded-full appearance-none accent-indigo-500 shadow-inner" />
-                                    <div className="flex justify-between mt-2 text-[8px] font-black text-white/20 uppercase tracking-widest">
-                                        <span>بداية</span>
-                                        <span>منتصف الطريق</span>
-                                        <span>الاحتراف</span>
+                                    <div className="h-3 bg-black/50 rounded-full overflow-hidden border border-indigo-500/20">
+                                        <div className="h-full bg-gradient-to-r from-indigo-600 to-purple-500 rounded-full transition-all duration-1000" style={{ width: `${highestUnlocked}%` }}></div>
                                     </div>
+                                    <p className="text-white/30 text-xs mt-2 font-bold italic">الانتقال للمراحل يتم من خريطة المراحل</p>
                                 </div>
                             </div>
                         </div>
 
-                        <button onClick={() => {
-                            setStage('lobby');
-                            if (!isOBS && broadcastRef.current) {
-                                broadcastRef.current.send({
-                                    type: 'broadcast',
-                                    event: 'STATE_UPDATE',
-                                    payload: { stage: 'lobby', cells, lobbyPlayers, team1Name, team2Name, entryKeyword, timerDuration, difficulty }
-                                });
-                            }
-                        }} className="w-full bg-gradient-to-r from-emerald-600 to-emerald-400 hover:scale-[1.02] active:scale-95 transition-all py-8 rounded-3xl font-black text-4xl text-white shadow-[0_20px_50px_rgba(16,185,129,0.4)] border-b-8 border-black/20 flex items-center justify-center gap-6 group">
-                            فتح قاعة الانتظار <ArrowRight size={48} className="group-hover:translate-x-4 transition-transform" />
+                        <button onClick={() => setStage('levelSelect')} className="w-full bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 hover:scale-[1.02] active:scale-95 transition-all py-8 rounded-3xl font-black text-4xl text-white shadow-[0_20px_50px_rgba(99,102,241,0.4)] border-b-8 border-black/20 flex items-center justify-center gap-6 group">
+                            <Trophy size={40} className="group-hover:rotate-12 transition-transform" /> اختر مرحلتك <ArrowRight size={48} className="group-hover:translate-x-4 transition-transform" />
                         </button>
                     </div>
                 </div>
             )}
+
+            {/* STAGE: LEVEL SELECT MAP */}
+            {!isOBS && stage === 'levelSelect' && (() => {
+                const worlds = [
+                    { id: 1, name: 'عالم المبتدئين', range: [1, 20] as [number, number], color: '#22c55e', glow: 'rgba(34,197,94,0.4)', emoji: '🟢', desc: 'أسئلة سهلة ومرحة للجميع' },
+                    { id: 2, name: 'عالم المتمرن', range: [21, 40] as [number, number], color: '#3b82f6', glow: 'rgba(59,130,246,0.4)', emoji: '🔵', desc: 'أسئلة متوسطة للمتحدين' },
+                    { id: 3, name: 'عالم المحترف', range: [41, 60] as [number, number], color: '#f97316', glow: 'rgba(249,115,22,0.4)', emoji: '🟠', desc: 'أسئلة صعبة للمحترفين' },
+                    { id: 4, name: 'عالم الأبطال', range: [61, 80] as [number, number], color: '#ef4444', glow: 'rgba(239,68,68,0.4)', emoji: '🔴', desc: 'أسئلة صعبة جداً للأبطال' },
+                    { id: 5, name: 'عالم الأساطير', range: [81, 100] as [number, number], color: '#a855f7', glow: 'rgba(168,85,247,0.4)', emoji: '🟣', desc: 'أسئلة للخبراء فقط' },
+                ];
+                return (
+                    <div className="relative z-20 w-full h-full flex flex-col items-center overflow-hidden animate-in fade-in duration-500">
+                        {/* Header */}
+                        <div className="flex w-full max-w-7xl items-center justify-between px-10 pt-8 pb-4 z-10">
+                            <button onClick={() => setStage('settings')} className="flex items-center gap-3 bg-white/5 hover:bg-white/10 px-6 py-3 rounded-full border border-white/10 text-white font-black italic transition-all">
+                                <ArrowLeft size={20} /> الإعدادات
+                            </button>
+                            <div className="text-center">
+                                <h1 className="text-5xl font-black italic text-white">🗺️ خريطة المراحل</h1>
+                                <p className="text-white/40 font-bold text-sm uppercase tracking-widest mt-1">اختر مرحلتك للانطلاق</p>
+                            </div>
+                            <div className="px-6 py-3 bg-indigo-600/20 border border-indigo-500/30 rounded-full text-indigo-400 font-black text-sm">
+                                أعلى مرحلة: {highestUnlocked}
+                            </div>
+                        </div>
+
+                        {/* Worlds */}
+                        <div className="flex-1 w-full max-w-7xl px-8 pb-8 overflow-y-auto">
+                            {worlds.map(world => {
+                                const worldUnlocked = world.range[0] <= highestUnlocked;
+                                return (
+                                    <div key={world.id} className="mb-8">
+                                        {/* World Header */}
+                                        <div className="flex items-center gap-4 mb-4">
+                                            <span className="text-4xl">{world.emoji}</span>
+                                            <div>
+                                                <h2 className="text-2xl font-black text-white italic">{world.name}</h2>
+                                                <p className="text-white/40 text-sm font-bold">{world.desc}</p>
+                                            </div>
+                                            {!worldUnlocked && (
+                                                <div className="mr-auto flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full text-white/30 text-sm font-black">
+                                                    🔒 مقفل - أكمل المرحلة {world.range[0] - 1} أولاً
+                                                </div>
+                                            )}
+                                            <div className="mr-auto h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" style={{ background: worldUnlocked ? `linear-gradient(to right, ${world.color}40, transparent)` : undefined }}></div>
+                                        </div>
+
+                                        {/* Level Grid */}
+                                        <div className="grid grid-cols-10 gap-2">
+                                            {Array.from({ length: 20 }, (_, i) => world.range[0] + i).map(lvl => {
+                                                const isCompleted = lvl < currentLevel;
+                                                const isCurrent = lvl === currentLevel;
+                                                const isUnlocked = lvl <= highestUnlocked;
+                                                const isLocked = !isUnlocked;
+                                                return (
+                                                    <button
+                                                        key={lvl}
+                                                        onClick={() => {
+                                                            if (isLocked) return;
+                                                            setCurrentLevel(lvl);
+                                                            setStage('lobby');
+                                                        }}
+                                                        disabled={isLocked}
+                                                        className={`
+                                                            relative h-16 rounded-2xl font-black text-lg transition-all duration-200 border-2 flex flex-col items-center justify-center gap-0.5
+                                                            ${isLocked ? 'bg-white/3 border-white/5 text-white/15 cursor-not-allowed' : ''}
+                                                            ${isCompleted && !isCurrent ? 'border-opacity-50 hover:scale-105 active:scale-95 cursor-pointer' : ''}
+                                                            ${isCurrent ? 'scale-110 shadow-2xl animate-pulse cursor-pointer' : ''}
+                                                            ${isUnlocked && !isCurrent ? 'hover:scale-105 active:scale-95 cursor-pointer' : ''}
+                                                        `}
+                                                        style={{
+                                                            backgroundColor: isLocked ? undefined : isCompleted ? `${world.color}25` : isCurrent ? world.color : `${world.color}15`,
+                                                            borderColor: isLocked ? undefined : isCurrent ? 'white' : `${world.color}60`,
+                                                            boxShadow: isCurrent ? `0 0 20px ${world.glow}, 0 0 40px ${world.glow}` : isCompleted ? `0 4px 15px ${world.glow}` : undefined,
+                                                            color: isLocked ? undefined : isCurrent ? 'white' : `${world.color}`,
+                                                        }}
+                                                    >
+                                                        {isLocked ? '🔒' : isCompleted ? '✓' : lvl}
+                                                        {isCurrent && <span className="text-[8px] font-black uppercase tracking-widest opacity-80">الآن</span>}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                );
+            })()}
 
             {/* STAGE: LOBBY (HIDDEN IN OBS) */}
             {!isOBS && stage === 'lobby' && (
@@ -1065,27 +1160,126 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                 </button>
             )}
 
-            {/* STAGE: ENDED */}
+            {/* STAGE: ENDED - ULTRA PREMIUM LEVEL COMPLETE SCREEN */}
             {stage === 'ended' && (
-                <div className={`absolute inset-0 z-[200] flex items-center justify-center p-12 ${isOBS ? 'bg-transparent' : 'bg-black/90 backdrop-blur-3xl'} animate-in zoom-in duration-700`}>
-                    <div className={`max-w-4xl w-full text-center space-y-12 transition-all ${isOBS ? 'scale-[0.5]' : ''}`}>
-                        <div className="relative inline-block scale-150 mb-20 animate-bounce">
-                            <Crown size={120} className="text-yellow-400 absolute top-[-80px] left-1/2 transform -translate-x-1/2 drop-shadow-[0_0_50px_rgba(250,204,21,0.8)]" />
-                            <div className={`p-16 rounded-[4rem] border-[12px] border-white/20 shadow-2xl transform rotate-3 ${winner === 'team1' ? 'bg-[#FF6B52]' : 'bg-[#14b8a6]'}`}>
-                                <h1 className="text-9xl font-black text-white italic drop-shadow-2xl">{winner === 'team1' ? team1Name : team2Name}</h1>
+                <div className={`absolute inset-0 z-[200] flex items-center justify-center overflow-hidden ${isOBS ? 'bg-transparent' : 'bg-[#030310]'}`}>
+
+                    {/* Animated Particle Background */}
+                    {!isOBS && (
+                        <div className="absolute inset-0 overflow-hidden">
+                            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(90,34,163,0.4)_0%,transparent_70%)]"></div>
+                            {/* Horizontal scan lines */}
+                            <div className="absolute inset-0" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.015) 2px, rgba(255,255,255,0.015) 4px)' }}></div>
+                            {/* Stars */}
+                            {Array.from({ length: 40 }).map((_, i) => (
+                                <div key={i} className="absolute rounded-full bg-white animate-[levelStar_3s_ease-in-out_infinite]"
+                                    style={{ width: `${Math.random() * 4 + 1}px`, height: `${Math.random() * 4 + 1}px`, top: `${Math.random() * 100}%`, left: `${Math.random() * 100}%`, animationDelay: `${Math.random() * 3}s`, animationDuration: `${Math.random() * 2 + 2}s`, opacity: Math.random() * 0.8 + 0.2 }} />
+                            ))}
+                            {/* Corner light rays */}
+                            <div className={`absolute top-0 left-0 w-full h-full opacity-30 ${winner === 'team1' ? 'bg-[radial-gradient(ellipse_at_top_right,rgba(255,107,82,0.4),transparent_50%)]' : 'bg-[radial-gradient(ellipse_at_top_right,rgba(20,184,166,0.4),transparent_50%)]'}`}></div>
+                            <div className={`absolute top-0 left-0 w-full h-full opacity-20 ${winner === 'team1' ? 'bg-[radial-gradient(ellipse_at_bottom_left,rgba(255,107,82,0.4),transparent_50%)]' : 'bg-[radial-gradient(ellipse_at_bottom_left,rgba(20,184,166,0.4),transparent_50%)]'}`}></div>
+                        </div>
+                    )}
+
+                    {/* Main Content */}
+                    <div className={`relative z-10 flex flex-col items-center gap-10 max-w-5xl w-full px-12 text-center animate-in zoom-in slide-in-from-bottom-20 duration-700 ${isOBS ? 'scale-[0.5]' : ''}`}>
+
+                        {/* LEVEL COMPLETE Header */}
+                        <div className="flex flex-col items-center gap-3 animate-in slide-in-from-top-10 duration-500">
+                            <div className="flex items-center gap-4 px-8 py-3 bg-white/5 border border-white/10 rounded-full">
+                                <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+                                <span className="text-yellow-400 font-black text-sm uppercase tracking-[0.5em]">Level Complete!</span>
+                                <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+                            </div>
+                            <h1 className="text-[7rem] font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-white/30 leading-none drop-shadow-[0_0_80px_rgba(255,255,255,0.3)]">المرحلة<br /><span className={winner === 'team1' ? 'text-[#FF8A75]' : 'text-[#2DD4BF]'}>{currentLevel - 1 > 0 ? currentLevel - 1 : 1}</span></h1>
+                        </div>
+
+                        {/* Stage Progress Bar */}
+                        <div className="w-full max-w-3xl animate-in slide-in-from-bottom-10 duration-700 delay-200">
+                            <div className="flex justify-between items-center mb-4">
+                                <span className="text-white/40 font-black text-sm uppercase tracking-widest">المرحلة السابقة</span>
+                                <span className="text-white/40 font-black text-sm uppercase tracking-widest">الجارية</span>
+                            </div>
+                            <div className="relative h-6 bg-white/5 rounded-full border border-white/10 overflow-hidden shadow-inner">
+                                <div
+                                    className={`h-full rounded-full transition-all duration-2000 ease-out shadow-lg ${winner === 'team1' ? 'bg-gradient-to-r from-[#FF6B52] to-[#FF8A75] shadow-[#FF6B52]/50' : 'bg-gradient-to-r from-[#14b8a6] to-[#2DD4BF] shadow-[#14b8a6]/50'}`}
+                                    style={{ width: `${Math.min(currentLevel, 100)}%`, boxShadow: winner === 'team1' ? '0 0 20px rgba(255,107,82,0.8)' : '0 0 20px rgba(20,184,166,0.8)' }}
+                                ></div>
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shimmer_2s_infinite]"></div>
+                            </div>
+                            <div className="flex justify-between items-center mt-3">
+                                <span className="text-white/30 font-bold text-xs">مرحلة 1</span>
+                                <div className={`px-5 py-1.5 rounded-full font-black text-sm ${winner === 'team1' ? 'bg-[#FF6B52]/20 text-[#FF8A75] border border-[#FF6B52]/30' : 'bg-[#14b8a6]/20 text-[#2DD4BF] border border-[#14b8a6]/30'}`}>
+                                    {currentLevel} / 100
+                                </div>
+                                <span className="text-white/30 font-bold text-xs">مرحلة 100</span>
                             </div>
                         </div>
 
-                        <h2 className="text-6xl font-black text-white uppercase tracking-[0.2em] italic drop-shadow-lg">أبطال الإتصال الذهبي! 🏆</h2>
-                        <p className="text-2xl text-gray-400 font-bold max-w-2xl mx-auto leading-relaxed italic">لقد تمكنتم من السيطرة على ساحة الحروف وتحقيق الفوز الساحق بهذا الطريق العبقري. كفـوووووويا أبطاااااال!</p>
+                        {/* Winner Card */}
+                        <div className={`relative w-full max-w-2xl rounded-[4rem] border-4 p-10 flex items-center gap-10 animate-in zoom-in duration-500 delay-300 shadow-2xl ${winner === 'team1' ? 'bg-[#FF6B52]/10 border-[#FF6B52]/50 shadow-[#FF6B52]/20' : 'bg-[#14b8a6]/10 border-[#14b8a6]/50 shadow-[#14b8a6]/20'}`}>
+                            {/* Glow effect */}
+                            <div className={`absolute inset-0 rounded-[4rem] blur-xl opacity-20 ${winner === 'team1' ? 'bg-[#FF6B52]' : 'bg-[#14b8a6]'}`}></div>
 
+                            {/* Trophy */}
+                            <div className="relative shrink-0">
+                                <div className={`w-32 h-32 rounded-[2.5rem] flex items-center justify-center text-6xl border-8 shadow-2xl ${winner === 'team1' ? 'bg-[#FF6B52] border-white/20' : 'bg-[#14b8a6] border-white/20'}`}>
+                                    {winner === 'team1' ? '🌸' : '🧊'}
+                                </div>
+                                <Crown size={40} className="absolute -top-5 -right-3 text-yellow-400 drop-shadow-[0_0_20px_rgba(250,204,21,0.8)] animate-bounce" />
+                            </div>
+
+                            <div className="text-right flex-1 relative z-10">
+                                <div className="text-white/50 font-black text-sm uppercase tracking-[0.4em] mb-2">الفائز بهذه المرحلة</div>
+                                <h2 className="text-5xl font-black text-white italic drop-shadow-lg">{winner === 'team1' ? team1Name : team2Name}</h2>
+                                <div className={`mt-3 inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-black ${winner === 'team1' ? 'bg-[#FF6B52]/30 text-[#FF8A75]' : 'bg-[#14b8a6]/30 text-[#2DD4BF]'}`}>
+                                    <Trophy size={16} /> بطل المرحلة {currentLevel - 1 > 0 ? currentLevel - 1 : 1}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Next Level teaser */}
+                        {currentLevel <= 100 && !isOBS && (
+                            <div className="flex items-center gap-4 animate-in fade-in duration-500 delay-500">
+                                <div className="h-px w-20 bg-gradient-to-r from-transparent to-white/20"></div>
+                                <div className="flex items-center gap-3 px-6 py-3 bg-white/5 border border-white/10 rounded-full">
+                                    <Sparkles size={16} className="text-indigo-400 animate-pulse" />
+                                    <span className="text-white/60 font-black text-sm italic">المرحلة التالية: {currentLevel}</span>
+                                    <ArrowRight size={16} className="text-indigo-400" />
+                                </div>
+                                <div className="h-px w-20 bg-gradient-to-l from-transparent to-white/20"></div>
+                            </div>
+                        )}
+
+                        {/* Action Buttons */}
                         {!isOBS && (
-                            <div className="flex gap-8 justify-center pt-10">
-                                <button onClick={() => setStage('settings')} className="flex items-center gap-4 bg-white/10 hover:bg-white text-white hover:text-black px-12 py-6 rounded-3xl font-black text-3xl transition-all border-4 border-white/20 hover:scale-105 active:scale-95"><RefreshCw size={32} /> إعادة التحدي</button>
-                                <button onClick={onHome} className="flex items-center gap-4 bg-red-600 hover:bg-red-500 px-12 py-6 rounded-3xl font-black text-3xl text-white transition-all border-4 border-red-400/30 hover:scale-105 active:scale-95"><Home size={32} /> الرئيسية</button>
+                            <div className="flex gap-6 animate-in slide-in-from-bottom-10 duration-500 delay-500">
+                                <button
+                                    onClick={() => { startGame(); }}
+                                    className={`flex items-center gap-4 px-14 py-7 rounded-[2rem] font-black text-3xl text-white transition-all hover:scale-105 active:scale-95 shadow-2xl border-b-8 border-black/20 ${winner === 'team1' ? 'bg-gradient-to-r from-[#FF6B52] to-[#FF8A75] shadow-[#FF6B52]/30' : 'bg-gradient-to-r from-[#14b8a6] to-[#2DD4BF] shadow-[#14b8a6]/30'}`}
+                                >
+                                    <Play fill="currentColor" size={32} /> المرحلة {currentLevel}
+                                </button>
+                                <button
+                                    onClick={() => setStage('settings')}
+                                    className="flex items-center gap-4 bg-white/10 hover:bg-white/20 text-white px-10 py-7 rounded-[2rem] font-black text-2xl transition-all border-2 border-white/10 hover:scale-105 active:scale-95"
+                                >
+                                    <Settings size={28} /> إعدادات
+                                </button>
+                                <button
+                                    onClick={onHome}
+                                    className="flex items-center gap-4 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white px-10 py-7 rounded-[2rem] font-black text-2xl transition-all border-2 border-red-600/30 hover:scale-105 active:scale-95"
+                                >
+                                    <Home size={28} />
+                                </button>
                             </div>
                         )}
                     </div>
+
+                    <style>{`
+                        @keyframes levelStar { 0%, 100% { opacity: 0.2; transform: scale(1); } 50% { opacity: 1; transform: scale(1.5); } }
+                        @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+                    `}</style>
                 </div>
             )}
 
