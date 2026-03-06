@@ -3,12 +3,14 @@ import { chatService } from '../services/chatService';
 import { supabase } from '../services/supabase';
 import { LETTER_GAME_QUESTIONS } from '../data/letter_game_data';
 import { HexCellData, LetterQuestion } from '../types';
-import { Home, LogOut, Check, X, Shield, Trophy, Smartphone, AlertTriangle, Users, Play, Settings, Paintbrush, Clock, ListOrdered, BrainCircuit, PartyPopper, RefreshCw, ArrowLeft, ArrowRight, Stars, Sparkles, Crown, Heart, BellRing, Volume2, ChevronDown } from 'lucide-react';
+import { Home, LogOut, Check, X, Shield, Trophy, Smartphone, AlertTriangle, Users, Play, Settings, Paintbrush, Clock, ListOrdered, BrainCircuit, PartyPopper, RefreshCw, ArrowLeft, ArrowRight, Stars, Sparkles, Crown, Heart, BellRing, Volume2, ChevronDown, Link, Video } from 'lucide-react';
 import { ProAvatar } from './ProAvatar';
 
 interface LetterHexagonGameProps {
     onHome: () => void;
     isOBS?: boolean;
+    onToggleOBSPreview?: () => void;
+    obsPreviewActive?: boolean;
 }
 
 // 28 Arabic letters exactly matching our 28-cell grid (6,5,6,5,6)
@@ -50,9 +52,9 @@ interface Player {
 
 type Stage = 'settings' | 'lobby' | 'playing' | 'ended';
 
-export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, isOBS }) => {
+export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, isOBS, onToggleOBSPreview, obsPreviewActive }) => {
     // Stage Management
-    const [stage, setStage] = useState<Stage>('settings');
+    const [stage, setStage] = useState<Stage>(isOBS ? 'lobby' : 'settings');
 
     // Game Data States
     const [lobbyPlayers, setLobbyPlayers] = useState<Player[]>([]);
@@ -77,6 +79,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
     const [answerTimer, setAnswerTimer] = useState<number>(0);
     const [triedTeams, setTriedTeams] = useState<('team1' | 'team2')[]>([]);
     const [lastAnswer, setLastAnswer] = useState<{ text: string, correct: boolean | null }>({ text: '', correct: null });
+    const [linkCopied, setLinkCopied] = useState(false);
 
     const channelRef = useRef<any>(null);
     const broadcastRef = useRef<any>(null);
@@ -129,6 +132,8 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                     if (data.team2Name !== undefined) setTeam2Name(data.team2Name);
                     if (data.entryKeyword !== undefined) setEntryKeyword(data.entryKeyword);
                     if (data.allowJoin !== undefined) setAllowJoin(data.allowJoin);
+                    if (data.timerDuration !== undefined) setTimerDuration(data.timerDuration);
+                    if (data.difficulty !== undefined) setDifficulty(data.difficulty);
                 })
                 .subscribe((status) => {
                     if (status === 'SUBSCRIBED') {
@@ -164,7 +169,8 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                     cells, stage, activeCell, currentQuestion,
                     buzzedTeam, buzzedPlayer, answerTimer,
                     lastAnswer, triedTeams, winner, winningPath,
-                    lobbyPlayers, team1Name, team2Name, entryKeyword, allowJoin
+                    lobbyPlayers, team1Name, team2Name, entryKeyword, allowJoin,
+                    timerDuration, difficulty
                 }
             });
         }
@@ -286,8 +292,21 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
         setWinningPath([]);
         setAllowJoin(false);
 
-        // Immediate broadcast for stage transition reliability
-        setTimeout(() => broadcastFullState(), 50);
+        // Immediate and direct broadcast to bypass potential effect lag
+        if (!isOBS && broadcastRef.current) {
+            broadcastRef.current.send({
+                type: 'broadcast',
+                event: 'STATE_UPDATE',
+                payload: {
+                    cells: initialCells,
+                    stage: 'playing',
+                    winner: null,
+                    winningPath: [],
+                    allowJoin: false,
+                    lobbyPlayers, team1Name, team2Name, entryKeyword, timerDuration, difficulty
+                }
+            });
+        }
     };
 
     const getNeighbors = (id: number) => {
@@ -414,26 +433,53 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
     const boys = lobbyPlayers.filter(p => p.team === 'team2');
 
     return (
-        <div className="w-full h-full relative overflow-hidden bg-[#0A0A14] select-none text-white font-sans" dir="rtl">
+        <div className={`w-full h-full relative overflow-hidden select-none text-white font-sans ${isOBS ? 'bg-transparent' : 'bg-[#0A0A14]'}`} dir="rtl">
 
             {/* GLOBAL BACKGROUND - Exact Image Match Quality */}
-            <div className="absolute inset-0 z-0">
-                <div className="absolute inset-0 z-0 pointer-events-none" style={{ background: 'conic-gradient(from -45deg at 50% 50%, #FF6B52 0deg 90deg, #14b8a6 90deg 180deg, #FF6B52 180deg 270deg, #14b8a6 270deg 360deg)' }} />
-                <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"></div>
-                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
-            </div>
+            {!isOBS && (
+                <div className="absolute inset-0 z-0">
+                    <div className="absolute inset-0 z-0 pointer-events-none" style={{ background: 'conic-gradient(from -45deg at 50% 50%, #FF6B52 0deg 90deg, #14b8a6 90deg 180deg, #FF6B52 180deg 270deg, #14b8a6 270deg 360deg)' }} />
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"></div>
+                    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
+                </div>
+            )}
+
+            {/* ONLINE BADGE FOR OBS */}
+            {isOBS && (
+                <div className="absolute top-10 left-10 z-[300] flex items-center gap-3 bg-black/40 px-6 py-2.5 rounded-full border border-emerald-500/30 backdrop-blur-md animate-in slide-in-from-left-10 duration-500">
+                    <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_15px_#10b981]"></div>
+                    <span className="text-emerald-400 font-black text-[10px] uppercase tracking-[0.3em] italic">Live Online</span>
+                </div>
+            )}
 
             {/* SPECIALIZED OBS LOBBY/WAITING VIEW */}
             {isOBS && (stage === 'settings' || stage === 'lobby') && (
-                <div className="relative z-50 w-full h-full flex flex-col items-center justify-center p-20 animate-in fade-in duration-1000 overflow-hidden">
-                    {/* Floating Orbs for luxury feel */}
-                    <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#FF6B52]/20 blur-[150px] rounded-full animate-pulse"></div>
-                    <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#14b8a6]/20 blur-[150px] rounded-full animate-pulse delay-700"></div>
+                <div className="relative z-50 w-full h-full flex flex-col items-center justify-center animate-in fade-in duration-1000 scale-[0.6] overflow-visible">
+                    {/* Background Letters Design Grid (Prominent) */}
+                    <div className="absolute inset-0 z-0 opacity-[0.15] flex items-center justify-center scale-150 transform rotate-12 grayscale">
+                        <div className="relative" style={{ width: `${boardWidth}px`, height: `${boardHeight}px` }}>
+                            {ARABIC_LETTERS.map((letter, idx) => {
+                                const row = [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4][idx];
+                                const col = [0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 5][idx];
+                                const isOffset = row % 2 !== 0;
+                                const left = (col * X_OFFSET) + (isOffset ? X_OFFSET / 2 : 0);
+                                const top = row * Y_OFFSET;
+                                return (
+                                    <div key={idx} className="absolute" style={{ left: `${left}px`, top: `${top}px`, width: `${SVG_WIDTH}px`, height: `${SVG_HEIGHT}px` }}>
+                                        <svg width={SVG_WIDTH} height={SVG_HEIGHT} className="absolute inset-0">
+                                            <polygon points={hexPoints} fill="none" stroke="white" strokeWidth="2" />
+                                        </svg>
+                                        <div className="absolute inset-0 flex items-center justify-center text-white text-4xl font-black opacity-20">{letter}</div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
 
                     <div className="relative z-10 flex flex-col items-center gap-12 w-full max-w-7xl">
                         {/* THE LOGO */}
                         <div className="relative group">
-                            <div className="absolute -inset-10 bg-white/5 blur-3xl rounded-full scale-150 animate-pulse"></div>
+                            {!isOBS && <div className="absolute -inset-10 bg-white/5 blur-3xl rounded-full scale-150 animate-pulse"></div>}
                             <div className="flex items-center gap-8 mb-4 relative z-10">
                                 <span className="text-[12rem] font-black italic tracking-tighter text-yellow-400 drop-shadow-[0_15px_40px_rgba(234,179,8,0.6)] animate-bounce">حروف</span>
                                 <span className="text-6xl font-black italic tracking-tighter text-blue-400 mt-12">مع</span>
@@ -446,7 +492,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                         <div className="flex flex-col items-center gap-6">
                             {stage === 'settings' ? (
                                 <div className="flex flex-col items-center gap-4">
-                                    <div className="px-12 py-4 bg-white/10 backdrop-blur-xl border-2 border-white/20 rounded-full flex items-center gap-4 text-white font-black text-3xl italic shadow-2xl">
+                                    <div className={`px-12 py-4 border-2 rounded-full flex items-center gap-4 text-white font-black text-3xl italic shadow-2xl ${isOBS ? 'bg-black/60 border-white/10' : 'bg-white/10 backdrop-blur-xl border-white/20'}`}>
                                         <Clock className="text-yellow-400 animate-spin-slow" size={32} />
                                         <span>بإنتظار تحضير الساحة...</span>
                                     </div>
@@ -581,7 +627,16 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                             </div>
                         </div>
 
-                        <button onClick={() => setStage('lobby')} className="w-full bg-gradient-to-r from-emerald-600 to-emerald-400 hover:scale-[1.02] active:scale-95 transition-all py-8 rounded-3xl font-black text-4xl text-white shadow-[0_20px_50px_rgba(16,185,129,0.4)] border-b-8 border-black/20 flex items-center justify-center gap-6 group">
+                        <button onClick={() => {
+                            setStage('lobby');
+                            if (!isOBS && broadcastRef.current) {
+                                broadcastRef.current.send({
+                                    type: 'broadcast',
+                                    event: 'STATE_UPDATE',
+                                    payload: { stage: 'lobby', cells, lobbyPlayers, team1Name, team2Name, entryKeyword, timerDuration, difficulty }
+                                });
+                            }
+                        }} className="w-full bg-gradient-to-r from-emerald-600 to-emerald-400 hover:scale-[1.02] active:scale-95 transition-all py-8 rounded-3xl font-black text-4xl text-white shadow-[0_20px_50px_rgba(16,185,129,0.4)] border-b-8 border-black/20 flex items-center justify-center gap-6 group">
                             فتح قاعة الانتظار <ArrowRight size={48} className="group-hover:translate-x-4 transition-transform" />
                         </button>
                     </div>
@@ -605,7 +660,30 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                     </button>
                                 </div>
                             </div>
-                            <button onClick={() => { setAllowJoin(false); startGame(); }} className="flex items-center gap-6 bg-gradient-to-r from-yellow-500 to-orange-600 px-12 py-6 rounded-[2rem] font-black text-4xl italic text-white shadow-2xl hover:scale-105 active:scale-95 transition-all select-none">بـدء الـتـحـدي <Play fill="currentColor" size={32} /></button>
+                            <div className="flex items-center gap-4">
+                                <button
+                                    onClick={() => {
+                                        const url = `${window.location.origin}/?obs=true&view=LETTER_GAME&transparent=true`;
+                                        navigator.clipboard.writeText(url);
+                                        setLinkCopied(true);
+                                        setTimeout(() => setLinkCopied(false), 2000);
+                                    }}
+                                    className={`flex items-center gap-3 px-8 py-5 rounded-[1.5rem] font-black transition-all border-2 shadow-lg ${linkCopied ? 'bg-emerald-500 border-white text-white' : 'bg-indigo-600/10 border-indigo-500/30 text-indigo-400 hover:bg-indigo-600 hover:text-white'}`}
+                                >
+                                    {linkCopied ? <Check size={24} /> : <Link size={24} />}
+                                    <span className="text-xl italic">{linkCopied ? 'تم النسخ' : 'نسخ رابط OBS'}</span>
+                                </button>
+
+                                <button
+                                    onClick={onToggleOBSPreview}
+                                    className={`flex items-center gap-3 px-8 py-5 rounded-[1.5rem] font-black transition-all border-2 shadow-lg ${obsPreviewActive ? 'bg-emerald-500 border-white text-white' : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500 hover:text-white'}`}
+                                >
+                                    <Video size={24} />
+                                    <span className="text-xl italic">{obsPreviewActive ? 'إخفاء المعاينة' : 'معاينة البث'}</span>
+                                </button>
+
+                                <button onClick={() => { setAllowJoin(false); startGame(); }} className="flex items-center gap-6 bg-gradient-to-r from-yellow-500 to-orange-600 px-12 py-6 rounded-[2rem] font-black text-4xl italic text-white shadow-2xl hover:scale-105 active:scale-95 transition-all select-none">بـدء الـتـحـدي <Play fill="currentColor" size={32} /></button>
+                            </div>
                         </div>
 
                         <div className="flex-1 grid grid-cols-2 gap-12 overflow-hidden">
@@ -663,68 +741,75 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
 
             {/* STAGE: PLAYING (EXACT IMAGE MATCH DESIGN) */}
             {stage === 'playing' && (
-                <div className={`relative w-full h-full flex flex-col items-center justify-center overflow-hidden transition-all duration-1000 ${isOBS ? 'bg-transparent' : 'bg-[#0f0f1b]'}`}>
-                    {/* Background elements - Hide in OBS for transparency if needed */}
-                    {!isOBS && <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,#5A22A322,transparent)] pointer-events-none"></div>}
+                <div className={`relative w-full h-full flex flex-col items-center justify-center transition-all duration-1000 ${isOBS ? 'bg-transparent overflow-visible' : 'bg-[#0f0f1b] overflow-hidden'}`}>
+                    {/* Background elements - Explicitly hidden in OBS */}
+                    {!isOBS && (
+                        <>
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,#5A22A322,transparent)] pointer-events-none"></div>
+                            <div className="absolute inset-0 z-0 pointer-events-none" style={{ background: 'conic-gradient(from -45deg at 50% 50%, #FF6B52 0deg 90deg, #14b8a6 90deg 180deg, #FF6B52 180deg 270deg, #14b8a6 270deg 360deg)' }} />
+                        </>
+                    )}
 
-                    <div className="absolute inset-0 z-0 pointer-events-none" style={{ background: 'conic-gradient(from -45deg at 50% 50%, #FF6B52 0deg 90deg, #14b8a6 90deg 180deg, #FF6B52 180deg 270deg, #14b8a6 270deg 360deg)' }} />
+                    {/* Scale Wrapper for OBS */}
+                    <div className={`w-full h-full flex flex-col items-center justify-center transition-all duration-500 ${isOBS ? 'scale-[0.5] overflow-visible' : ''}`}>
 
-                    {/* Left Panel: Girls */}
-                    <div className="absolute top-10 right-10 z-30 flex flex-col items-center">
-                        <div className="bg-[#FF6B52] border-4 border-[#5A22A3] rounded-[2rem] px-10 py-5 text-center shadow-[0_12px_0_#5A22A3] transform -rotate-2">
-                            <h2 className="text-white font-black text-3xl drop-shadow-md">{team1Name}</h2>
-                            <div className="mt-4 flex flex-wrap justify-center gap-1 max-w-[200px]">
-                                {girls.slice(0, 15).map(p => <ProAvatar key={p.username} username={p.username} url={p.avatar} size="w-8 h-8" />)}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Right Panel: Boys */}
-                    <div className="absolute top-10 left-10 z-30 flex flex-col items-center">
-                        <div className="bg-[#14b8a6] border-4 border-[#5A22A3] rounded-[2rem] px-10 py-5 text-center shadow-[0_12px_0_#5A22A3] transform rotate-2">
-                            <h2 className="text-white font-black text-3xl drop-shadow-md">{team2Name}</h2>
-                            <div className="mt-4 flex flex-wrap justify-center gap-1 max-w-[200px]">
-                                {boys.slice(0, 15).map(p => <ProAvatar key={p.username} username={p.username} url={p.avatar} size="w-8 h-8" />)}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Center Header */}
-                    <div className="absolute top-10 left-1/2 transform -translate-x-1/2 z-20 text-center">
-                        <h1 className="text-8xl font-black italic text-white drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]">حروف</h1>
-                    </div>
-
-                    {/* BOARD */}
-                    <div className="relative z-10 animate-in zoom-in duration-1000" style={{ width: `${boardWidth}px`, height: `${boardHeight}px` }}>
-                        {cells.map(cell => {
-                            const isOffset = cell.row % 2 !== 0;
-                            const left = (cell.col * X_OFFSET) + (isOffset ? X_OFFSET / 2 : 0);
-                            const top = cell.row * Y_OFFSET;
-                            const isActive = activeCell?.id === cell.id;
-                            const isWinning = winningPath.includes(cell.id);
-
-                            let fill = '#FFFFFF';
-                            if (cell.owner === 'team1') fill = '#FF6B52';
-                            if (cell.owner === 'team2') fill = '#14b8a6';
-
-                            return (
-                                <div key={cell.id} onClick={() => selectCell(cell)} className={`absolute flex items-center justify-center cursor-pointer transition-all duration-300 ${isActive ? 'scale-110 z-50 animate-pulse drop-shadow-[0_0_50px_white]' : 'hover:scale-105 hover:z-40 z-10'} ${isWinning ? 'animate-bounce drop-shadow-[0_0_30px_gold]' : ''}`} style={{ left: `${left}px`, top: `${top}px`, width: `${SVG_WIDTH}px`, height: `${SVG_HEIGHT}px`, filter: 'drop-shadow(2px 8px 6px rgba(0,0,0,0.3))' }}>
-                                    <svg width={SVG_WIDTH} height={SVG_HEIGHT} className="absolute inset-0 overflow-visible z-0">
-                                        <polygon points={hexPoints} fill={fill} stroke="#5A22A3" strokeWidth={STROKE_WIDTH} strokeLinejoin="round" />
-                                        {isWinning && <polygon points={hexPoints} fill="none" stroke="gold" strokeWidth="12" strokeOpacity="0.8" />}
-                                    </svg>
-                                    {cell.owner === 'none' && <span className="relative z-10 text-[3.5rem] font-black text-[#5A22A3] mt-2 select-none">{cell.letter}</span>}
+                        {/* Left Panel: Girls */}
+                        <div className={`absolute z-30 flex flex-col items-center transition-all ${isOBS ? 'top-32 right-32' : 'top-10 right-10'}`}>
+                            <div className="bg-[#FF6B52] border-4 border-[#5A22A3] rounded-[2rem] px-10 py-5 text-center shadow-[0_12px_0_#5A22A3] transform -rotate-2">
+                                <h2 className="text-white font-black text-3xl drop-shadow-md">{team1Name}</h2>
+                                <div className="mt-4 flex flex-wrap justify-center gap-1 max-w-[200px]">
+                                    {girls.slice(0, 15).map(p => <ProAvatar key={p.username} username={p.username} url={p.avatar} size="w-8 h-8" />)}
                                 </div>
-                            );
-                        })}
+                            </div>
+                        </div>
+
+                        {/* Right Panel: Boys */}
+                        <div className={`absolute z-30 flex flex-col items-center transition-all ${isOBS ? 'top-32 left-32' : 'top-10 left-10'}`}>
+                            <div className="bg-[#14b8a6] border-4 border-[#5A22A3] rounded-[2rem] px-10 py-5 text-center shadow-[0_12px_0_#5A22A3] transform rotate-2">
+                                <h2 className="text-white font-black text-3xl drop-shadow-md">{team2Name}</h2>
+                                <div className="mt-4 flex flex-wrap justify-center gap-1 max-w-[200px]">
+                                    {boys.slice(0, 15).map(p => <ProAvatar key={p.username} username={p.username} url={p.avatar} size="w-8 h-8" />)}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Center Header */}
+                        <div className="absolute top-10 left-1/2 transform -translate-x-1/2 z-20 text-center">
+                            <h1 className="text-8xl font-black italic text-white drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]">حروف</h1>
+                        </div>
+
+                        {/* BOARD */}
+                        <div className="relative z-10 animate-in zoom-in duration-1000" style={{ width: `${boardWidth}px`, height: `${boardHeight}px` }}>
+                            {cells.map(cell => {
+                                const isOffset = cell.row % 2 !== 0;
+                                const left = (cell.col * X_OFFSET) + (isOffset ? X_OFFSET / 2 : 0);
+                                const top = cell.row * Y_OFFSET;
+                                const isActive = activeCell?.id === cell.id;
+                                const isWinning = winningPath.includes(cell.id);
+
+                                let fill = isOBS ? 'rgba(255,255,255,0.03)' : '#FFFFFF';
+                                if (cell.owner === 'team1') fill = '#FF6B52';
+                                if (cell.owner === 'team2') fill = '#14b8a6';
+
+                                return (
+                                    <div key={cell.id} onClick={() => selectCell(cell)} className={`absolute flex items-center justify-center cursor-pointer transition-all duration-300 ${isActive ? 'scale-110 z-50 animate-pulse drop-shadow-[0_0_50px_white]' : 'hover:scale-105 hover:z-40 z-10'} ${isWinning ? 'animate-bounce drop-shadow-[0_0_30px_gold]' : ''}`} style={{ left: `${left}px`, top: `${top}px`, width: `${SVG_WIDTH}px`, height: `${SVG_HEIGHT}px`, filter: 'drop-shadow(2px 8px 6px rgba(0,0,0,0.3))' }}>
+                                        <svg width={SVG_WIDTH} height={SVG_HEIGHT} className="absolute inset-0 overflow-visible z-0">
+                                            <polygon points={hexPoints} fill={fill} stroke={isOBS ? 'rgba(255,255,255,0.2)' : '#5A22A3'} strokeWidth={STROKE_WIDTH} strokeLinejoin="round" />
+                                            {isWinning && <polygon points={hexPoints} fill="none" stroke="gold" strokeWidth="12" strokeOpacity="0.8" />}
+                                        </svg>
+                                        {cell.owner === 'none' && <span className={`relative z-10 font-black mt-2 select-none ${isOBS ? 'text-[5.5rem] text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]' : 'text-[3.5rem] text-[#5A22A3]'}`}>{cell.letter}</span>}
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
 
                     {/* QUESTION OVERLAY */}
                     {activeCell && currentQuestion && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-10 animate-in zoom-in duration-300">
-                            <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setActiveCell(null)}></div>
-                            <div className="w-full max-w-4xl bg-[#1a1a2e] border-[10px] border-[#5A22A3] rounded-[4rem] p-16 shadow-[0_40px_100px_rgba(0,0,0,0.9)] relative z-10 text-center animate-in slide-in-from-bottom-20 duration-500">
-                                <div className="absolute top-[-40px] left-1/2 transform -translate-x-1/2 bg-white px-12 py-3 rounded-full border-8 border-[#5A22A3] text-[#5A22A3] font-black text-5xl italic shadow-2xl">حرف {activeCell.letter}</div>
+                            {!isOBS && <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setActiveCell(null)}></div>}
+                            <div className={`w-full max-w-4xl bg-[#1a1a2e] border-[10px] border-[#5A22A3] rounded-[4rem] p-16 shadow-[0_40px_100px_rgba(0,0,0,0.9)] relative z-10 text-center animate-in slide-in-from-bottom-20 duration-500 ${isOBS ? 'scale-[0.5] bg-black/20 backdrop-blur-md border-opacity-30 shadow-none' : ''}`}>
+                                <div className={`absolute top-[-40px] left-1/2 transform -translate-x-1/2 px-12 py-3 rounded-full border-8 border-[#5A22A3] font-black text-5xl italic shadow-2xl ${isOBS ? 'bg-black/80 text-white border-white/20' : 'bg-white text-[#5A22A3]'}`}>حرف {activeCell.letter}</div>
 
                                 <p className="text-5xl font-black text-white leading-tight mb-12 mt-6">{currentQuestion.question}</p>
 
@@ -818,8 +903,8 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
 
             {/* STAGE: ENDED */}
             {stage === 'ended' && (
-                <div className={`absolute inset-0 z-[200] flex items-center justify-center p-12 ${isOBS ? 'bg-transparent' : 'bg-black/90'} backdrop-blur-3xl animate-in zoom-in duration-700`}>
-                    <div className="max-w-4xl w-full text-center space-y-12">
+                <div className={`absolute inset-0 z-[200] flex items-center justify-center p-12 ${isOBS ? 'bg-transparent' : 'bg-black/90 backdrop-blur-3xl'} animate-in zoom-in duration-700`}>
+                    <div className={`max-w-4xl w-full text-center space-y-12 transition-all ${isOBS ? 'scale-[0.5]' : ''}`}>
                         <div className="relative inline-block scale-150 mb-20 animate-bounce">
                             <Crown size={120} className="text-yellow-400 absolute top-[-80px] left-1/2 transform -translate-x-1/2 drop-shadow-[0_0_50px_rgba(250,204,21,0.8)]" />
                             <div className={`p-16 rounded-[4rem] border-[12px] border-white/20 shadow-2xl transform rotate-3 ${winner === 'team1' ? 'bg-[#FF6B52]' : 'bg-[#14b8a6]'}`}>

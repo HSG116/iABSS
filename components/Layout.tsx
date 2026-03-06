@@ -3,9 +3,9 @@ import React, { useState } from 'react';
 import { ViewState } from '../types';
 import { ChatWidget } from './ChatWidget';
 import {
-  MessageSquare, X, Settings2, ChevronRight,
+  MessageSquare, X, Settings2,
   Maximize2, Minimize2, PanelRightClose,
-  LayoutGrid, ArrowLeftRight, Link, Video, Home, User
+  LayoutGrid, Video, Home, User
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -13,11 +13,14 @@ interface LayoutProps {
   currentView: ViewState;
   onChangeView: (view: ViewState) => void;
   onOBSLinks?: () => void;
+  onToggleOBSPreview?: () => void;
+  obsPreviewActive?: boolean;
+  obsPreviewSlot?: React.ReactNode;
   isAuthorized?: boolean;
   userRole?: 'admin' | 'user';
 }
 
-export const Layout: React.FC<LayoutProps> = ({ children, currentView, onChangeView, onOBSLinks, isAuthorized, userRole }) => {
+export const Layout: React.FC<LayoutProps> = ({ children, currentView, onChangeView, onOBSLinks, onToggleOBSPreview, obsPreviewActive, obsPreviewSlot, isAuthorized, userRole }) => {
   const [chatOpen, setChatOpen] = useState(true);
   const [sidebarWidth, setSidebarWidth] = useState(450); // Default Width
 
@@ -45,7 +48,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onChangeV
       {/* Sidebar Container */}
       <aside
         style={{ width: chatOpen ? `${sidebarWidth}px` : '0px' }}
-        className={`h-full transition-all duration-500 ease-in-out border-l border-white/10 flex-shrink-0 z-50 flex flex-col bg-[#050505] shadow-[20px_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden`}
+        className="h-full transition-all duration-500 ease-in-out border-l border-white/10 flex-shrink-0 z-50 flex flex-col bg-[#050505] shadow-[20px_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden"
       >
         {/* --- MODERN COMMAND BAR (ABOVE CHAT) --- */}
         <div className="h-16 shrink-0 bg-gradient-to-l from-red-600/10 via-black to-black border-b border-white/10 flex items-center justify-between px-4 z-30">
@@ -131,6 +134,27 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onChangeV
         <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
           <ChatWidget lang="ar" />
         </div>
+
+        {/* OBS Preview Section - Integrated into Sidebar */}
+        {obsPreviewActive && obsPreviewSlot && (
+          <div className="h-[200px] shrink-0 border-t-2 border-white/10 bg-black relative group overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-6 bg-emerald-600/20 px-3 flex items-center justify-between z-10 border-b border-white/5">
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></div>
+                <span className="text-[8px] font-black text-white italic tracking-tighter uppercase">LIVE OBS OUTPUT</span>
+              </div>
+            </div>
+            <div className="w-full h-full pt-6 relative overflow-hidden flex items-center justify-center">
+              <div className="scale-[0.23] origin-center" style={{ width: '1920px', height: '1080px' }}>
+                {obsPreviewSlot}
+              </div>
+              {/* Overlay to prevent interaction in sidebar */}
+              <div className="absolute inset-0 z-20"></div>
+            </div>
+            {/* Border Glow */}
+            <div className="absolute inset-0 pointer-events-none border border-emerald-500/30"></div>
+          </div>
+        )}
 
         {/* Bottom Section: Game Controls */}
         {!isHome && (

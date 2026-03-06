@@ -39,7 +39,7 @@ import {
   Maximize2, MonitorOff, CheckCircle2, AlertTriangle,
   Crown, Medal, Loader2, RefreshCw, ChevronRight, Video,
   Sword, Globe, Brain, Vote, Bomb, Type, Footprints, Flame, Smile,
-  ArrowUp, ArrowDown, Edit2, Save, Eye, EyeOff, Maximize, Minimize, Layout as LayoutIcon
+  ArrowUp, ArrowDown, Edit2, Save, Eye, EyeOff, Maximize, Minimize, Layout as LayoutIcon, X
 } from 'lucide-react';
 import { getAssetUrl } from './utils/assets';
 import { chatService } from './services/chatService';
@@ -82,6 +82,7 @@ const App: React.FC = () => {
   const [showWelcome, setShowWelcome] = useState(!initialParams.obs);
   const [isOBSMode, setIsOBSMode] = useState(initialParams.obs);
   const [showOBSModal, setShowOBSModal] = useState(false);
+  const [showObsPreview, setShowObsPreview] = useState(false);
 
   // Authorization State - bypass for OBS
   const [isAuthorized, setIsAuthorized] = useState<boolean>(() => {
@@ -452,7 +453,7 @@ const App: React.FC = () => {
       case 'GLASS_BRIDGE_V2': return <GlassBridgeV2 onHome={handleGoHome} isOBS={obsMode} />;
       case 'FLOOR_IS_LAVA': return <FloorIsLava onHome={handleGoHome} isOBS={obsMode} />;
       case 'EMOJI_CODE': return <EmojiCode onHome={handleGoHome} isOBS={obsMode} />;
-      case 'LETTER_GAME': return <LetterHexagonGame onHome={handleGoHome} isOBS={obsMode} />;
+      case 'LETTER_GAME': return <LetterHexagonGame onHome={handleGoHome} isOBS={obsMode} onToggleOBSPreview={() => setShowObsPreview(!showObsPreview)} obsPreviewActive={showObsPreview} />;
       case 'BUZZER_PAD': return <BuzzerPad />;
 
       case 'USER_DASHBOARD': return (
@@ -877,6 +878,9 @@ const App: React.FC = () => {
       currentView={currentView as ViewState}
       onChangeView={(v) => setCurrentView(v)}
       onOBSLinks={() => setShowOBSModal(true)}
+      onToggleOBSPreview={() => setShowObsPreview(!showObsPreview)}
+      obsPreviewActive={showObsPreview}
+      obsPreviewSlot={renderContent(true)}
       isAuthorized={isAuthorized}
       userRole={userRole}
     >
@@ -889,8 +893,11 @@ const App: React.FC = () => {
       }} />}
 
       {/* Only show content if authorized */}
-
-      {isAuthorized && renderContent(false)}
+      {isAuthorized && (
+        <div className="relative w-full h-full flex flex-col items-center">
+          {renderContent(false)}
+        </div>
+      )}
 
       {activeAnnouncement && (
         <GlobalAnnouncement
