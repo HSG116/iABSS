@@ -73,6 +73,19 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
     const [team1Name, setTeam1Name] = useState('فريق البنات 🌸');
     const [team2Name, setTeam2Name] = useState('فريق الأولاد 🧊');
 
+    // Progressive Levels
+    const [currentLevel, setCurrentLevel] = useState<number>(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('iabs_letter_game_level');
+            return saved ? parseInt(saved) : 1;
+        }
+        return 1;
+    });
+
+    useEffect(() => {
+        localStorage.setItem('iabs_letter_game_level', currentLevel.toString());
+    }, [currentLevel]);
+
     // Chat Bell Game Logic
     const [buzzedTeam, setBuzzedTeam] = useState<'team1' | 'team2' | null>(null);
     const [buzzedPlayer, setBuzzedPlayer] = useState<Player | null>(null);
@@ -134,6 +147,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                     if (data.allowJoin !== undefined) setAllowJoin(data.allowJoin);
                     if (data.timerDuration !== undefined) setTimerDuration(data.timerDuration);
                     if (data.difficulty !== undefined) setDifficulty(data.difficulty);
+                    if (data.currentLevel !== undefined) setCurrentLevel(data.currentLevel);
                 })
                 .subscribe((status) => {
                     if (status === 'SUBSCRIBED') {
@@ -170,7 +184,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                     buzzedTeam, buzzedPlayer, answerTimer,
                     lastAnswer, triedTeams, winner, winningPath,
                     lobbyPlayers, team1Name, team2Name, entryKeyword, allowJoin,
-                    timerDuration, difficulty
+                    timerDuration, difficulty, currentLevel
                 }
             });
         }
@@ -185,7 +199,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
         if (!isOBS && broadcastRef.current) {
             broadcastFullState();
         }
-    }, [cells, stage, activeCell, currentQuestion, buzzedTeam, buzzedPlayer, answerTimer, lastAnswer, triedTeams, winner, winningPath, lobbyPlayers, team1Name, team2Name, entryKeyword, allowJoin, isOBS]);
+    }, [cells, stage, activeCell, currentQuestion, buzzedTeam, buzzedPlayer, answerTimer, lastAnswer, triedTeams, winner, winningPath, lobbyPlayers, team1Name, team2Name, entryKeyword, allowJoin, isOBS, currentLevel]);
 
     // Chat listener (Main Bell Game logic)
     useEffect(() => {
@@ -276,6 +290,8 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
     };
 
     const startGame = () => {
+        // Use currentLevel to create a level-specific shuffle if desired, 
+        // or just shuffle normally. Here we shuffle normally but track the level.
         const shuffled = [...ARABIC_LETTERS].sort(() => Math.random() - 0.5);
         let lIdx = 0;
         const initialCells: HexCellData[] = [];
@@ -290,7 +306,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
         setWinningPath([]);
         setAllowJoin(false);
 
-        // Immediate and direct broadcast to bypass potential effect lag
+        // Immediate and direct broadcast
         if (!isOBS && broadcastRef.current) {
             broadcastRef.current.send({
                 type: 'broadcast',
@@ -301,7 +317,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                     winner: null,
                     winningPath: [],
                     allowJoin: false,
-                    lobbyPlayers, team1Name, team2Name, entryKeyword, timerDuration, difficulty
+                    lobbyPlayers, team1Name, team2Name, entryKeyword, timerDuration, difficulty, currentLevel
                 }
             });
         }
@@ -330,7 +346,14 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
         const end1 = updatedCells.filter(c => c.row === 4 && c.owner === 'team1').map(c => c.id);
 
         const path1 = findPath(start1, end1, team1Cells);
-        if (path1) { setWinner('team1'); setWinningPath(path1); setStage('ended'); playSfx('win'); return; }
+        if (path1) {
+            setWinner('team1');
+            setWinningPath(path1);
+            setStage('ended');
+            playSfx('win');
+            if (currentLevel < 100) setCurrentLevel(prev => prev + 1);
+            return;
+        }
 
         // Team 2 (Boys): Left to Right
         const team2Cells = updatedCells.filter(c => c.owner === 'team2').map(c => c.id);
@@ -340,7 +363,14 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
         const end2 = updatedCells.filter(c => rightColIndices.includes(c.id) && c.owner === 'team2').map(c => c.id);
 
         const path2 = findPath(start2, end2, team2Cells);
-        if (path2) { setWinner('team2'); setWinningPath(path2); setStage('ended'); playSfx('win'); return; }
+        if (path2) {
+            setWinner('team2');
+            setWinningPath(path2);
+            setStage('ended');
+            playSfx('win');
+            if (currentLevel < 100) setCurrentLevel(prev => prev + 1);
+            return;
+        }
     };
 
     const findPath = (start: number[], end: number[], validSet: number[]) => {
@@ -401,7 +431,14 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
         setAnswerTimer(0);
         setTriedTeams([]);
         setLastAnswer({ text: '', correct: null });
-        setCurrentQuestion(null); // No more preset questions
+        // Load a question as a HINT (answer verification is by first-letter logic)
+        const availableQs = LETTER_GAME_QUESTIONS.filter(q => q.letter === cell.letter);
+        if (availableQs.length > 0) {
+            const randomQ = availableQs[Math.floor(Math.random() * availableQs.length)];
+            setCurrentQuestion(randomQ);
+        } else {
+            setCurrentQuestion(null);
+        }
     };
 
     // Timer Effect
@@ -439,11 +476,17 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                 </div>
             )}
 
-            {/* ONLINE BADGE FOR OBS */}
+            {/* ONLINE BADGE FOR OBS (And Level Indicator) */}
             {isOBS && (
-                <div className="absolute top-10 left-10 z-[300] flex items-center gap-3 bg-black/40 px-6 py-2.5 rounded-full border border-emerald-500/30 backdrop-blur-md animate-in slide-in-from-left-10 duration-500">
-                    <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_15px_#10b981]"></div>
-                    <span className="text-emerald-400 font-black text-[10px] uppercase tracking-[0.3em] italic">Live Online</span>
+                <div className="absolute top-10 left-10 z-[300] flex flex-col gap-2 animate-in slide-in-from-left-10 duration-500">
+                    <div className="flex items-center gap-3 bg-black/40 px-6 py-2.5 rounded-full border border-emerald-500/30 backdrop-blur-md">
+                        <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_15px_#10b981]"></div>
+                        <span className="text-emerald-400 font-black text-[10px] uppercase tracking-[0.3em] italic">Live Online</span>
+                    </div>
+                    <div className="flex items-center gap-3 bg-indigo-600/60 px-6 py-2.5 rounded-full border border-white/20 backdrop-blur-md shadow-2xl">
+                        <Trophy className="text-yellow-400" size={16} />
+                        <span className="text-white font-black text-xs italic">المرحلة {currentLevel} / 100</span>
+                    </div>
                 </div>
             )}
 
@@ -619,6 +662,18 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                     </label>
                                     <input type="range" min="10" max="60" step="5" value={timerDuration} onChange={e => setTimerDuration(parseInt(e.target.value))} className="w-full h-3 bg-black rounded-full appearance-none accent-emerald-500 shadow-inner" />
                                 </div>
+                                <div className="bg-indigo-600/10 p-6 rounded-[2rem] border-2 border-indigo-500/30 shadow-2xl">
+                                    <label className="flex items-center justify-between text-sm font-black text-indigo-400 mb-4 tracking-widest uppercase">
+                                        <span className="flex items-center gap-3"><Trophy size={18} /> المرحلة الحالية</span>
+                                        <span className="text-white text-xl">{currentLevel} / 100</span>
+                                    </label>
+                                    <input type="range" min="1" max="100" step="1" value={currentLevel} onChange={e => setCurrentLevel(parseInt(e.target.value))} className="w-full h-3 bg-black rounded-full appearance-none accent-indigo-500 shadow-inner" />
+                                    <div className="flex justify-between mt-2 text-[8px] font-black text-white/20 uppercase tracking-widest">
+                                        <span>بداية</span>
+                                        <span>منتصف الطريق</span>
+                                        <span>الاحتراف</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -780,9 +835,15 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                             </div>
                         </div>
 
-                        {/* Center Header */}
+                        {/* Center Header (With Level Indicator) */}
                         <div className={`absolute ${isOBS ? 'top-[-180px]' : 'top-10'} left-1/2 transform -translate-x-1/2 z-20 text-center`}>
                             <h1 className={`${isOBS ? 'text-7xl' : 'text-8xl'} font-black italic text-white drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]`}>حروف</h1>
+                            {!isOBS && (
+                                <div className="mt-4 inline-flex items-center gap-3 bg-indigo-600 px-6 py-2 rounded-full border-2 border-white/20 shadow-xl">
+                                    <Trophy size={20} className="text-yellow-400" />
+                                    <span className="font-black text-xl italic uppercase">المرحلة {currentLevel}</span>
+                                </div>
+                            )}
                         </div>
 
                         {/* BOARD */}
@@ -898,9 +959,22 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                         </div>
                                     </div>
 
-                                    <div className="space-y-4">
-                                        <h2 className="text-6xl font-black text-white italic drop-shadow-lg">تحدي الحرف!</h2>
-                                        <p className="text-3xl font-bold text-white/60 tracking-widest uppercase">اكتب كلمة تبدأ بهذا الحرف</p>
+                                    <div className="space-y-6">
+                                        {currentQuestion ? (
+                                            <>
+                                                <h2 className="text-5xl font-black text-white leading-tight drop-shadow-lg">{currentQuestion.question}</h2>
+                                                <div className="bg-emerald-500/10 border-2 border-emerald-500/30 rounded-3xl p-6 group relative">
+                                                    <span className="text-gray-400 font-bold block mb-1 uppercase tracking-widest text-xs">الإجابة المتوقعة (مخفية - تبدأ بحرف {activeCell.letter})</span>
+                                                    <span className="text-3xl font-black text-emerald-200 blur-md group-hover:blur-0 transition-all duration-500">{currentQuestion.answer}</span>
+                                                </div>
+                                                <p className="text-xl font-bold text-white/40 italic">أي إجابة تبدأ بحرف ( {activeCell.letter} ) تُعتبر صحيحة</p>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <h2 className="text-6xl font-black text-white italic drop-shadow-lg">تحدي الحرف!</h2>
+                                                <p className="text-3xl font-bold text-white/60">اكتب كلمة تبدأ بحرف <span className="text-white font-black">{activeCell.letter}</span></p>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
 
