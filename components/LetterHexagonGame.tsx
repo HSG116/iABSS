@@ -725,64 +725,47 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
 
                         {/* Worlds */}
                         <div className="flex-1 w-full max-w-7xl px-8 pb-8 overflow-y-auto">
-                            {worlds.map(world => {
-                                const worldUnlocked = world.range[0] <= highestUnlocked;
-                                return (
-                                    <div key={world.id} className="mb-8">
-                                        {/* World Header */}
-                                        <div className="flex items-center gap-4 mb-4">
-                                            <span className="text-4xl">{world.emoji}</span>
-                                            <div>
-                                                <h2 className="text-2xl font-black text-white italic">{world.name}</h2>
-                                                <p className="text-white/40 text-sm font-bold">{world.desc}</p>
-                                            </div>
-                                            {!worldUnlocked && (
-                                                <div className="mr-auto flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full text-white/30 text-sm font-black">
-                                                    🔒 مقفل - أكمل المرحلة {world.range[0] - 1} أولاً
-                                                </div>
-                                            )}
-                                            <div className="mr-auto h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" style={{ background: worldUnlocked ? `linear-gradient(to right, ${world.color}40, transparent)` : undefined }}></div>
+                            {worlds.map(world => (
+                                <div key={world.id} className="mb-8">
+                                    {/* World Header */}
+                                    <div className="flex items-center gap-4 mb-4">
+                                        <span className="text-4xl">{world.emoji}</span>
+                                        <div>
+                                            <h2 className="text-2xl font-black italic" style={{ color: world.color }}>{world.name}</h2>
+                                            <p className="text-white/40 text-sm font-bold">{world.desc}</p>
                                         </div>
-
-                                        {/* Level Grid */}
-                                        <div className="grid grid-cols-10 gap-2">
-                                            {Array.from({ length: 20 }, (_, i) => world.range[0] + i).map(lvl => {
-                                                const isCompleted = lvl < currentLevel;
-                                                const isCurrent = lvl === currentLevel;
-                                                const isUnlocked = lvl <= highestUnlocked;
-                                                const isLocked = !isUnlocked;
-                                                return (
-                                                    <button
-                                                        key={lvl}
-                                                        onClick={() => {
-                                                            if (isLocked) return;
-                                                            setCurrentLevel(lvl);
-                                                            setStage('lobby');
-                                                        }}
-                                                        disabled={isLocked}
-                                                        className={`
-                                                            relative h-16 rounded-2xl font-black text-lg transition-all duration-200 border-2 flex flex-col items-center justify-center gap-0.5
-                                                            ${isLocked ? 'bg-white/3 border-white/5 text-white/15 cursor-not-allowed' : ''}
-                                                            ${isCompleted && !isCurrent ? 'border-opacity-50 hover:scale-105 active:scale-95 cursor-pointer' : ''}
-                                                            ${isCurrent ? 'scale-110 shadow-2xl animate-pulse cursor-pointer' : ''}
-                                                            ${isUnlocked && !isCurrent ? 'hover:scale-105 active:scale-95 cursor-pointer' : ''}
-                                                        `}
-                                                        style={{
-                                                            backgroundColor: isLocked ? undefined : isCompleted ? `${world.color}25` : isCurrent ? world.color : `${world.color}15`,
-                                                            borderColor: isLocked ? undefined : isCurrent ? 'white' : `${world.color}60`,
-                                                            boxShadow: isCurrent ? `0 0 20px ${world.glow}, 0 0 40px ${world.glow}` : isCompleted ? `0 4px 15px ${world.glow}` : undefined,
-                                                            color: isLocked ? undefined : isCurrent ? 'white' : `${world.color}`,
-                                                        }}
-                                                    >
-                                                        {isLocked ? '🔒' : isCompleted ? '✓' : lvl}
-                                                        {isCurrent && <span className="text-[8px] font-black uppercase tracking-widest opacity-80">الآن</span>}
-                                                    </button>
-                                                );
-                                            })}
+                                        <div className="mr-auto h-px flex-1" style={{ background: `linear-gradient(to right, ${world.color}60, transparent)` }}></div>
+                                        <div className="text-white/30 text-xs font-bold">
+                                            {world.range[0]} - {world.range[1]}
                                         </div>
                                     </div>
-                                );
-                            })}
+
+                                    {/* Level Grid */}
+                                    <div className="grid grid-cols-10 gap-2">
+                                        {Array.from({ length: 20 }, (_, i) => world.range[0] + i).map(lvl => {
+                                            const isCompleted = lvl < currentLevel;
+                                            const isCurrent = lvl === currentLevel;
+                                            return (
+                                                <button
+                                                    key={lvl}
+                                                    onClick={() => { setCurrentLevel(lvl); setStage('lobby'); }}
+                                                    className={`relative h-16 rounded-2xl font-black text-lg transition-all duration-200 border-2 flex flex-col items-center justify-center gap-0.5 hover:scale-110 active:scale-95 ${isCurrent ? 'scale-110' : ''}`}
+                                                    style={{
+                                                        backgroundColor: isCompleted ? `${world.color}30` : isCurrent ? world.color : `${world.color}10`,
+                                                        borderColor: isCurrent ? 'white' : `${world.color}50`,
+                                                        color: isCurrent ? 'white' : world.color,
+                                                        boxShadow: isCurrent ? `0 0 25px ${world.glow}, 0 0 50px ${world.glow}` : isCompleted ? `0 4px 12px ${world.glow}` : undefined,
+                                                        animation: isCurrent ? 'pulse 2s infinite' : undefined,
+                                                    }}
+                                                >
+                                                    <span>{isCompleted ? '✓' : lvl}</span>
+                                                    {isCurrent && <span className="text-[8px] font-black uppercase tracking-widest opacity-80">الآن</span>}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 );
