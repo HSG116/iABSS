@@ -750,6 +750,18 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                         </>
                     )}
 
+                    {/* OBS Specific Background Glow Grid */}
+                    {isOBS && (
+                        <div className="absolute inset-0 pointer-events-none overflow-hidden select-none">
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(90,34,163,0.1),transparent)]"></div>
+                            <style>{`
+                                @keyframes boardFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+                                @keyframes neonPulse { 0%, 100% { opacity: 0.4; filter: brightness(1); } 50% { opacity: 0.8; filter: brightness(2); } }
+                                @keyframes letterGlow { 0%, 100% { text-shadow: 0 0 10px rgba(255,255,255,0.5); } 50% { text-shadow: 0 0 30px rgba(255,255,255,1), 0 0 50px rgba(90,34,163,0.5); } }
+                            `}</style>
+                        </div>
+                    )}
+
                     {/* Scale Wrapper for OBS - Hide board elements when a cell is active in OBS */}
                     <div className={`w-full h-full flex flex-col items-center justify-center transition-all duration-700 ${isOBS ? 'scale-[0.5] overflow-visible' : ''} ${isOBS && activeCell ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
 
@@ -779,7 +791,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                         </div>
 
                         {/* BOARD */}
-                        <div className="relative z-10 animate-in zoom-in duration-1000" style={{ width: `${boardWidth}px`, height: `${boardHeight}px` }}>
+                        <div className={`relative z-10 animate-in zoom-in slide-in-from-bottom-20 duration-1000 ${isOBS ? 'animate-[boardFloat_10s_ease-in-out_infinite]' : ''}`} style={{ width: `${boardWidth}px`, height: `${boardHeight}px` }}>
                             {/* SVG Filters and Gradients Definitions - Reusable for all cells */}
                             <svg className="absolute w-0 h-0 overflow-hidden">
                                 <defs>
@@ -803,8 +815,8 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                         <stop offset="0%" style={{ stopColor: 'rgba(255,255,255,0.1)' }} />
                                         <stop offset="100%" style={{ stopColor: 'rgba(255,255,255,0.02)' }} />
                                     </linearGradient>
-                                    <filter id="neon-glow" x="-20%" y="-20%" width="140%" height="140%">
-                                        <feGaussianBlur stdDeviation="5" result="blur" />
+                                    <filter id="ultra-glow" x="-50%" y="-50%" width="200%" height="200%">
+                                        <feGaussianBlur stdDeviation="8" result="blur" />
                                         <feComposite in="SourceGraphic" in2="blur" operator="over" />
                                     </filter>
                                 </defs>
@@ -834,32 +846,40 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                 }
 
                                 return (
-                                    <div key={cell.id} onClick={() => selectCell(cell)} className={`absolute flex items-center justify-center cursor-pointer transition-all duration-300 ${isActive ? 'scale-110 z-50 animate-pulse drop-shadow-[0_0_50px_rgba(255,255,255,0.8)]' : 'hover:scale-105 hover:z-40 z-10'} ${isWinning ? 'animate-bounce drop-shadow-[0_0_30px_#EAB308]' : ''}`} style={{ left: `${left}px`, top: `${top}px`, width: `${SVG_WIDTH}px`, height: `${SVG_HEIGHT}px` }}>
+                                    <div key={cell.id} onClick={() => selectCell(cell)} className={`absolute flex items-center justify-center cursor-pointer transition-all duration-300 ${isActive ? 'scale-110 z-50 drop-shadow-[0_0_60px_rgba(255,255,255,0.9)]' : 'hover:scale-105 hover:z-40 z-10'} ${isWinning ? 'animate-bounce' : ''}`} style={{ left: `${left}px`, top: `${top}px`, width: `${SVG_WIDTH}px`, height: `${SVG_HEIGHT}px` }}>
                                         <svg width={SVG_WIDTH} height={SVG_HEIGHT} className="absolute inset-0 overflow-visible z-0">
-                                            {/* Main Hex Body */}
-                                            <polygon points={hexPoints} fill={fillId} stroke={strokeColor} strokeWidth={STROKE_WIDTH} strokeLinejoin="round" />
+                                            {/* Main Hex Body with Sci-Fi Borders */}
+                                            <polygon points={hexPoints} fill={fillId} stroke={strokeColor} strokeWidth={isOBS ? 4 : STROKE_WIDTH} strokeLinejoin="round" className={isOBS && cell.owner === 'none' ? 'animate-[neonPulse_4s_infinite]' : ''} />
 
-                                            {/* Glass/Gloss Overlay */}
+                                            {/* Inner Neon Line for OBS */}
+                                            {isOBS && cell.owner === 'none' && (
+                                                <polygon points={hexPoints} fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1" strokeLinejoin="round" style={{ transform: 'scale(0.85)', transformOrigin: 'center' }} />
+                                            )}
+
+                                            {/* Glass/Gloss Overlay - Enhanced */}
                                             <polygon
                                                 points={hexPoints}
-                                                fill="url(#grad-obs-empty)"
-                                                style={{ opacity: isOBS ? 0.1 : 0.3, transform: 'scale(0.95)', transformOrigin: 'center' }}
+                                                fill="white"
+                                                style={{ opacity: isOBS ? 0.05 : 0.2, transform: 'scale(0.95)', transformOrigin: 'center' }}
                                                 className="pointer-events-none"
                                             />
 
                                             {isWinning && (
-                                                <polygon points={hexPoints} fill="none" stroke="url(#grad-winning)" strokeWidth="12" strokeLinejoin="round" style={{ filter: 'url(#neon-glow)' }} />
+                                                <polygon points={hexPoints} fill="none" stroke="url(#grad-winning)" strokeWidth="15" strokeLinejoin="round" style={{ filter: 'url(#ultra-glow)' }} />
                                             )}
                                         </svg>
 
-                                        {/* Stylized Letter */}
-                                        <div className={`relative z-10 font-black mt-2 select-none transition-all duration-500 ${isOBS ? 'text-[6rem]' : 'text-[3.5rem]'} ${cell.owner !== 'none' ? 'scale-90 opacity-40' : 'scale-100'}`} style={{ color: letterColor, textShadow: isOBS ? '0 10px 20px rgba(0,0,0,0.5), 0 0 20px rgba(255,255,255,0.4)' : '0 4px 8px rgba(0,0,0,0.2)' }}>
+                                        {/* Stylized Letter - High Impact Typography */}
+                                        <div className={`relative z-10 font-black mt-2 select-none transition-all duration-500 italic ${isOBS ? 'text-[6.5rem] animate-[letterGlow_3s_infinite]' : 'text-[3.5rem]'} ${cell.owner !== 'none' ? 'scale-75 opacity-30 blur-[1px]' : 'scale-100'}`} style={{ color: letterColor, textShadow: isOBS ? '0 10px 40px rgba(0,0,0,0.8), 0 0 20px rgba(255,255,255,0.4)' : '0 4px 8px rgba(0,0,0,0.2)' }}>
                                             {cell.letter}
                                         </div>
 
-                                        {/* Active Selection Ring */}
+                                        {/* Selection FX - Multi-layer Heavy Duty */}
                                         {isActive && (
-                                            <div className="absolute inset-[-15px] border-4 border-dashed border-white rounded-full animate-[spin_8s_linear_infinite] opacity-40 z-[-1]"></div>
+                                            <>
+                                                <div className="absolute inset-[-25px] border-[6px] border-dashed border-white/60 rounded-full animate-[spin_4s_linear_infinite] z-[-1]"></div>
+                                                <div className="absolute inset-[-35px] border-[2px] border-white/20 rounded-full animate-[spin_10s_linear_reverse_infinite] z-[-2]"></div>
+                                            </>
                                         )}
                                     </div>
                                 );
