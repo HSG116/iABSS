@@ -872,7 +872,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                         </svg>
 
                                         {/* Stylized Letter - High Impact Typography */}
-                                        <div className={`relative z-10 font-black mt-2 select-none transition-all duration-500 italic ${isOBS ? 'text-[6.5rem] animate-[letterGlow_5s_infinite]' : 'text-[3.5rem]'} ${cell.owner !== 'none' ? 'scale-75 opacity-30 blur-[1px]' : 'scale-100'}`} style={{ color: letterColor, textShadow: isOBS ? '0 10px 40px rgba(0,0,0,0.9), 0 0 10px rgba(255,255,255,0.4)' : '0 4px 8px rgba(0,0,0,0.2)' }}>
+                                        <div className={`relative z-10 font-black mt-2 select-none transition-all duration-500 italic ${isOBS ? 'text-[4.5rem] animate-[letterGlow_5s_infinite]' : 'text-[3.5rem]'} ${cell.owner !== 'none' ? 'scale-75 opacity-30 blur-[1px]' : 'scale-100'}`} style={{ color: letterColor, textShadow: isOBS ? '0 10px 40px rgba(0,0,0,0.9), 0 0 10px rgba(255,255,255,0.4)' : '0 4px 8px rgba(0,0,0,0.2)' }}>
                                             {cell.letter}
                                         </div>
 
