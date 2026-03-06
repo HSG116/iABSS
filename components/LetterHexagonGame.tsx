@@ -765,29 +765,29 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                     {/* Scale Wrapper for OBS - Hide board elements when a cell is active in OBS */}
                     <div className={`w-full h-full flex flex-col items-center justify-center transition-all duration-700 ${isOBS ? 'scale-[0.5] overflow-visible' : ''} ${isOBS && activeCell ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
 
-                        {/* Left Panel: Girls */}
-                        <div className={`absolute z-30 flex flex-col items-center transition-all ${isOBS ? 'top-32 right-32' : 'top-10 right-10'}`}>
-                            <div className="bg-[#FF6B52] border-4 border-[#5A22A3] rounded-[2rem] px-10 py-5 text-center shadow-[0_12px_0_#5A22A3] transform -rotate-2">
-                                <h2 className="text-white font-black text-3xl drop-shadow-md">{team1Name}</h2>
-                                <div className="mt-4 flex flex-wrap justify-center gap-1 max-w-[200px]">
-                                    {girls.slice(0, 15).map(p => <ProAvatar key={p.username} username={p.username} url={p.avatar} size="w-8 h-8" />)}
+                        {/* Left Panel: Girls (Repositioned to corner for OBS) */}
+                        <div className={`absolute z-30 flex flex-col items-center transition-all ${isOBS ? 'top-10 right-10 scale-90' : 'top-10 right-10'}`}>
+                            <div className={`${isOBS ? 'bg-[#FF6B52]/90 backdrop-blur-xl border-white/30' : 'bg-[#FF6B52] border-[#5A22A3]'} border-4 rounded-[2.5rem] px-8 py-4 text-center shadow-[0_12px_24px_rgba(0,0,0,0.3)] transform -rotate-1`}>
+                                <h2 className="text-white font-black text-2xl drop-shadow-md">{team1Name}</h2>
+                                <div className="mt-3 flex flex-wrap justify-center gap-1 max-w-[150px]">
+                                    {girls.slice(0, 10).map(p => <ProAvatar key={p.username} username={p.username} url={p.avatar} size="w-7 h-7" />)}
                                 </div>
                             </div>
                         </div>
 
-                        {/* Right Panel: Boys */}
-                        <div className={`absolute z-30 flex flex-col items-center transition-all ${isOBS ? 'top-32 left-32' : 'top-10 left-10'}`}>
-                            <div className="bg-[#14b8a6] border-4 border-[#5A22A3] rounded-[2rem] px-10 py-5 text-center shadow-[0_12px_0_#5A22A3] transform rotate-2">
-                                <h2 className="text-white font-black text-3xl drop-shadow-md">{team2Name}</h2>
-                                <div className="mt-4 flex flex-wrap justify-center gap-1 max-w-[200px]">
-                                    {boys.slice(0, 15).map(p => <ProAvatar key={p.username} username={p.username} url={p.avatar} size="w-8 h-8" />)}
+                        {/* Right Panel: Boys (Repositioned to corner for OBS) */}
+                        <div className={`absolute z-30 flex flex-col items-center transition-all ${isOBS ? 'top-10 left-10 scale-90' : 'top-10 left-10'}`}>
+                            <div className={`${isOBS ? 'bg-[#14b8a6]/90 backdrop-blur-xl border-white/30' : 'bg-[#14b8a6] border-[#5A22A3]'} border-4 rounded-[2.5rem] px-8 py-4 text-center shadow-[0_12px_24px_rgba(0,0,0,0.3)] transform rotate-1`}>
+                                <h2 className="text-white font-black text-2xl drop-shadow-md">{team2Name}</h2>
+                                <div className="mt-3 flex flex-wrap justify-center gap-1 max-w-[150px]">
+                                    {boys.slice(0, 10).map(p => <ProAvatar key={p.username} username={p.username} url={p.avatar} size="w-7 h-7" />)}
                                 </div>
                             </div>
                         </div>
 
                         {/* Center Header */}
-                        <div className="absolute top-10 left-1/2 transform -translate-x-1/2 z-20 text-center">
-                            <h1 className="text-8xl font-black italic text-white drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]">حروف</h1>
+                        <div className={`absolute ${isOBS ? 'top-[-50px]' : 'top-10'} left-1/2 transform -translate-x-1/2 z-20 text-center`}>
+                            <h1 className={`${isOBS ? 'text-7xl' : 'text-8xl'} font-black italic text-white drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]`}>حروف</h1>
                         </div>
 
                         {/* BOARD */}
@@ -870,7 +870,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                         </svg>
 
                                         {/* Stylized Letter - High Impact Typography */}
-                                        <div className={`relative z-10 font-black mt-2 select-none transition-all duration-500 italic ${isOBS ? 'text-[6.5rem] animate-[letterGlow_3s_infinite]' : 'text-[3.5rem]'} ${cell.owner !== 'none' ? 'scale-75 opacity-30 blur-[1px]' : 'scale-100'}`} style={{ color: letterColor, textShadow: isOBS ? '0 10px 40px rgba(0,0,0,0.8), 0 0 20px rgba(255,255,255,0.4)' : '0 4px 8px rgba(0,0,0,0.2)' }}>
+                                        <div className={`relative z-10 font-black mt-2 select-none transition-all duration-500 italic ${isOBS ? 'text-[6.5rem] animate-[letterGlow_5s_infinite]' : 'text-[3.5rem]'} ${cell.owner !== 'none' ? 'scale-75 opacity-30 blur-[1px]' : 'scale-100'}`} style={{ color: letterColor, textShadow: isOBS ? '0 10px 40px rgba(0,0,0,0.9), 0 0 10px rgba(255,255,255,0.4)' : '0 4px 8px rgba(0,0,0,0.2)' }}>
                                             {cell.letter}
                                         </div>
 
