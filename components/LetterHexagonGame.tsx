@@ -336,8 +336,8 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
         const cell = cells.find(c => c.id === id);
         if (!cell) return [];
         const neighbors: number[] = [];
-        const evenRowNeighbors = [[-1, 0], [-1, 1], [0, -1], [0, 1], [1, 0], [1, 1]];
-        const oddRowNeighbors = [[-1, -1], [-1, 0], [0, -1], [0, 1], [1, -1], [1, 0]];
+        const evenRowNeighbors = [[-1, -1], [-1, 0], [0, -1], [0, 1], [1, -1], [1, 0]];
+        const oddRowNeighbors = [[-1, 0], [-1, 1], [0, -1], [0, 1], [1, 0], [1, 1]];
         const deltas = (cell.row % 2 === 0) ? evenRowNeighbors : oddRowNeighbors;
 
         deltas.forEach(([dr, dc]) => {
@@ -349,44 +349,39 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
     };
 
     const checkWin = (updatedCells: HexCellData[]) => {
-        // Team 1 (Girls): Top to Bottom
-        const team1Cells = updatedCells.filter(c => c.owner === 'team1').map(c => c.id);
-        const start1 = updatedCells.filter(c => c.row === 0 && c.owner === 'team1').map(c => c.id);
-        const end1 = updatedCells.filter(c => c.row === 4 && c.owner === 'team1').map(c => c.id);
+        const team1Ids = updatedCells.filter(c => c.owner === 'team1').map(c => c.id);
+        const team2Ids = updatedCells.filter(c => c.owner === 'team2').map(c => c.id);
 
-        const path1 = findPath(start1, end1, team1Cells);
-        if (path1) {
-            setWinner('team1');
-            setWinningPath(path1);
-            setStage('ended');
-            playSfx('win');
-            if (currentLevel < 100) {
-                const next = currentLevel + 1;
-                setCurrentLevel(next);
-                if (next > highestUnlocked) setHighestUnlocked(next);
-            }
-            return;
-        }
+        const topEdge = updatedCells.filter(c => c.row === 0).map(c => c.id);
+        const bottomEdge = updatedCells.filter(c => c.row === 4).map(c => c.id);
+        const leftEdge = updatedCells.filter(c => c.col === 0).map(c => c.id);
+        const rightEdge = updatedCells.filter(c => {
+            if (c.row % 2 === 0) return c.col === 5;
+            return c.col === 4;
+        }).map(c => c.id);
 
-        // Team 2 (Boys): Left to Right
-        const team2Cells = updatedCells.filter(c => c.owner === 'team2').map(c => c.id);
-        const leftColIndices = [0, 6, 11, 17, 22];
-        const rightColIndices = [5, 10, 16, 21, 27];
-        const start2 = updatedCells.filter(c => leftColIndices.includes(c.id) && c.owner === 'team2').map(c => c.id);
-        const end2 = updatedCells.filter(c => rightColIndices.includes(c.id) && c.owner === 'team2').map(c => c.id);
+        // Check Team 1 (Women) - Cross either direction to win
+        const win1TB = findPath(topEdge.filter(id => team1Ids.includes(id)), bottomEdge, team1Ids);
+        const win1LR = findPath(leftEdge.filter(id => team1Ids.includes(id)), rightEdge, team1Ids);
+        if (win1TB) { declareWinner('team1', win1TB); return; }
+        if (win1LR) { declareWinner('team1', win1LR); return; }
 
-        const path2 = findPath(start2, end2, team2Cells);
-        if (path2) {
-            setWinner('team2');
-            setWinningPath(path2);
-            setStage('ended');
-            playSfx('win');
-            if (currentLevel < 100) {
-                const next = currentLevel + 1;
-                setCurrentLevel(next);
-                if (next > highestUnlocked) setHighestUnlocked(next);
-            }
-            return;
+        // Check Team 2 (Men) - Cross either direction to win
+        const win2TB = findPath(topEdge.filter(id => team2Ids.includes(id)), bottomEdge, team2Ids);
+        const win2LR = findPath(leftEdge.filter(id => team2Ids.includes(id)), rightEdge, team2Ids);
+        if (win2TB) { declareWinner('team2', win2TB); return; }
+        if (win2LR) { declareWinner('team2', win2LR); return; }
+    };
+
+    const declareWinner = (team: 'team1' | 'team2', path: number[]) => {
+        setWinner(team);
+        setWinningPath(path);
+        setStage('ended');
+        playSfx('win');
+        if (currentLevel < 100) {
+            const next = currentLevel + 1;
+            setCurrentLevel(next);
+            if (next > highestUnlocked) setHighestUnlocked(next);
         }
     };
 
@@ -1077,29 +1072,29 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                             {isOBS && <div className="absolute inset-0 bg-black/90 backdrop-blur-3xl animate-in fade-in duration-500"></div>}
                             {!isOBS && <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setActiveCell(null)}></div>}
 
-                            <div className={`w-full max-w-5xl bg-[#0a0a1a] border-[12px] border-[#5A22A3] rounded-[5rem] p-20 shadow-[0_0_100px_rgba(0,0,0,1)] relative z-10 text-center transition-all duration-500 ${isOBS ? 'scale-[0.6] ring-[20px] ring-white/10' : ''}`}>
+                            <div className={`w-full max-w-2xl bg-[#0a0a1a] border-8 border-[#5A22A3] rounded-[3rem] p-8 shadow-[0_0_100px_rgba(0,0,0,1)] relative z-10 text-center transition-all duration-500 ${isOBS ? 'scale-[0.8]' : ''}`}>
                                 <div className="flex flex-col items-center gap-12">
                                     <div className="relative">
-                                        <div className="absolute inset-0 bg-white/20 blur-3xl rounded-full scale-150 animate-pulse"></div>
-                                        <div className={`px-20 py-8 rounded-[3rem] bg-white border-8 border-[#5A22A3] text-black font-black text-[12rem] italic shadow-2xl relative z-10 leading-none`}>
+                                        <div className="absolute inset-0 bg-white/20 blur-2xl rounded-full scale-125 animate-pulse"></div>
+                                        <div className={`px-12 py-4 rounded-[2rem] bg-white border-4 border-[#5A22A3] text-black font-black text-7xl italic shadow-xl relative z-10 leading-none`}>
                                             {activeCell.letter}
                                         </div>
                                     </div>
 
-                                    <div className="space-y-6">
+                                    <div className="space-y-4">
                                         {currentQuestion ? (
                                             <>
-                                                <h2 className="text-5xl font-black text-white leading-tight drop-shadow-lg">{currentQuestion.question}</h2>
-                                                <div className="bg-emerald-500/10 border-2 border-emerald-500/30 rounded-3xl p-6 group relative">
-                                                    <span className="text-gray-400 font-bold block mb-1 uppercase tracking-widest text-xs">الإجابة المتوقعة (مخفية - تبدأ بحرف {activeCell.letter})</span>
-                                                    <span className="text-3xl font-black text-emerald-200 blur-md group-hover:blur-0 transition-all duration-500">{currentQuestion.answer}</span>
+                                                <h2 className="text-2xl font-black text-white leading-tight drop-shadow-lg">{currentQuestion.question}</h2>
+                                                <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4 relative">
+                                                    <span className="text-gray-400 font-bold block mb-1 uppercase tracking-widest text-[10px]">الإجابة المتوقعة</span>
+                                                    <span className="text-xl font-black text-emerald-200">{currentQuestion.answer}</span>
                                                 </div>
-                                                <p className="text-xl font-bold text-white/40 italic">أي إجابة تبدأ بحرف ( {activeCell.letter} ) تُعتبر صحيحة</p>
+                                                <p className="text-sm font-bold text-white/40 italic">أي إجابة تبدأ بحرف ( {activeCell.letter} ) تُعتبر صحيحة</p>
                                             </>
                                         ) : (
                                             <>
-                                                <h2 className="text-6xl font-black text-white italic drop-shadow-lg">تحدي الحرف!</h2>
-                                                <p className="text-3xl font-bold text-white/60">اكتب كلمة تبدأ بحرف <span className="text-white font-black">{activeCell.letter}</span></p>
+                                                <h2 className="text-3xl font-black text-white italic drop-shadow-lg">تحدي الحرف!</h2>
+                                                <p className="text-xl font-bold text-white/60">اكتب كلمة تبدأ بحرف <span className="text-white font-black">{activeCell.letter}</span></p>
                                             </>
                                         )}
                                     </div>
@@ -1111,19 +1106,18 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
 
                                 {buzzedTeam ? (
                                     <div className="space-y-8 animate-in zoom-in">
-                                        <div className={`p-8 rounded-[2rem] border-8 flex items-center justify-between gap-8 ${buzzedTeam === 'team1' ? 'border-[#FF6B52] bg-[#FF6B52]/10' : 'border-[#14b8a6] bg-[#14b8a6]/10'}`}>
-                                            <div className="flex items-center gap-6">
-                                                {buzzedPlayer && <ProAvatar username={buzzedPlayer.username} url={buzzedPlayer.avatar} size="w-32 h-32" />}
+                                        <div className={`p-4 rounded-2xl border-4 flex items-center justify-between gap-4 ${buzzedTeam === 'team1' ? 'border-[#FF6B52] bg-[#FF6B52]/10' : 'border-[#14b8a6] bg-[#14b8a6]/10'}`}>
+                                            <div className="flex items-center gap-4">
+                                                {buzzedPlayer && <ProAvatar username={buzzedPlayer.username} url={buzzedPlayer.avatar} size="w-16 h-16" />}
                                                 <div className="text-right">
-                                                    <div className="text-white font-black text-5xl italic">{buzzedPlayer?.username}</div>
-                                                    <div className={`text-2xl font-black mt-2 ${buzzedTeam === 'team1' ? 'text-[#FF6B52]' : 'text-[#14b8a6]'}`}>{buzzedTeam === 'team1' ? team1Name : team2Name}</div>
+                                                    <div className="text-white font-black text-xl italic">{buzzedPlayer?.username}</div>
+                                                    <div className={`text-sm font-black mt-1 ${buzzedTeam === 'team1' ? 'text-[#FF6B52]' : 'text-[#14b8a6]'}`}>{buzzedTeam === 'team1' ? team1Name : team2Name}</div>
                                                 </div>
                                             </div>
-                                            <div className="flex flex-col items-center gap-2">
-                                                <div className="text-7xl font-black text-white italic tracking-tighter tabular-nums drop-shadow-[0_0_20px_rgba(255,255,255,0.4)]">
+                                            <div className="flex flex-col items-center">
+                                                <div className="text-4xl font-black text-white italic tabular-nums">
                                                     {answerTimer}s
                                                 </div>
-                                                <div className="text-xs font-black text-white/40 uppercase tracking-widest">المتبقي للإجابة</div>
                                             </div>
                                         </div>
 
@@ -1185,130 +1179,107 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                 </div>
             )}
 
-            {/* Home button - Hidden in OBS */}
-            {!isOBS && (
-                <button onClick={onHome} className="absolute top-10 right-10 z-[200] w-16 h-16 bg-white/10 hover:bg-white/20 rounded-2xl flex items-center justify-center text-white transition-all backdrop-blur-md border border-white/10">
-                    <Home size={32} />
-                </button>
-            )}
 
             {/* STAGE: ENDED - ULTRA PREMIUM LEVEL COMPLETE SCREEN */}
             {stage === 'ended' && (
                 <div className={`absolute inset-0 z-[200] flex items-center justify-center overflow-hidden ${isOBS ? 'bg-transparent' : 'bg-[#030310]'}`}>
-
-                    {/* Animated Particle Background */}
-                    {!isOBS && (
-                        <div className="absolute inset-0 overflow-hidden">
-                            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(90,34,163,0.4)_0%,transparent_70%)]"></div>
-                            {/* Horizontal scan lines */}
-                            <div className="absolute inset-0" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.015) 2px, rgba(255,255,255,0.015) 4px)' }}></div>
-                            {/* Stars */}
-                            {Array.from({ length: 40 }).map((_, i) => (
-                                <div key={i} className="absolute rounded-full bg-white animate-[levelStar_3s_ease-in-out_infinite]"
-                                    style={{ width: `${Math.random() * 4 + 1}px`, height: `${Math.random() * 4 + 1}px`, top: `${Math.random() * 100}%`, left: `${Math.random() * 100}%`, animationDelay: `${Math.random() * 3}s`, animationDuration: `${Math.random() * 2 + 2}s`, opacity: Math.random() * 0.8 + 0.2 }} />
-                            ))}
-                            {/* Corner light rays */}
-                            <div className={`absolute top-0 left-0 w-full h-full opacity-30 ${winner === 'team1' ? 'bg-[radial-gradient(ellipse_at_top_right,rgba(255,107,82,0.4),transparent_50%)]' : 'bg-[radial-gradient(ellipse_at_top_right,rgba(20,184,166,0.4),transparent_50%)]'}`}></div>
-                            <div className={`absolute top-0 left-0 w-full h-full opacity-20 ${winner === 'team1' ? 'bg-[radial-gradient(ellipse_at_bottom_left,rgba(255,107,82,0.4),transparent_50%)]' : 'bg-[radial-gradient(ellipse_at_bottom_left,rgba(20,184,166,0.4),transparent_50%)]'}`}></div>
-                        </div>
-                    )}
+                    {/* GLOBAL BACKGROUND - Celebration mode */}
+                    <div className="absolute inset-0 z-0">
+                        <div className={`absolute inset-0 transition-colors duration-1000 ${winner === 'team1' ? 'bg-[#FF6B52]/20' : 'bg-[#14b8a6]/20'}`} />
+                        {!isOBS && (
+                            <>
+                                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(90,34,163,0.3)_0%,transparent_70%)]"></div>
+                                <div className="absolute inset-0" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.01) 2px, rgba(255,255,255,0.01) 4px)' }}></div>
+                            </>
+                        )}
+                        {/* CSS PARTICLES */}
+                        {Array.from({ length: 50 }).map((_, i) => (
+                            <div key={i}
+                                className={`absolute rounded-full animate-[float_10s_ease-in-out_infinite] ${winner === 'team1' ? 'bg-[#FF6B52]' : 'bg-[#14b8a6]'}`}
+                                style={{
+                                    width: `${Math.random() * 8 + 4}px`,
+                                    height: `${Math.random() * 8 + 4}px`,
+                                    top: `${Math.random() * 100}%`,
+                                    left: `${Math.random() * 100}%`,
+                                    animationDelay: `${Math.random() * 5}s`,
+                                    opacity: Math.random() * 0.5 + 0.2,
+                                    filter: 'blur(1px)'
+                                }}
+                            />
+                        ))}
+                    </div>
 
                     {/* Main Content */}
-                    <div className={`relative z-10 flex flex-col items-center gap-10 max-w-5xl w-full px-12 text-center animate-in zoom-in slide-in-from-bottom-20 duration-700 ${isOBS ? 'scale-[0.5]' : ''}`}>
+                    <div className="relative z-10 flex flex-col items-center gap-6 max-w-xl w-full px-6 text-center animate-in zoom-in duration-700">
+                        {/* WINNER TITLE */}
+                        <div className="flex flex-col items-center gap-4 animate-in slide-in-from-top-20 duration-[1000ms]">
+                            <div className={`flex items-center gap-3 px-6 py-2 bg-white/5 border-2 rounded-full backdrop-blur-md ${winner === 'team1' ? 'border-[#FF6B52]/30' : 'border-[#14b8a6]/30'}`}>
+                                <Trophy size={16} className="text-yellow-400" />
+                                <span className="text-white font-black text-sm uppercase tracking-widest italic">نصر رائع!</span>
+                                <Trophy size={16} className="text-yellow-400" />
+                            </div>
 
-                        {/* LEVEL COMPLETE Header */}
-                        <div className="flex flex-col items-center gap-3 animate-in slide-in-from-top-10 duration-500">
-                            <div className="flex items-center gap-4 px-8 py-3 bg-white/5 border border-white/10 rounded-full">
-                                <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
-                                <span className="text-yellow-400 font-black text-sm uppercase tracking-[0.5em]">Level Complete!</span>
-                                <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
-                            </div>
-                            <h1 className="text-[7rem] font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-white/30 leading-none drop-shadow-[0_0_80px_rgba(255,255,255,0.3)]">المرحلة<br /><span className={winner === 'team1' ? 'text-[#FF8A75]' : 'text-[#2DD4BF]'}>{currentLevel - 1 > 0 ? currentLevel - 1 : 1}</span></h1>
-                        </div>
-
-                        {/* Stage Progress Bar */}
-                        <div className="w-full max-w-3xl animate-in slide-in-from-bottom-10 duration-700 delay-200">
-                            <div className="flex justify-between items-center mb-4">
-                                <span className="text-white/40 font-black text-sm uppercase tracking-widest">المرحلة السابقة</span>
-                                <span className="text-white/40 font-black text-sm uppercase tracking-widest">الجارية</span>
-                            </div>
-                            <div className="relative h-6 bg-white/5 rounded-full border border-white/10 overflow-hidden shadow-inner">
-                                <div
-                                    className={`h-full rounded-full transition-all duration-2000 ease-out shadow-lg ${winner === 'team1' ? 'bg-gradient-to-r from-[#FF6B52] to-[#FF8A75] shadow-[#FF6B52]/50' : 'bg-gradient-to-r from-[#14b8a6] to-[#2DD4BF] shadow-[#14b8a6]/50'}`}
-                                    style={{ width: `${Math.min(currentLevel, 100)}%`, boxShadow: winner === 'team1' ? '0 0 20px rgba(255,107,82,0.8)' : '0 0 20px rgba(20,184,166,0.8)' }}
-                                ></div>
-                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shimmer_2s_infinite]"></div>
-                            </div>
-                            <div className="flex justify-between items-center mt-3">
-                                <span className="text-white/30 font-bold text-xs">مرحلة 1</span>
-                                <div className={`px-5 py-1.5 rounded-full font-black text-sm ${winner === 'team1' ? 'bg-[#FF6B52]/20 text-[#FF8A75] border border-[#FF6B52]/30' : 'bg-[#14b8a6]/20 text-[#2DD4BF] border border-[#14b8a6]/30'}`}>
-                                    {currentLevel} / 100
-                                </div>
-                                <span className="text-white/30 font-bold text-xs">مرحلة 100</span>
+                            <div className="relative mt-4">
+                                <h1 className={`text-[4rem] font-black italic tracking-tighter leading-none select-none animate-pulse ${winner === 'team1' ? 'text-[#FF6B52]' : 'text-[#14b8a6]'}`}>
+                                    فـــــــــــــــــاز
+                                </h1>
+                                <div className={`absolute -inset-10 blur-3xl opacity-20 animate-pulse ${winner === 'team1' ? 'bg-[#FF6B52]' : 'bg-[#14b8a6]'}`}></div>
                             </div>
                         </div>
 
-                        {/* Winner Card */}
-                        <div className={`relative w-full max-w-2xl rounded-[4rem] border-4 p-10 flex items-center gap-10 animate-in zoom-in duration-500 delay-300 shadow-2xl ${winner === 'team1' ? 'bg-[#FF6B52]/10 border-[#FF6B52]/50 shadow-[#FF6B52]/20' : 'bg-[#14b8a6]/10 border-[#14b8a6]/50 shadow-[#14b8a6]/20'}`}>
-                            {/* Glow effect */}
-                            <div className={`absolute inset-0 rounded-[4rem] blur-xl opacity-20 ${winner === 'team1' ? 'bg-[#FF6B52]' : 'bg-[#14b8a6]'}`}></div>
-
-                            {/* Trophy */}
-                            <div className="relative shrink-0">
-                                <div className={`w-32 h-32 rounded-[2.5rem] flex items-center justify-center text-6xl border-8 shadow-2xl ${winner === 'team1' ? 'bg-[#FF6B52] border-white/20' : 'bg-[#14b8a6] border-white/20'}`}>
+                        {/* BIG TEAM CARD */}
+                        <div className={`relative w-full max-w-md py-10 px-6 rounded-[3rem] border-4 shadow-2xl flex flex-col items-center gap-6 animate-in zoom-in duration-700 delay-300 ${winner === 'team1' ? 'bg-black/60 border-[#FF6B52]/50' : 'bg-black/60 border-[#14b8a6]/50'}`}>
+                            <div className={`absolute inset-0 rounded-[3rem] animate-pulse ${winner === 'team1' ? 'shadow-[0_0_40px_rgba(255,107,82,0.3)]' : 'shadow-[0_0_40px_rgba(20,184,166,0.3)]'}`}></div>
+                            <div className="relative group">
+                                <div className={`w-36 h-36 rounded-[2.5rem] flex items-center justify-center text-7xl border-8 shadow-2xl transition-transform duration-500 group-hover:scale-105 ${winner === 'team1' ? 'bg-[#FF6B52] border-white/20' : 'bg-[#14b8a6] border-white/20'}`}>
                                     {winner === 'team1' ? '🌸' : '🧊'}
                                 </div>
-                                <Crown size={40} className="absolute -top-5 -right-3 text-yellow-400 drop-shadow-[0_0_20px_rgba(250,204,21,0.8)] animate-bounce" />
+                                <div className="absolute -top-6 -right-6 w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center border-4 border-[#0a0a1a] shadow-xl rotate-12 animate-bounce">
+                                    <Crown size={32} className="text-black" />
+                                </div>
                             </div>
 
-                            <div className="text-right flex-1 relative z-10">
-                                <div className="text-white/50 font-black text-sm uppercase tracking-[0.4em] mb-2">الفائز بهذه المرحلة</div>
-                                <h2 className="text-5xl font-black text-white italic drop-shadow-lg">{winner === 'team1' ? team1Name : team2Name}</h2>
-                                <div className={`mt-3 inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-black ${winner === 'team1' ? 'bg-[#FF6B52]/30 text-[#FF8A75]' : 'bg-[#14b8a6]/30 text-[#2DD4BF]'}`}>
-                                    <Trophy size={16} /> بطل المرحلة {currentLevel - 1 > 0 ? currentLevel - 1 : 1}
+                            <div className="space-y-4 relative z-10 text-center">
+                                <h2 className="text-6xl font-black italic tracking-tighter drop-shadow-lg text-white animate-pulse">
+                                    {winner === 'team1' ? team1Name : team2Name}
+                                </h2>
+                                <div className={`mx-auto h-1.5 w-32 rounded-full ${winner === 'team1' ? 'bg-[#FF6B52]' : 'bg-[#14b8a6]'}`}></div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 w-full mt-4">
+                                <div className="bg-white/5 backdrop-blur-md p-6 rounded-3xl border border-white/5 text-center">
+                                    <div className="text-white/40 font-black text-[10px] uppercase mb-1">المرحلة</div>
+                                    <div className="text-4xl font-black text-white italic">{currentLevel - 1}</div>
+                                </div>
+                                <div className="bg-white/5 backdrop-blur-md p-6 rounded-3xl border border-white/5 text-center">
+                                    <div className="text-white/40 font-black text-[10px] uppercase mb-1">المحاربين</div>
+                                    <div className="text-4xl font-black text-white italic">{winner === 'team1' ? women.length : men.length}</div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Next Level teaser */}
-                        {currentLevel <= 100 && !isOBS && (
-                            <div className="flex items-center gap-4 animate-in fade-in duration-500 delay-500">
-                                <div className="h-px w-20 bg-gradient-to-r from-transparent to-white/20"></div>
-                                <div className="flex items-center gap-3 px-6 py-3 bg-white/5 border border-white/10 rounded-full">
-                                    <Sparkles size={16} className="text-indigo-400 animate-pulse" />
-                                    <span className="text-white/60 font-black text-sm italic">المرحلة التالية: {currentLevel}</span>
-                                    <ArrowRight size={16} className="text-indigo-400" />
-                                </div>
-                                <div className="h-px w-20 bg-gradient-to-l from-transparent to-white/20"></div>
-                            </div>
-                        )}
-
-                        {/* Action Buttons */}
                         {!isOBS && (
-                            <div className="flex gap-6 animate-in slide-in-from-bottom-10 duration-500 delay-500">
+                            <div className="flex gap-4 mt-4">
                                 <button
-                                    onClick={() => { startGame(); }}
-                                    className={`flex items-center gap-4 px-14 py-7 rounded-[2rem] font-black text-3xl text-white transition-all hover:scale-105 active:scale-95 shadow-2xl border-b-8 border-black/20 ${winner === 'team1' ? 'bg-gradient-to-r from-[#FF6B52] to-[#FF8A75] shadow-[#FF6B52]/30' : 'bg-gradient-to-r from-[#14b8a6] to-[#2DD4BF] shadow-[#14b8a6]/30'}`}
+                                    onClick={() => startGame()}
+                                    className={`flex items-center gap-4 px-10 py-5 rounded-2xl font-black text-2xl text-white transition-all hover:scale-105 active:scale-95 shadow-lg border-b-4 border-black/20 ${winner === 'team1' ? 'bg-[#FF6B52]' : 'bg-[#14b8a6]'}`}
                                 >
-                                    <Play fill="currentColor" size={32} /> المرحلة {currentLevel}
-                                </button>
-                                <button
-                                    onClick={() => setStage('settings')}
-                                    className="flex items-center gap-4 bg-white/10 hover:bg-white/20 text-white px-10 py-7 rounded-[2rem] font-black text-2xl transition-all border-2 border-white/10 hover:scale-105 active:scale-95"
-                                >
-                                    <Settings size={28} /> إعدادات
+                                    <Play fill="currentColor" size={24} /> المرحلة التالية
                                 </button>
                                 <button
                                     onClick={onHome}
-                                    className="flex items-center gap-4 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white px-10 py-7 rounded-[2rem] font-black text-2xl transition-all border-2 border-red-600/30 hover:scale-105 active:scale-95"
+                                    className="flex items-center gap-3 bg-white/10 hover:bg-white/20 text-white px-8 py-5 rounded-2xl font-black text-lg transition-all border-2 border-white/10"
                                 >
-                                    <Home size={28} />
+                                    <Home size={24} /> الرئيسية
                                 </button>
                             </div>
                         )}
                     </div>
 
                     <style>{`
+                        @keyframes winTitle { 0%, 100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.05); filter: brightness(1.2); } }
+                        @keyframes float { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-50px) rotate(180deg); } }
+                        @keyframes teamPulse { 0% { box-shadow: 0 0 20px rgba(255,255,255,0); } 50% { box-shadow: 0 0 100px currentColor; } 100% { box-shadow: 0 0 20px rgba(255,255,255,0); } }
                         @keyframes levelStar { 0%, 100% { opacity: 0.2; transform: scale(1); } 50% { opacity: 1; transform: scale(1.5); } }
                         @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
                     `}</style>
@@ -1325,6 +1296,6 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                 .custom-scrollbar-blue::-webkit-scrollbar-track { background: rgba(20,184,166,0.1); border-radius: 4px; }
                 .custom-scrollbar-blue::-webkit-scrollbar-thumb { background: #14b8a6; border-radius: 4px; }
             `}</style>
-        </div>
+        </div >
     );
 };
