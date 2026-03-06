@@ -257,12 +257,14 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
     // No longer using Supabase buzzer channel as the game is now "Direct Chat Only"
 
     const normalize = (val: string) => {
+        if (!val) return '';
         return val.trim().toLowerCase()
-            .replace(/[أإآ]/g, 'ا')
-            .replace(/ة/g, 'ه')
-            .replace(/ى/g, 'ي')
-            .replace(/[ؤئ]/g, 'ء')
-            .replace(/[\u064B-\u0652]/g, '')
+            .replace(/[\u064B-\u0652]/g, '') // Remove Harakat (Fatha, Damma, Kasra, etc.)
+            .replace(/[أإآ]/g, 'ا')        // Normalize Alif forms
+            .replace(/ة/g, 'ه')           // Normalize Ta Marbuta to Ha
+            .replace(/ى/g, 'ي')           // Normalize Alef Maksura to Ya
+            .replace(/[ؤئ]/g, 'ء')        // Normalize Hamza forms
+            .replace(/\s+/g, ' ')         // Normalize extra spaces
             .trim();
     };
 
