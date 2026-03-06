@@ -8,6 +8,7 @@ import { ProAvatar } from './ProAvatar';
 
 interface LetterHexagonGameProps {
     onHome: () => void;
+    isOBS?: boolean;
 }
 
 // 28 Arabic letters exactly matching our 28-cell grid (6,5,6,5,6)
@@ -49,7 +50,7 @@ interface Player {
 
 type Stage = 'settings' | 'lobby' | 'playing' | 'ended';
 
-export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome }) => {
+export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, isOBS }) => {
     // Stage Management
     const [stage, setStage] = useState<Stage>('settings');
 
@@ -78,6 +79,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome }) 
     const [lastAnswer, setLastAnswer] = useState<{ text: string, correct: boolean | null }>({ text: '', correct: null });
 
     const channelRef = useRef<any>(null);
+    const broadcastRef = useRef<any>(null);
 
     // Board Geometry (Matching image-match quality)
     const HEX_SIZE = 55;
@@ -100,6 +102,50 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome }) 
 
     const boardWidth = 6 * X_OFFSET + X_OFFSET / 2;
     const boardHeight = 4 * Y_OFFSET + HEX_HEIGHT + STROKE_WIDTH;
+
+    // OBS SYNC - Broadcast state if manager
+    useEffect(() => {
+        if (isOBS) {
+            // Listen for state updates
+            const channel = supabase.channel('letter_game_sync')
+                .on('broadcast', { event: 'STATE_UPDATE' }, (payload) => {
+                    const data = payload.payload;
+                    if (data.cells) setCells(data.cells);
+                    if (data.stage) setStage(data.stage);
+                    if (data.activeCell !== undefined) setActiveCell(data.activeCell);
+                    if (data.currentQuestion !== undefined) setCurrentQuestion(data.currentQuestion);
+                    if (data.buzzedTeam !== undefined) setBuzzedTeam(data.buzzedTeam);
+                    if (data.buzzedPlayer !== undefined) setBuzzedPlayer(data.buzzedPlayer);
+                    if (data.answerTimer !== undefined) setAnswerTimer(data.answerTimer);
+                    if (data.lastAnswer !== undefined) setLastAnswer(data.lastAnswer);
+                    if (data.triedTeams !== undefined) setTriedTeams(data.triedTeams);
+                    if (data.winner !== undefined) setWinner(data.winner);
+                    if (data.winningPath !== undefined) setWinningPath(data.winningPath);
+                    if (data.lobbyPlayers !== undefined) setLobbyPlayers(data.lobbyPlayers);
+                })
+                .subscribe();
+            return () => { supabase.removeChannel(channel); };
+        } else {
+            // Manager: setup channel to broadcast
+            broadcastRef.current = supabase.channel('letter_game_sync').subscribe();
+        }
+    }, [isOBS]);
+
+    // Broadcast logic
+    useEffect(() => {
+        if (!isOBS && broadcastRef.current) {
+            broadcastRef.current.send({
+                type: 'broadcast',
+                event: 'STATE_UPDATE',
+                payload: {
+                    cells, stage, activeCell, currentQuestion,
+                    buzzedTeam, buzzedPlayer, answerTimer,
+                    lastAnswer, triedTeams, winner, winningPath,
+                    lobbyPlayers
+                }
+            });
+        }
+    }, [cells, stage, activeCell, currentQuestion, buzzedTeam, buzzedPlayer, answerTimer, lastAnswer, triedTeams, winner, winningPath, lobbyPlayers, isOBS]);
 
     // Chat listener (Main Bell Game logic)
     useEffect(() => {
@@ -479,9 +525,19 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome }) 
 
             {/* STAGE: PLAYING (EXACT IMAGE MATCH DESIGN) */}
             {stage === 'playing' && (
-                <div className="w-full h-full flex flex-col items-center justify-center relative p-8 animate-in fade-in duration-1000">
+                <div className={`relative w-full h-full flex flex-col items-center justify-center overflow-hidden transition-all duration-1000 ${isOBS ? 'bg-transparent' : 'bg-[#0f0f1b]'}`}>
+                    {/* Background elements - Hide in OBS for transparency if needed */}
+                    {!isOBS && <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,#5A22A322,transparent)] pointer-events-none"></div>}
 
-                    {/* Background Stage Overlays */}
+                    {/* LOBBY / JOIN BUTTONS - Only for Manager */}
+                    {!isOBS && stage === 'lobby' && (
+                        <div className="absolute bottom-10 left-10 z-50 flex gap-4">
+                            <button onClick={() => setAllowJoin(!allowJoin)} className={`px-8 py-4 rounded-2xl font-black text-xl transition-all shadow-xl ${allowJoin ? 'bg-kick-green text-black border-4 border-white animate-pulse' : 'bg-red-600 text-white'}`}>
+                                {allowJoin ? '🔴 إيقاف الإنتظام' : '🟢 فتح الإنتظام'}
+                            </button>
+                            <button onClick={startGame} className="bg-white text-black px-12 py-4 rounded-2xl font-black text-2xl shadow-2xl hover:scale-105 active:scale-95 transition-all">ابدأ اللعبة 🚀</button>
+                        </div>
+                    )}
                     <div className="absolute inset-0 z-0 pointer-events-none" style={{ background: 'conic-gradient(from -45deg at 50% 50%, #FF6B52 0deg 90deg, #14b8a6 90deg 180deg, #FF6B52 180deg 270deg, #14b8a6 270deg 360deg)' }} />
 
                     {/* Left Panel: Girls */}
@@ -612,19 +668,28 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome }) 
                                     </div>
                                 )}
 
-                                <div className="mt-12 pt-8 border-t border-white/5 flex gap-4 opacity-30 hover:opacity-100 transition-opacity">
-                                    <button onClick={() => finalizeRound(true, 'team1')} className="flex-1 bg-[#FF6B52]/10 p-5 rounded-2xl border-2 border-[#FF6B52]/30 text-[#FF6B52] font-black text-xl hover:bg-[#FF6B52] hover:text-white transition-all">تخطي للبنات 🌸</button>
-                                    <button onClick={() => finalizeRound(true, 'team2')} className="flex-1 bg-[#14b8a6]/10 p-5 rounded-2xl border-2 border-[#14b8a6]/30 text-[#14b8a6] font-black text-xl hover:bg-[#14b8a6] hover:text-white transition-all">تخطي للأولاد 🧊</button>
-                                </div>
+                                {!isOBS && (
+                                    <div className="mt-12 pt-8 border-t border-white/5 flex gap-4 opacity-30 hover:opacity-100 transition-opacity">
+                                        <button onClick={() => finalizeRound(true, 'team1')} className="flex-1 bg-[#FF6B52]/10 p-5 rounded-2xl border-2 border-[#FF6B52]/30 text-[#FF6B52] font-black text-xl hover:bg-[#FF6B52] hover:text-white transition-all">تخطي للبنات 🌸</button>
+                                        <button onClick={() => finalizeRound(true, 'team2')} className="flex-1 bg-[#14b8a6]/10 p-5 rounded-2xl border-2 border-[#14b8a6]/30 text-[#14b8a6] font-black text-xl hover:bg-[#14b8a6] hover:text-white transition-all">تخطي للأولاد 🧊</button>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
                 </div>
             )}
 
+            {/* Home button - Hidden in OBS */}
+            {!isOBS && (
+                <button onClick={onHome} className="absolute top-10 right-10 z-[200] w-16 h-16 bg-white/10 hover:bg-white/20 rounded-2xl flex items-center justify-center text-white transition-all backdrop-blur-md border border-white/10">
+                    <Home size={32} />
+                </button>
+            )}
+
             {/* STAGE: ENDED */}
             {stage === 'ended' && (
-                <div className="absolute inset-0 z-[200] flex items-center justify-center p-12 bg-black/90 backdrop-blur-3xl animate-in zoom-in duration-700">
+                <div className={`absolute inset-0 z-[200] flex items-center justify-center p-12 ${isOBS ? 'bg-transparent' : 'bg-black/90'} backdrop-blur-3xl animate-in zoom-in duration-700`}>
                     <div className="max-w-4xl w-full text-center space-y-12">
                         <div className="relative inline-block scale-150 mb-20 animate-bounce">
                             <Crown size={120} className="text-yellow-400 absolute top-[-80px] left-1/2 transform -translate-x-1/2 drop-shadow-[0_0_50px_rgba(250,204,21,0.8)]" />
@@ -636,10 +701,12 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome }) 
                         <h2 className="text-6xl font-black text-white uppercase tracking-[0.2em] italic drop-shadow-lg">أبطال الإتصال الذهبي! 🏆</h2>
                         <p className="text-2xl text-gray-400 font-bold max-w-2xl mx-auto leading-relaxed italic">لقد تمكنتم من السيطرة على ساحة الحروف وتحقيق الفوز الساحق بهذا الطريق العبقري. كفـوووووويا أبطاااااال!</p>
 
-                        <div className="flex gap-8 justify-center pt-10">
-                            <button onClick={() => setStage('settings')} className="flex items-center gap-4 bg-white/10 hover:bg-white text-white hover:text-black px-12 py-6 rounded-3xl font-black text-3xl transition-all border-4 border-white/20 hover:scale-105 active:scale-95"><RefreshCw size={32} /> إعادة التحدي</button>
-                            <button onClick={onHome} className="flex items-center gap-4 bg-red-600 hover:bg-red-500 px-12 py-6 rounded-3xl font-black text-3xl text-white transition-all border-4 border-red-400/30 hover:scale-105 active:scale-95"><Home size={32} /> الرئيسية</button>
-                        </div>
+                        {!isOBS && (
+                            <div className="flex gap-8 justify-center pt-10">
+                                <button onClick={() => setStage('settings')} className="flex items-center gap-4 bg-white/10 hover:bg-white text-white hover:text-black px-12 py-6 rounded-3xl font-black text-3xl transition-all border-4 border-white/20 hover:scale-105 active:scale-95"><RefreshCw size={32} /> إعادة التحدي</button>
+                                <button onClick={onHome} className="flex items-center gap-4 bg-red-600 hover:bg-red-500 px-12 py-6 rounded-3xl font-black text-3xl text-white transition-all border-4 border-red-400/30 hover:scale-105 active:scale-95"><Home size={32} /> الرئيسية</button>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

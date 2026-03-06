@@ -34,6 +34,7 @@ const GAMES: GameLink[] = [
     { id: 'TRUTH_OR_LIE', label: 'صادق أم كذاب', icon: AlertTriangle },
     { id: 'FORBIDDEN_WORDS', label: 'الممنوع مرغوب', icon: ShieldOff },
     { id: 'VOTING_GAME', label: 'لعبة التصويت', icon: Vote },
+    { id: 'LETTER_GAME', label: 'حروف مع حمودي', icon: LayoutIcon },
 ];
 
 export const OBSLinksModal: React.FC<OBSLinksModalProps> = ({ isOpen, onClose }) => {

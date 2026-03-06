@@ -39,7 +39,7 @@ import {
   Maximize2, MonitorOff, CheckCircle2, AlertTriangle,
   Crown, Medal, Loader2, RefreshCw, ChevronRight, Video,
   Sword, Globe, Brain, Vote, Bomb, Type, Footprints, Flame, Smile,
-  ArrowUp, ArrowDown, Edit2, Save, Eye, EyeOff, Maximize, Minimize
+  ArrowUp, ArrowDown, Edit2, Save, Eye, EyeOff, Maximize, Minimize, Layout as LayoutIcon
 } from 'lucide-react';
 import { getAssetUrl } from './utils/assets';
 import { chatService } from './services/chatService';
@@ -452,7 +452,7 @@ const App: React.FC = () => {
       case 'GLASS_BRIDGE_V2': return <GlassBridgeV2 onHome={handleGoHome} isOBS={obsMode} />;
       case 'FLOOR_IS_LAVA': return <FloorIsLava onHome={handleGoHome} isOBS={obsMode} />;
       case 'EMOJI_CODE': return <EmojiCode onHome={handleGoHome} isOBS={obsMode} />;
-      case 'LETTER_GAME': return <LetterHexagonGame onHome={handleGoHome} />;
+      case 'LETTER_GAME': return <LetterHexagonGame onHome={handleGoHome} isOBS={obsMode} />;
       case 'BUZZER_PAD': return <BuzzerPad />;
 
       case 'USER_DASHBOARD': return (
@@ -777,35 +777,45 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            {/* Custom Game Button - Under Development State */}
-            <div className="w-full flex flex-col items-center pt-10 pb-10 gap-6 animate-in slide-in-from-bottom duration-1000">
-              <div className="relative">
-                {/* Main Locked Game Button */}
-                <div className="group relative bg-[#0f0f1b] px-16 py-8 rounded-[3rem] border-[4px] border-white/5 shadow-2xl overflow-hidden grayscale opacity-50 cursor-not-allowed">
-                  <div className="relative z-30 flex items-center justify-center gap-4">
-                    <span className="text-6xl md:text-8xl font-black italic tracking-tighter text-yellow-400/50 uppercase">حروف</span>
-                    <span className="text-4xl md:text-5xl font-black italic tracking-tighter text-blue-500/50">مع</span>
-                    <span className="text-6xl md:text-8xl font-black italic tracking-tighter text-red-600/50 uppercase">حمودي</span>
+            {/* Featured Game: Letter Match */}
+            <div className="w-full flex flex-col items-center pt-8 pb-12 gap-8 animate-in slide-in-from-bottom duration-1000">
+              <button
+                onClick={() => setCurrentView('LETTER_GAME')}
+                className="group relative w-full max-w-4xl p-1 bg-gradient-to-r from-purple-600 via-blue-500 to-red-600 rounded-[3.5rem] shadow-[0_30px_80px_-20px_rgba(147,51,234,0.6)] hover:scale-[1.02] active:scale-95 transition-all duration-500 overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-black/40 backdrop-blur-3xl rounded-[inherit]"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-transparent to-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+
+                <div className="relative px-12 py-10 rounded-[3.2rem] flex flex-col md:flex-row items-center justify-between gap-8 border border-white/10 group-hover:border-white/20">
+                  <div className="flex items-center gap-8">
+                    <div className="w-24 h-24 bg-[#5A22A3] rounded-[2rem] flex items-center justify-center shadow-2xl group-hover:rotate-12 transition-transform duration-500 border-4 border-white/10 group-hover:border-white/40">
+                      <LayoutIcon size={56} className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]" />
+                    </div>
+                    <div className="text-right">
+                      <div className="flex items-center gap-4 mb-2">
+                        <span className="text-7xl font-black italic tracking-tighter text-yellow-400 drop-shadow-[0_0_20px_rgba(234,179,8,0.5)]">حروف</span>
+                        <span className="text-4xl font-black italic tracking-tighter text-blue-400">مع</span>
+                        <span className="text-7xl font-black italic tracking-tighter text-red-500 drop-shadow-[0_0_20px_rgba(239,68,68,0.5)]">حمودي</span>
+                      </div>
+                      <div className="text-white/40 font-black text-xs uppercase tracking-[0.5em] group-hover:text-white/60 transition-colors">EXCLUSIVE CHAT BATTLE • نظام الجرس الجديد</div>
+                    </div>
                   </div>
-                  {/* Badge Overlay */}
-                  <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
-                    <div className="bg-orange-500 text-black px-10 py-2 rounded-full font-black text-2xl -rotate-12 shadow-[0_0_30px_rgba(249,115,22,0.6)] animate-pulse border-4 border-black">
-                      قيد التطوير 🚧
+
+                  <div className="flex items-center gap-6">
+                    <div className="flex flex-col items-end">
+                      <div className="bg-kick-green text-black px-6 py-1.5 rounded-full font-black text-sm mb-2 shadow-lg animate-pulse uppercase tracking-widest">Live Now</div>
+                      <div className="text-white/30 font-bold text-[10px] uppercase tracking-widest">Connect to Chat</div>
+                    </div>
+                    <div className="w-20 h-20 bg-white/5 group-hover:bg-white text-white/50 group-hover:text-black rounded-full flex items-center justify-center transition-all duration-500 border-4 border-white/5 group-hover:border-transparent">
+                      <ChevronRight size={48} className="translate-x-1 group-hover:translate-x-0 transition-transform" />
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Development Preview Invitation Button */}
-              <button
-                onClick={() => setCurrentView('LETTER_GAME')}
-                className="group flex flex-col items-center gap-2 hover:scale-105 transition-all active:scale-95"
-              >
-                <div className="bg-gradient-to-r from-violet-600 to-indigo-600 px-10 py-4 rounded-2xl border-2 border-white/20 shadow-xl flex items-center gap-4 text-white font-black text-xl italic hover:from-violet-500 hover:to-indigo-500 transition-all">
-                  <Sparkles className="text-yellow-400 group-hover:rotate-12 transition-transform" />
-                  هل تريد رؤيتها وهي قيد التطوير؟
+                {/* Shimmer Effect */}
+                <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[inherit]">
+                  <div className="absolute top-0 left-[-100%] w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-[-30deg] animate-[shimmer_3s_infinite]"></div>
                 </div>
-                <span className="text-white/30 text-xs font-bold uppercase tracking-[0.3em] group-hover:text-white/50 transition-colors">BETA ACCESS AVAILABLE</span>
               </button>
             </div>
 
