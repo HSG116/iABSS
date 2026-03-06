@@ -823,11 +823,11 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                     <div className="text-9xl font-black text-[#FF6B52] drop-shadow-[0_0_30px_rgba(255,107,82,0.5)]">{women.length}</div>
                                     <div className="text-right">
                                         <h3 className="text-5xl font-black text-white italic tracking-tighter drop-shadow-lg">{team1Name}</h3>
-                                        <div className="flex items-center gap-3 mt-2">
-                                            <span className="text-[10px] font-bold text-[#FF6B52]/60 uppercase tracking-widest">ألوان الفريق:</span>
-                                            <div className="flex gap-1.5">
+                                        <div className="flex flex-col items-center gap-2 mt-4 bg-white/5 py-3 px-6 rounded-2xl border border-white/10">
+                                            <span className="text-xs font-black text-[#FF6B52] uppercase tracking-[0.3em]">دليل ألوان الفريق</span>
+                                            <div className="flex gap-3">
                                                 {['#FF0000', '#FF6B52', '#FF1493', '#800080', '#FFFFFF'].map(c => (
-                                                    <div key={c} className="w-3 h-3 rounded-full border border-white/20 shadow-sm" style={{ backgroundColor: c }}></div>
+                                                    <div key={c} className="w-6 h-6 rounded-full border-2 border-white/40 shadow-[0_0_15px_rgba(255,255,255,0.2)]" style={{ backgroundColor: c }}></div>
                                                 ))}
                                             </div>
                                         </div>
@@ -875,11 +875,11 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                     <div className="text-9xl font-black text-[#14b8a6] drop-shadow-[0_0_30px_rgba(20,184,166,0.5)]">{men.length}</div>
                                     <div className="text-right">
                                         <h3 className="text-5xl font-black text-white italic tracking-tighter drop-shadow-lg">{team2Name}</h3>
-                                        <div className="flex items-center gap-3 mt-2">
-                                            <span className="text-[10px] font-bold text-[#14b8a6]/60 uppercase tracking-widest">ألوان الفريق:</span>
-                                            <div className="flex gap-1.5">
+                                        <div className="flex flex-col items-center gap-2 mt-4 bg-white/5 py-3 px-6 rounded-2xl border border-white/10">
+                                            <span className="text-xs font-black text-[#14b8a6] uppercase tracking-[0.3em]">دليل ألوان الفريق</span>
+                                            <div className="flex gap-3">
                                                 {['#FFA500', '#FFFF00', '#00FF00', '#14b8a6', '#00BFFF'].map(c => (
-                                                    <div key={c} className="w-3 h-3 rounded-full border border-white/20 shadow-sm" style={{ backgroundColor: c }}></div>
+                                                    <div key={c} className="w-6 h-6 rounded-full border-2 border-white/40 shadow-[0_0_15px_rgba(255,255,255,0.2)]" style={{ backgroundColor: c }}></div>
                                                 ))}
                                             </div>
                                         </div>
