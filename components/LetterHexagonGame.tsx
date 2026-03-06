@@ -70,8 +70,8 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
     const [difficulty, setDifficulty] = useState<'normal' | 'hard'>('normal');
     const [answerMode, setAnswerMode] = useState<'buzzer' | 'chat'>('chat');
     const [timerDuration, setTimerDuration] = useState(7);
-    const [team1Name, setTeam1Name] = useState('فريق البنات 🌸');
-    const [team2Name, setTeam2Name] = useState('فريق الأولاد 🧊');
+    const [team1Name, setTeam1Name] = useState('فريق النساء 🌸');
+    const [team2Name, setTeam2Name] = useState('فريق الرجال 🧊');
 
     // Progressive Levels
     const [currentLevel, setCurrentLevel] = useState<number>(() => {
@@ -477,8 +477,8 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
         }
     }, [answerTimer, buzzedTeam]);
 
-    const girls = lobbyPlayers.filter(p => p.team === 'team1');
-    const boys = lobbyPlayers.filter(p => p.team === 'team2');
+    const women = lobbyPlayers.filter(p => p.team === 'team1');
+    const men = lobbyPlayers.filter(p => p.team === 'team2');
 
     return (
         <div className={`w-full h-full relative overflow-hidden select-none text-white font-sans ${isOBS ? 'bg-transparent' : 'bg-[#0A0A14]'}`} dir="rtl">
@@ -576,12 +576,12 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                                 <h3 className="text-4xl font-black text-[#FF6B52] italic drop-shadow-lg">{team1Name}</h3>
                                                 <div className="text-white/40 font-bold text-xs uppercase tracking-widest mt-1">THE QUEEN WARRIORS</div>
                                                 <div className="mt-6 flex flex-wrap justify-center gap-2 max-w-sm">
-                                                    {girls.map(p => (
+                                                    {women.map(p => (
                                                         <div key={p.username} className="animate-in zoom-in">
                                                             <ProAvatar username={p.username} url={p.avatar} size="w-12 h-12" className="border-2 border-[#FF6B52]" />
                                                         </div>
                                                     ))}
-                                                    {girls.length === 0 && <div className="w-12 h-12 rounded-full border-2 border-dashed border-white/10 flex items-center justify-center text-white/10 uppercase text-[8px] font-black">Empty</div>}
+                                                    {women.length === 0 && <div className="w-12 h-12 rounded-full border-2 border-dashed border-white/10 flex items-center justify-center text-white/10 uppercase text-[8px] font-black">Empty</div>}
                                                 </div>
                                             </div>
                                         </div>
@@ -596,12 +596,12 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                                 <h3 className="text-4xl font-black text-[#14b8a6] italic drop-shadow-lg">{team2Name}</h3>
                                                 <div className="text-white/40 font-bold text-xs uppercase tracking-widest mt-1">THE TITAN KINGS</div>
                                                 <div className="mt-6 flex flex-wrap justify-center gap-2 max-w-sm">
-                                                    {boys.map(p => (
+                                                    {men.map(p => (
                                                         <div key={p.username} className="animate-in zoom-in">
                                                             <ProAvatar username={p.username} url={p.avatar} size="w-12 h-12" className="border-2 border-[#14b8a6]" />
                                                         </div>
                                                     ))}
-                                                    {boys.length === 0 && <div className="w-12 h-12 rounded-full border-2 border-dashed border-white/10 flex items-center justify-center text-white/10 uppercase text-[8px] font-black">Empty</div>}
+                                                    {men.length === 0 && <div className="w-12 h-12 rounded-full border-2 border-dashed border-white/10 flex items-center justify-center text-white/10 uppercase text-[8px] font-black">Empty</div>}
                                                 </div>
                                             </div>
                                         </div>
@@ -648,11 +648,11 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                     <input value={entryKeyword} onChange={e => setEntryKeyword(e.target.value)} className="w-full bg-black/50 border-2 border-white/10 rounded-2xl p-5 text-center text-white font-black text-2xl focus:border-yellow-500 transition-all outline-none shadow-inner" />
                                 </div>
                                 <div className="bg-white/5 p-6 rounded-[2rem] border-2 border-white/5 group hover:border-pink-500/30 transition-all">
-                                    <label className="flex items-center gap-3 text-sm font-black text-gray-400 mb-4 tracking-widest uppercase"><Heart size={18} className="text-pink-500" /> اسم فريق البنات</label>
+                                    <label className="flex items-center gap-3 text-sm font-black text-gray-400 mb-4 tracking-widest uppercase"><Heart size={18} className="text-pink-500" /> اسم فريق النساء</label>
                                     <input value={team1Name} onChange={e => setTeam1Name(e.target.value)} className="w-full bg-black/50 border-2 border-white/10 rounded-2xl p-5 text-center text-white font-black text-2xl focus:border-pink-500 transition-all outline-none shadow-inner" />
                                 </div>
                                 <div className="bg-white/5 p-6 rounded-[2rem] border-2 border-white/5 group hover:border-blue-500/30 transition-all">
-                                    <label className="flex items-center gap-3 text-sm font-black text-gray-400 mb-4 tracking-widest uppercase"><Sparkles size={18} className="text-blue-500" /> اسم فريق الأولاد</label>
+                                    <label className="flex items-center gap-3 text-sm font-black text-gray-400 mb-4 tracking-widest uppercase"><Sparkles size={18} className="text-blue-500" /> اسم فريق الرجال</label>
                                     <input value={team2Name} onChange={e => setTeam2Name(e.target.value)} className="w-full bg-black/50 border-2 border-white/10 rounded-2xl p-5 text-center text-white font-black text-2xl focus:border-blue-500 transition-all outline-none shadow-inner" />
                                 </div>
                             </div>
@@ -781,7 +781,12 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                 <h1 className="text-7xl font-black italic text-white drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]">بإنتظار المحاربين...</h1>
                                 <div className="flex items-center justify-center gap-4 mt-4">
                                     <div className={`px-10 py-3 rounded-full border-4 border-white font-black text-2xl transition-all shadow-xl ${allowJoin ? 'bg-emerald-500 animate-bounce' : 'bg-red-600'}`}>
-                                        {allowJoin ? `أكتب [ ${entryKeyword} ] في الشات!` : 'الانضمام مغلق الآن'}
+                                        {allowJoin ? (
+                                            <div className="flex flex-col items-center">
+                                                <span>أكتب [ {entryKeyword} ] في الشات للانضمام!</span>
+                                                <span className="text-sm opacity-80 mt-1">(اللون الأحمر/الوردي للنساء • اللون الأزرق/الأخضر للرجال)</span>
+                                            </div>
+                                        ) : 'الانضمام مغلق الآن'}
                                     </div>
                                     <button onClick={() => broadcastFullState()} title="تحديث OBS يدوياً" className="p-3 bg-white/10 hover:bg-white/20 rounded-full border-2 border-white/20 text-white transition-all active:scale-95">
                                         <RefreshCw size={24} />
@@ -802,13 +807,6 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                     <span className="text-xl italic">{linkCopied ? 'تم النسخ' : 'نسخ رابط OBS'}</span>
                                 </button>
 
-                                <button
-                                    onClick={onToggleOBSPreview}
-                                    className={`flex items-center gap-3 px-8 py-5 rounded-[1.5rem] font-black transition-all border-2 shadow-lg ${obsPreviewActive ? 'bg-emerald-500 border-white text-white' : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500 hover:text-white'}`}
-                                >
-                                    <Video size={24} />
-                                    <span className="text-xl italic">{obsPreviewActive ? 'إخفاء المعاينة' : 'معاينة البث'}</span>
-                                </button>
 
                                 <button onClick={() => { setAllowJoin(false); startGame(); }} className="flex items-center gap-6 bg-gradient-to-r from-yellow-500 to-orange-600 px-12 py-6 rounded-[2rem] font-black text-4xl italic text-white shadow-2xl hover:scale-105 active:scale-95 transition-all select-none">بـدء الـتـحـدي <Play fill="currentColor" size={32} /></button>
                             </div>
@@ -819,14 +817,14 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                             <div className="bg-[#FF6B52]/10 backdrop-blur-2xl border-4 border-[#FF6B52]/50 rounded-[4rem] p-10 flex flex-col items-center relative overflow-hidden shadow-2xl">
                                 <div className="absolute top-0 left-0 w-full h-2 bg-[#FF6B52]"></div>
                                 <div className="flex items-center gap-4 mb-10 w-full justify-center">
-                                    <div className="text-8xl font-black text-[#FF6B52] drop-shadow-lg">{girls.length}</div>
+                                    <div className="text-8xl font-black text-[#FF6B52] drop-shadow-lg">{women.length}</div>
                                     <div className="text-right">
                                         <h3 className="text-4xl font-black text-white">{team1Name}</h3>
-                                        <p className="text-[#FF6B52] font-black tracking-widest opacity-60">نخبة البنات</p>
+                                        <p className="text-[#FF6B52] font-black tracking-widest opacity-60">نخبة النساء</p>
                                     </div>
                                 </div>
                                 <div className="flex-1 w-full grid grid-cols-6 gap-6 overflow-y-auto content-start custom-scrollbar-pink pr-4 pb-10">
-                                    {girls.map(p => (
+                                    {women.map(p => (
                                         <div key={p.username} className="flex flex-col items-center gap-2 animate-in zoom-in duration-500">
                                             <ProAvatar username={p.username} url={p.avatar} size="w-20 h-20" />
                                             <span className="text-[10px] font-black text-white/50 truncate w-full text-center">{p.username}</span>
@@ -835,7 +833,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                     {allowJoin && <div className="w-20 h-20 rounded-[1.5rem] border-4 border-dashed border-white/10 flex items-center justify-center text-white/10 animate-pulse"><Users /></div>}
                                 </div>
                                 <button onClick={() => setAllowJoin(!allowJoin)} className={`mt-auto w-full py-5 rounded-3xl font-black text-xl border-2 transition-all ${allowJoin ? 'bg-red-500/20 border-red-500/50 text-red-500' : 'bg-emerald-500/20 border-emerald-500/50 text-emerald-500'}`}>
-                                    {allowJoin ? 'إيقاف استقبال البنات' : 'فتح استقبال البنات'}
+                                    {allowJoin ? 'إيقاف استقبال النساء' : 'فتح استقبال النساء'}
                                 </button>
                             </div>
 
@@ -843,14 +841,14 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                             <div className="bg-[#14b8a6]/10 backdrop-blur-2xl border-4 border-[#14b8a6]/50 rounded-[4rem] p-10 flex flex-col items-center relative overflow-hidden shadow-2xl">
                                 <div className="absolute top-0 left-0 w-full h-2 bg-[#14b8a6]"></div>
                                 <div className="flex items-center gap-4 mb-10 w-full justify-center">
-                                    <div className="text-8xl font-black text-[#14b8a6] drop-shadow-lg">{boys.length}</div>
+                                    <div className="text-8xl font-black text-[#14b8a6] drop-shadow-lg">{men.length}</div>
                                     <div className="text-right">
                                         <h3 className="text-4xl font-black text-white">{team2Name}</h3>
-                                        <p className="text-[#14b8a6] font-black tracking-widest opacity-60">نخبة الأولاد</p>
+                                        <p className="text-[#14b8a6] font-black tracking-widest opacity-60">نخبة الرجال</p>
                                     </div>
                                 </div>
                                 <div className="flex-1 w-full grid grid-cols-6 gap-6 overflow-y-auto content-start custom-scrollbar-blue pr-4 pb-10">
-                                    {boys.map(p => (
+                                    {men.map(p => (
                                         <div key={p.username} className="flex flex-col items-center gap-2 animate-in zoom-in duration-500">
                                             <ProAvatar username={p.username} url={p.avatar} size="w-20 h-20" />
                                             <span className="text-[10px] font-black text-white/50 truncate w-full text-center">{p.username}</span>
@@ -859,7 +857,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                     {allowJoin && <div className="w-20 h-20 rounded-[1.5rem] border-4 border-dashed border-white/10 flex items-center justify-center text-white/10 animate-pulse"><Users /></div>}
                                 </div>
                                 <button onClick={() => setAllowJoin(!allowJoin)} className={`mt-auto w-full py-5 rounded-3xl font-black text-xl border-2 transition-all ${allowJoin ? 'bg-red-500/20 border-red-500/50 text-red-500' : 'bg-emerald-500/20 border-emerald-500/50 text-emerald-500'}`}>
-                                    {allowJoin ? 'إيقاف استقبال الأولاد' : 'فتح استقبال الأولاد'}
+                                    {allowJoin ? 'إيقاف استقبال الرجال' : 'فتح استقبال الرجال'}
                                 </button>
                             </div>
                         </div>
@@ -898,7 +896,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                             <div className={`${isOBS ? 'bg-[#FF6B52]/90 backdrop-blur-xl border-white/30' : 'bg-[#FF6B52] border-[#5A22A3]'} border-4 rounded-[2.5rem] px-8 py-4 text-center shadow-[0_12px_24px_rgba(0,0,0,0.3)] transform -rotate-1`}>
                                 <h2 className="text-white font-black text-2xl drop-shadow-md">{team1Name}</h2>
                                 <div className="mt-3 flex flex-wrap justify-center gap-1 max-w-[150px]">
-                                    {girls.slice(0, 10).map(p => <ProAvatar key={p.username} username={p.username} url={p.avatar} size="w-7 h-7" />)}
+                                    {women.slice(0, 10).map(p => <ProAvatar key={p.username} username={p.username} url={p.avatar} size="w-7 h-7" />)}
                                 </div>
                             </div>
                         </div>
@@ -908,7 +906,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                             <div className={`${isOBS ? 'bg-[#14b8a6]/90 backdrop-blur-xl border-white/30' : 'bg-[#14b8a6] border-[#5A22A3]'} border-4 rounded-[2.5rem] px-8 py-4 text-center shadow-[0_12px_24px_rgba(0,0,0,0.3)] transform rotate-1`}>
                                 <h2 className="text-white font-black text-2xl drop-shadow-md">{team2Name}</h2>
                                 <div className="mt-3 flex flex-wrap justify-center gap-1 max-w-[150px]">
-                                    {boys.slice(0, 10).map(p => <ProAvatar key={p.username} username={p.username} url={p.avatar} size="w-7 h-7" />)}
+                                    {men.slice(0, 10).map(p => <ProAvatar key={p.username} username={p.username} url={p.avatar} size="w-7 h-7" />)}
                                 </div>
                             </div>
                         </div>
