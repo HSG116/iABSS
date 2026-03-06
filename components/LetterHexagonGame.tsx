@@ -103,6 +103,9 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
     const boardWidth = 6 * X_OFFSET + X_OFFSET / 2;
     const boardHeight = 4 * Y_OFFSET + HEX_HEIGHT + STROKE_WIDTH;
 
+    // Use a ref to store the latest broadcast function to avoid stale closures in listeners
+    const broadcastFullStateRef = useRef<any>(null);
+
     // OBS SYNC - Broadcast state if manager
     useEffect(() => {
         if (isOBS) {
@@ -132,7 +135,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                         // Small delay before requesting initial sync to ensure manager is ready
                         setTimeout(() => {
                             channel.send({ type: 'broadcast', event: 'SYNC_REQUEST', payload: {} });
-                        }, 500);
+                        }, 1000);
                     }
                 });
             return () => { supabase.removeChannel(channel); };
@@ -140,8 +143,10 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
             // Manager: setup channel and handle sync requests
             const channel = supabase.channel('letter_game_sync')
                 .on('broadcast', { event: 'SYNC_REQUEST' }, () => {
-                    // Send full state to joining OBS
-                    broadcastFullState(channel);
+                    // Send full state to joining OBS using the LATEST broadcast function
+                    if (broadcastFullStateRef.current) {
+                        broadcastFullStateRef.current(channel);
+                    }
                 })
                 .subscribe();
             broadcastRef.current = channel;
@@ -164,6 +169,11 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
             });
         }
     };
+
+    // Update the ref to the latest broadcast function every render
+    useEffect(() => {
+        broadcastFullStateRef.current = broadcastFullState;
+    });
 
     useEffect(() => {
         if (!isOBS && broadcastRef.current) {
@@ -586,8 +596,13 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                             <button onClick={() => setStage('settings')} className="flex items-center gap-4 bg-white/5 hover:bg-white/10 px-8 py-4 rounded-full border-2 border-white/10 transition-all font-black text-xl italic"><ArrowLeft /> العودة للإعدادات</button>
                             <div className="text-center">
                                 <h1 className="text-7xl font-black italic text-white drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]">بإنتظار المحاربين...</h1>
-                                <div className={`inline-block mt-4 px-10 py-3 rounded-full border-4 border-white font-black text-2xl transition-all shadow-xl ${allowJoin ? 'bg-emerald-500 animate-bounce' : 'bg-red-600'}`}>
-                                    {allowJoin ? `أكتب [ ${entryKeyword} ] في الشات!` : 'الانضمام مغلق الآن'}
+                                <div className="flex items-center justify-center gap-4 mt-4">
+                                    <div className={`px-10 py-3 rounded-full border-4 border-white font-black text-2xl transition-all shadow-xl ${allowJoin ? 'bg-emerald-500 animate-bounce' : 'bg-red-600'}`}>
+                                        {allowJoin ? `أكتب [ ${entryKeyword} ] في الشات!` : 'الانضمام مغلق الآن'}
+                                    </div>
+                                    <button onClick={() => broadcastFullState()} title="تحديث OBS يدوياً" className="p-3 bg-white/10 hover:bg-white/20 rounded-full border-2 border-white/20 text-white transition-all active:scale-95">
+                                        <RefreshCw size={24} />
+                                    </button>
                                 </div>
                             </div>
                             <button onClick={() => { setAllowJoin(false); startGame(); }} className="flex items-center gap-6 bg-gradient-to-r from-yellow-500 to-orange-600 px-12 py-6 rounded-[2rem] font-black text-4xl italic text-white shadow-2xl hover:scale-105 active:scale-95 transition-all select-none">بـدء الـتـحـدي <Play fill="currentColor" size={32} /></button>
