@@ -856,7 +856,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                     {allowJoin && <div className="w-20 h-20 rounded-[1.5rem] border-4 border-dashed border-white/10 flex items-center justify-center text-white/10 animate-pulse"><Users /></div>}
                                 </div>
                                 <button onClick={() => setAllowJoin(!allowJoin)} className={`mt-auto w-full py-5 rounded-3xl font-black text-xl border-2 transition-all ${allowJoin ? 'bg-red-500/20 border-red-500/50 text-red-500' : 'bg-emerald-500/20 border-emerald-500/50 text-emerald-500'}`}>
-                                    {allowJoin ? 'إيقاف استقبال النساء' : 'فتح استقبال النساء'}
+                                    {allowJoin ? `إيقاف استقبال ${team1Name}` : `فتح استقبال ${team1Name}`}
                                 </button>
                             </div>
 
@@ -908,7 +908,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                     {allowJoin && <div className="w-20 h-20 rounded-[1.5rem] border-4 border-dashed border-white/10 flex items-center justify-center text-white/10 animate-pulse"><Users /></div>}
                                 </div>
                                 <button onClick={() => setAllowJoin(!allowJoin)} className={`mt-auto w-full py-5 rounded-3xl font-black text-xl border-2 transition-all ${allowJoin ? 'bg-red-500/20 border-red-500/50 text-red-500' : 'bg-emerald-500/20 border-emerald-500/50 text-emerald-500'}`}>
-                                    {allowJoin ? 'إيقاف استقبال الرجال' : 'فتح استقبال الرجال'}
+                                    {allowJoin ? `إيقاف استقبال ${team2Name}` : `فتح استقبال ${team2Name}`}
                                 </button>
                             </div>
                         </div>
@@ -947,7 +947,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                             <div className={`${isOBS ? 'bg-[#FF6B52]/90 backdrop-blur-xl border-white/30' : 'bg-[#FF6B52] border-[#5A22A3]'} border-4 rounded-[2.5rem] px-8 py-4 text-center shadow-[0_12px_24px_rgba(0,0,0,0.3)] transform -rotate-1`}>
                                 <h2 className="text-white font-black text-2xl drop-shadow-md">{team1Name}</h2>
                                 <div className="mt-3 flex flex-wrap justify-center gap-1 max-w-[150px]">
-                                    {women.slice(0, 10).map(p => <ProAvatar key={p.username} username={p.username} url={p.avatar} size="w-7 h-7" />)}
+                                    {women.slice(0, 10).map(p => <ProAvatar key={p.username} username={p.avatar} url={p.avatar} size="w-7 h-7" />)}
                                 </div>
                             </div>
                         </div>
@@ -957,7 +957,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                             <div className={`${isOBS ? 'bg-[#14b8a6]/90 backdrop-blur-xl border-white/30' : 'bg-[#14b8a6] border-[#5A22A3]'} border-4 rounded-[2.5rem] px-8 py-4 text-center shadow-[0_12px_24px_rgba(0,0,0,0.3)] transform rotate-1`}>
                                 <h2 className="text-white font-black text-2xl drop-shadow-md">{team2Name}</h2>
                                 <div className="mt-3 flex flex-wrap justify-center gap-1 max-w-[150px]">
-                                    {men.slice(0, 10).map(p => <ProAvatar key={p.username} username={p.username} url={p.avatar} size="w-7 h-7" />)}
+                                    {men.slice(0, 10).map(p => <ProAvatar key={p.username} username={p.avatar} url={p.avatar} size="w-7 h-7" />)}
                                 </div>
                             </div>
                         </div>
@@ -1149,7 +1149,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                         <div className="flex gap-12 items-center">
                                             <div className={`flex flex-col items-center gap-2 transition-opacity ${triedTeams.includes('team1') ? 'opacity-20 grayscale' : 'opacity-100'}`}>
                                                 <div className="w-16 h-16 rounded-2xl bg-[#FF6B52] border-4 border-[#5A22A3] flex items-center justify-center text-white shadow-lg">🌸</div>
-                                                <span className="text-[10px] font-black text-[#FF6B52] uppercase mt-1">البنات</span>
+                                                <span className="text-[10px] font-black text-[#FF6B52] uppercase mt-1 truncate max-w-[80px]">{team1Name}</span>
                                             </div>
 
                                             <div className="flex flex-col items-center gap-4">
@@ -1161,7 +1161,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
 
                                             <div className={`flex flex-col items-center gap-2 transition-opacity ${triedTeams.includes('team2') ? 'opacity-20 grayscale' : 'opacity-100'}`}>
                                                 <div className="w-16 h-16 rounded-2xl bg-[#14b8a6] border-4 border-[#5A22A3] flex items-center justify-center text-white shadow-lg">🧊</div>
-                                                <span className="text-[10px] font-black text-[#14b8a6] uppercase mt-1">الأولاد</span>
+                                                <span className="text-[10px] font-black text-[#14b8a6] uppercase mt-1 truncate max-w-[80px]">{team2Name}</span>
                                             </div>
                                         </div>
 
