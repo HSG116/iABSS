@@ -203,7 +203,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                 });
             }
 
-            if (stage === 'playing' && activeCell && currentQuestion) {
+            if (stage === 'playing' && activeCell) {
                 const content = msg.content.trim();
                 const u = msg.user.username;
                 const player = lobbyPlayers.find(p => p.username === u) || {
@@ -217,12 +217,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                 if (!buzzedTeam) {
                     const isBell = content === 'جرس' || content.toLowerCase() === 'jaras';
                     if (isBell) {
-                        // Check if this team is allowed to buzz
-                        // If one team tried and failed, only the other team can buzz
-                        if (triedTeams.length === 1 && triedTeams[0] === player.team) {
-                            return; // Not your turn
-                        }
-
+                        if (triedTeams.length === 1 && triedTeams[0] === player.team) return;
                         setBuzzedTeam(player.team);
                         setBuzzedPlayer(player);
                         setAnswerTimer(timerDuration);
@@ -233,17 +228,18 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                 }
 
                 // Phase 2: Wait for answer from the buzzed player/team
+                // NEW LOGIC: Accept any answer that starts with the cell's letter
                 if (buzzedTeam && player.team === buzzedTeam) {
                     const normAns = normalize(content);
-                    const normCorrect = normalize(currentQuestion.answer);
+                    const targetLetter = normalize(activeCell.letter)[0];
 
-                    if (normAns === normCorrect) {
-                        // Correct!
+                    if (normAns.length > 0 && normAns[0] === targetLetter) {
+                        // Correct! Any word starting with the letter
                         setLastAnswer({ text: content, correct: true });
                         playSfx('correct');
                         setTimeout(() => finalizeRound(true, buzzedTeam), 1500);
-                    } else {
-                        // Wrong!
+                    } else if (content !== 'جرس') {
+                        // Wrong! (And ignore accidental double-bells)
                         setLastAnswer({ text: content, correct: false });
                         playSfx('wrong');
                         setTimeout(() => handleWrongAnswer(), 1500);
@@ -405,10 +401,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
         setAnswerTimer(0);
         setTriedTeams([]);
         setLastAnswer({ text: '', correct: null });
-
-        const availableQs = LETTER_GAME_QUESTIONS.filter(q => q.letter === cell.letter);
-        const randomQ = availableQs[Math.floor(Math.random() * availableQs.length)];
-        setCurrentQuestion(randomQ || { id: 999, letter: cell.letter, question: `سؤال صعب لحرف ${cell.letter}؟`, answer: 'الجواب' });
+        setCurrentQuestion(null); // No more preset questions
     };
 
     // Timer Effect
@@ -889,21 +882,30 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                         </div>
                     </div>
 
-                    {/* QUESTION OVERLAY */}
-                    {activeCell && currentQuestion && (
+                    {/* QUESTION OVERLAY (NOW PRESET-FREE) */}
+                    {activeCell && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-10 animate-in zoom-in duration-300">
                             {/* In OBS, use a solid black background for the modal area when active */}
                             {isOBS && <div className="absolute inset-0 bg-black/90 backdrop-blur-3xl animate-in fade-in duration-500"></div>}
                             {!isOBS && <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setActiveCell(null)}></div>}
 
                             <div className={`w-full max-w-5xl bg-[#0a0a1a] border-[12px] border-[#5A22A3] rounded-[5rem] p-20 shadow-[0_0_100px_rgba(0,0,0,1)] relative z-10 text-center transition-all duration-500 ${isOBS ? 'scale-[0.6] ring-[20px] ring-white/10' : ''}`}>
-                                <div className={`absolute top-[-50px] left-1/2 transform -translate-x-1/2 px-16 py-4 rounded-full border-8 border-[#5A22A3] font-black text-6xl italic shadow-2xl ${isOBS ? 'bg-white text-black border-white' : 'bg-white text-[#5A22A3]'}`}>حرف {activeCell.letter}</div>
+                                <div className="flex flex-col items-center gap-12">
+                                    <div className="relative">
+                                        <div className="absolute inset-0 bg-white/20 blur-3xl rounded-full scale-150 animate-pulse"></div>
+                                        <div className={`px-20 py-8 rounded-[3rem] bg-white border-8 border-[#5A22A3] text-black font-black text-[12rem] italic shadow-2xl relative z-10 leading-none`}>
+                                            {activeCell.letter}
+                                        </div>
+                                    </div>
 
-                                <p className="text-5xl font-black text-white leading-tight mb-12 mt-6">{currentQuestion.question}</p>
+                                    <div className="space-y-4">
+                                        <h2 className="text-6xl font-black text-white italic drop-shadow-lg">تحدي الحرف!</h2>
+                                        <p className="text-3xl font-bold text-white/60 tracking-widest uppercase">اكتب كلمة تبدأ بهذا الحرف</p>
+                                    </div>
+                                </div>
 
-                                <div className="bg-emerald-500/20 border-4 border-emerald-500/40 rounded-3xl p-8 mb-10 group relative">
-                                    <span className="text-gray-400 font-bold block mb-2 uppercase tracking-[0.4em] text-xs">إجابة المقدم (مخفي)</span>
-                                    <span className="text-4xl font-black text-emerald-100 blur-lg group-hover:blur-0 transition-all duration-300">{currentQuestion.answer}</span>
+                                <div className="mt-16">
+                                    {/* Buzzer Area remains here */}
                                 </div>
 
                                 {buzzedTeam ? (
