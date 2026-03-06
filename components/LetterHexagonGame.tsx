@@ -3,7 +3,7 @@ import { chatService } from '../services/chatService';
 import { supabase } from '../services/supabase';
 import { LETTER_GAME_QUESTIONS } from '../data/letter_game_data';
 import { HexCellData, LetterQuestion } from '../types';
-import { Home, LogOut, Check, X, Shield, Trophy, Smartphone, AlertTriangle, Users, Play, Settings, Paintbrush, Clock, ListOrdered, BrainCircuit, PartyPopper, RefreshCw, ArrowLeft, ArrowRight, Stars, Sparkles, Crown, Heart, BellRing, Volume2 } from 'lucide-react';
+import { Home, LogOut, Check, X, Shield, Trophy, Smartphone, AlertTriangle, Users, Play, Settings, Paintbrush, Clock, ListOrdered, BrainCircuit, PartyPopper, RefreshCw, ArrowLeft, ArrowRight, Stars, Sparkles, Crown, Heart, BellRing, Volume2, ChevronDown } from 'lucide-react';
 import { ProAvatar } from './ProAvatar';
 
 interface LetterHexagonGameProps {
@@ -386,8 +386,104 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                 <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
             </div>
 
-            {/* STAGE: SETTINGS */}
-            {stage === 'settings' && (
+            {/* SPECIALIZED OBS LOBBY/WAITING VIEW */}
+            {isOBS && (stage === 'settings' || stage === 'lobby') && (
+                <div className="relative z-50 w-full h-full flex flex-col items-center justify-center p-20 animate-in fade-in duration-1000 overflow-hidden">
+                    {/* Floating Orbs for luxury feel */}
+                    <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#FF6B52]/20 blur-[150px] rounded-full animate-pulse"></div>
+                    <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#14b8a6]/20 blur-[150px] rounded-full animate-pulse delay-700"></div>
+
+                    <div className="relative z-10 flex flex-col items-center gap-12 w-full max-w-7xl">
+                        {/* THE LOGO */}
+                        <div className="relative group">
+                            <div className="absolute -inset-10 bg-white/5 blur-3xl rounded-full scale-150 animate-pulse"></div>
+                            <div className="flex items-center gap-8 mb-4 relative z-10">
+                                <span className="text-[12rem] font-black italic tracking-tighter text-yellow-400 drop-shadow-[0_15px_40px_rgba(234,179,8,0.6)] animate-bounce">حروف</span>
+                                <span className="text-6xl font-black italic tracking-tighter text-blue-400 mt-12">مع</span>
+                                <span className="text-[12rem] font-black italic tracking-tighter text-red-500 drop-shadow-[0_15px_40px_rgba(239,68,68,0.6)]">حمودي</span>
+                            </div>
+                            <div className="h-2 w-full bg-gradient-to-r from-transparent via-white/40 to-transparent rounded-full"></div>
+                        </div>
+
+                        {/* STATUS AREA */}
+                        <div className="flex flex-col items-center gap-6">
+                            {stage === 'settings' ? (
+                                <div className="flex flex-col items-center gap-4">
+                                    <div className="px-12 py-4 bg-white/10 backdrop-blur-xl border-2 border-white/20 rounded-full flex items-center gap-4 text-white font-black text-3xl italic shadow-2xl">
+                                        <Clock className="text-yellow-400 animate-spin-slow" size={32} />
+                                        <span>بإنتظار تحضير الساحة...</span>
+                                    </div>
+                                    <p className="text-white/40 font-black text-sm uppercase tracking-[0.5em] animate-pulse">SETTING UP THE BATTLEFIELD</p>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center gap-6">
+                                    <div className={`px-16 py-6 rounded-[3rem] border-8 shadow-2xl transition-all duration-500 transform scale-110 flex flex-col items-center gap-3 ${allowJoin ? 'bg-kick-green border-white animate-bounce' : 'bg-red-600 border-white/20 opacity-50'}`}>
+                                        <div className="flex items-center gap-4">
+                                            {allowJoin && <Volume2 className="text-black animate-pulse" size={40} />}
+                                            <span className="text-black font-black text-5xl italic tracking-tighter">
+                                                {allowJoin ? `أكتب [ ${entryKeyword} ] للدخول!` : 'بإنتظار إشارة البداية'}
+                                            </span>
+                                        </div>
+                                        {allowJoin && <div className="text-[12px] font-black text-black/40 uppercase tracking-widest">JOIN THE BATTLE NOW</div>}
+                                    </div>
+
+                                    {/* TEAMS PREVIEW */}
+                                    <div className="grid grid-cols-2 gap-20 mt-10 w-full">
+                                        {/* Team Girls */}
+                                        <div className="flex flex-col items-center gap-6 group">
+                                            <div className="relative">
+                                                <div className="absolute -inset-6 bg-[#FF6B52]/30 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                                <div className="w-40 h-40 bg-[#FF6B52] border-8 border-white rounded-[3rem] flex items-center justify-center text-7xl shadow-2xl relative z-10 transform -rotate-3 group-hover:rotate-0 transition-transform">🌸</div>
+                                            </div>
+                                            <div className="text-center">
+                                                <h3 className="text-4xl font-black text-[#FF6B52] italic drop-shadow-lg">{team1Name}</h3>
+                                                <div className="text-white/40 font-bold text-xs uppercase tracking-widest mt-1">THE QUEEN WARRIORS</div>
+                                                <div className="mt-6 flex flex-wrap justify-center gap-2 max-w-sm">
+                                                    {girls.map(p => (
+                                                        <div key={p.username} className="animate-in zoom-in">
+                                                            <ProAvatar username={p.username} url={p.avatar} size="w-12 h-12" className="border-2 border-[#FF6B52]" />
+                                                        </div>
+                                                    ))}
+                                                    {girls.length === 0 && <div className="w-12 h-12 rounded-full border-2 border-dashed border-white/10 flex items-center justify-center text-white/10 uppercase text-[8px] font-black">Empty</div>}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Team Boys */}
+                                        <div className="flex flex-col items-center gap-6 group">
+                                            <div className="relative">
+                                                <div className="absolute -inset-6 bg-[#14b8a6]/30 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                                <div className="w-40 h-40 bg-[#14b8a6] border-8 border-white rounded-[3rem] flex items-center justify-center text-7xl shadow-2xl relative z-10 transform rotate-3 group-hover:rotate-0 transition-transform">🧊</div>
+                                            </div>
+                                            <div className="text-center">
+                                                <h3 className="text-4xl font-black text-[#14b8a6] italic drop-shadow-lg">{team2Name}</h3>
+                                                <div className="text-white/40 font-bold text-xs uppercase tracking-widest mt-1">THE TITAN KINGS</div>
+                                                <div className="mt-6 flex flex-wrap justify-center gap-2 max-w-sm">
+                                                    {boys.map(p => (
+                                                        <div key={p.username} className="animate-in zoom-in">
+                                                            <ProAvatar username={p.username} url={p.avatar} size="w-12 h-12" className="border-2 border-[#14b8a6]" />
+                                                        </div>
+                                                    ))}
+                                                    {boys.length === 0 && <div className="w-12 h-12 rounded-full border-2 border-dashed border-white/10 flex items-center justify-center text-white/10 uppercase text-[8px] font-black">Empty</div>}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* BOTTOM HIGHLIGHT */}
+                        <div className="absolute bottom-20 flex flex-col items-center animate-bounce">
+                            <ChevronDown className="text-white/20" size={60} />
+                            <span className="text-[10px] font-black text-white/10 uppercase tracking-[1em]">Get Ready For Battle</span>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* STAGE: SETTINGS (HIDDEN IN OBS) */}
+            {!isOBS && stage === 'settings' && (
                 <div className="relative z-20 w-full h-full flex flex-col items-center justify-center p-10 animate-in fade-in duration-700">
                     <div className="max-w-4xl w-full bg-black/60 backdrop-blur-3xl border-4 border-white/10 rounded-[4rem] p-12 shadow-[0_30px_100px_rgba(0,0,0,0.8)] relative overflow-hidden">
 
@@ -455,8 +551,8 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                 </div>
             )}
 
-            {/* STAGE: LOBBY */}
-            {stage === 'lobby' && (
+            {/* STAGE: LOBBY (HIDDEN IN OBS) */}
+            {!isOBS && stage === 'lobby' && (
                 <div className="relative z-20 w-full h-full flex items-center justify-center p-12 animate-in slide-in-from-bottom duration-700">
                     <div className="w-full max-w-7xl h-full flex flex-col gap-10">
                         <div className="flex items-center justify-between">
