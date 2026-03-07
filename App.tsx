@@ -626,23 +626,23 @@ const App: React.FC = () => {
                   <div className="h-[1px] w-full max-w-lg bg-gradient-to-r from-transparent via-red-500/50 to-transparent"></div>
 
                   <h2 className="text-xl md:text-3xl font-black text-white px-4 text-center leading-relaxed drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] tracking-wide">
-                    اكبر منصة ألعاب تفاعلية للبثوث المباشرة <br />
-                    <span className="text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.6)]">بالعاب اكثر من 23 لعبة</span>
+                    أكبر منصة ألعاب تفاعلية للبثوث المباشرة <br />
+                    <span className="text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.6)]">بألعاب أكثر من 23 لعبة</span>
                   </h2>
 
-                  <div className="relative bg-zinc-900/80 px-8 py-3 rounded-full border-2 border-white/10 hover:border-violet-500/50 transition-all hover:scale-105 group backdrop-blur-xl shadow-xl">
-                    <div className="flex items-center gap-4 text-xl md:text-3xl font-black text-white italic">
-                      <span className="opacity-80">أكبر من منصة</span>
-                      <span className="text-violet-500 relative px-4 inline-block drop-shadow-[0_0_25px_rgba(139,92,246,0.6)] animate-pulse">
-                        جولة
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                          <span className="text-red-600 text-[1.8em] font-black drop-shadow-[0_0_20px_rgba(220,38,38,1)]" style={{ transform: 'rotate(-15deg) translateY(-5%)' }}>X</span>
-                        </div>
+                  <div className="relative bg-black/80 backdrop-blur-3xl px-8 py-4 rounded-3xl border border-red-900/50 hover:border-red-500/50 transition-all hover:scale-105 group shadow-[0_0_50px_rgba(220,38,38,0.2)]">
+                    <div className="flex flex-col items-center gap-2 text-center">
+                      <div className="flex items-center gap-2 text-2xl md:text-3xl font-black text-white italic">
+                        <span className="text-green-500 animate-pulse drop-shadow-[0_0_15px_rgba(34,197,94,0.6)]">+1000</span>
+                        <span>شخص يلعبون بالشات  🔥</span>
+                      </div>
+                      <span className="text-white/60 text-sm md:text-base font-bold tracking-widest mt-1">
+                        يمكنك رؤيتهم في قائمة المتصدرين 🏆
                       </span>
                     </div>
                   </div>
 
-                  <div className="h-[1px] w-full max-w-lg bg-gradient-to-r from-transparent via-red-500/50 to-transparent"></div>
+                  <div className="h-[1px] w-full max-w-lg bg-gradient-to-r from-transparent via-red-500/50 to-transparent mt-2"></div>
                 </div>
               </div>
             </div>
