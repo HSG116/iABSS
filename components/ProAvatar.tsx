@@ -162,8 +162,12 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
                 localStorage.setItem(`av_${uLower}`, fresh);
                 avatarCache[uLower] = fresh;
                 await supabase.from('profiles').update({ avatar_url: fresh }).ilike('username', uLower);
+            } else {
+                setSrc(undefined); // Clear to show fallback
             }
-        } catch (e) { } finally {
+        } catch (e) {
+            setSrc(undefined);
+        } finally {
             setIsRefreshing(false);
         }
     };
@@ -188,11 +192,11 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
 
     return (
         <div
-            className={`relative ${size} flex-shrink-0 ${className}`}
+            className={`relative ${size} flex-shrink-0 flex items-center justify-center ${className}`}
             style={{ overflow: 'visible', zIndex: 10 }}
         >
             {/* Avatar Base */}
-            <div className="absolute inset-[8%] rounded-full overflow-hidden border-2 border-white/10 bg-zinc-950 shadow-inner z-0">
+            <div className="w-[84%] h-[84%] rounded-full overflow-hidden border-2 border-white/10 bg-zinc-950 shadow-inner relative z-0 flex-shrink-0">
                 {src ? (
                     <img
                         src={src}
@@ -202,7 +206,7 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
                         referrerPolicy="no-referrer"
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center font-black text-white/10 text-xl bg-white/5 uppercase select-none">
+                    <div className="w-full h-full flex items-center justify-center font-black text-white/10 text-3xl bg-white/5 uppercase select-none">
                         {uLower ? uLower[0] : '?'}
                     </div>
                 )}
@@ -216,18 +220,11 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
             {/* Frame Layer */}
             {frameUrl && (
                 <div
-                    className="absolute pointer-events-none"
-                    style={{
-                        inset: '-20%',
-                        zIndex: 100,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }}
+                    className="absolute inset-0 pointer-events-none flex items-center justify-center z-[100]"
                 >
                     <img
                         src={resolveFramePath(frameUrl)}
-                        className="w-full h-full object-contain filter drop-shadow-[0_0_20px_rgba(0,0,0,0.8)]"
+                        className="w-[125%] h-[125%] max-w-none object-contain filter drop-shadow-[0_0_20px_rgba(0,0,0,0.8)]"
                         alt="Frame"
                         onError={() => {
                             console.warn("Frame failed:", frameUrl);

@@ -214,6 +214,7 @@ class ChatService {
     const fetchPromise = (async () => {
       try {
         const proxies = [
+          `https://decapi.me/kick/avatar/${slug}`,
           `https://api.allorigins.win/get?url=${encodeURIComponent(`https://kick.com/api/v2/channels/${slug}`)}&disableCache=true`,
           `https://corsproxy.io/?${encodeURIComponent(`https://kick.com/api/v2/channels/${slug}`)}`,
           `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(`https://kick.com/api/v2/channels/${slug}`)}`
@@ -223,24 +224,35 @@ class ChatService {
           try {
             const response = await fetch(proxyUrl, {
               cache: 'no-store',
-              headers: { 'Accept': 'application/json' }
+              headers: { 'Accept': 'application/json, text/plain' }
             });
             if (!response.ok) continue;
 
-            const rawData = await response.json();
-            let data: any;
+            let avatar = '';
 
-            if (proxyUrl.includes('allorigins')) {
-              if (!rawData.contents) continue;
-              data = JSON.parse(rawData.contents);
+            // Handle pure text response (like decapi.me)
+            if (proxyUrl.includes('decapi.me')) {
+              const textUrl = await response.text();
+              if (textUrl && textUrl.startsWith('http')) {
+                avatar = textUrl.trim();
+              }
             } else {
-              data = rawData;
-            }
+              // Handle JSON wrappers
+              const rawData = await response.json();
+              let data: any;
 
-            const avatar = data.user?.profile_pic ||
-              data.user?.profilepic ||
-              data.profile_pic ||
-              data.user?.avatar?.url || '';
+              if (proxyUrl.includes('allorigins')) {
+                if (!rawData.contents) continue;
+                data = JSON.parse(rawData.contents);
+              } else {
+                data = rawData;
+              }
+
+              avatar = data.user?.profile_pic ||
+                data.user?.profilepic ||
+                data.profile_pic ||
+                data.user?.avatar?.url || '';
+            }
 
             if (avatar && avatar.includes('http')) {
               // Ensure files.kick.com is used
