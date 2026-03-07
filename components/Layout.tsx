@@ -175,14 +175,27 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onChangeV
 
       {/* Main Game Area */}
       <main className="flex-1 relative flex flex-col h-full overflow-hidden bg-black">
-        {/* Global Background Layer */}
-        <div
-          className="absolute inset-0 z-0 pointer-events-none opacity-40 transition-all duration-1000 bg-center bg-no-repeat blur-[2px]"
-          style={{
-            backgroundImage: viewBg(currentView),
-            backgroundSize: 'cover'
-          }}
-        ></div>
+        {/* Global Background Layer - Epic Red & Black Theme */}
+        <div className="absolute inset-0 z-0 bg-black pointer-events-none overflow-hidden">
+          {/* Digital Grid pattern */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(220,38,38,0.07)_1px,transparent_1px),linear-gradient(90deg,rgba(220,38,38,0.07)_1px,transparent_1px)] bg-[size:50px_50px] opacity-30 animate-[scan_20s_linear_infinite] shadow-[inset_0_0_100px_rgba(0,0,0,1)]"></div>
+
+          {/* Animated Core Glows */}
+          <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-red-700/20 rounded-full blur-[150px] animate-pulse"></div>
+          <div className="absolute bottom-[-20%] right-[-10%] w-[70%] h-[70%] bg-red-900/30 rounded-full blur-[150px] animate-pulse" style={{ animationDelay: '2s' }}></div>
+
+          {/* Central emphasis */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vh] bg-red-600/5 rounded-full blur-[180px] opacity-50"></div>
+
+          {/* Original View Background overlaid with blending */}
+          <div
+            className="absolute inset-0 z-0 opacity-15 transition-all duration-1000 bg-center bg-no-repeat mix-blend-overlay"
+            style={{
+              backgroundImage: viewBg(currentView),
+              backgroundSize: 'cover'
+            }}
+          ></div>
+        </div>
 
         {/* Content Container */}
         <div className="flex-1 w-full h-full relative z-10 overflow-y-auto overflow-x-hidden p-4 md:p-8 flex flex-col items-center">

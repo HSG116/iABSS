@@ -87,3 +87,23 @@ body.obs-mode *::-webkit-scrollbar {
 .animate-bounce-slow {
   animation: bounce-slow 2s ease-in-out infinite;
 }
+
+@keyframes scan {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 0 100vh;
+  }
+}
+
+@keyframes matrix-fall {
+  from {
+    background-position: 0 -100vh;
+  }
+
+  to {
+    background-position: 0 100vh;
+  }
+}

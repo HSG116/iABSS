@@ -261,12 +261,18 @@ export const GlobalPasswordPage: React.FC<GlobalPasswordPageProps> = ({
 
     return (
         <div className="fixed inset-0 z-[9999] bg-black text-white font-sans overflow-hidden flex flex-col items-center justify-center p-0 m-0">
-            {/* Dynamic Background */}
-            <div className="absolute inset-0 z-0 pointer-events-none">
-                <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-red-900/10 via-black to-black animate-pulse"></div>
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100vw] h-[100vh] bg-red-600/5 rounded-full blur-[150px] animate-pulse-slow"></div>
-                {/* Grid overlay */}
-                <div className="absolute inset-0 bg-[linear-gradient(rgba(30,0,0,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(30,0,0,0.2)_1px,transparent_1px)] bg-[size:60px_60px] opacity-10"></div>
+            {/* Dynamic Background - Red & Black Epic Theme */}
+            <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden bg-black">
+                {/* Intense digital grid */}
+                <div className="absolute inset-0 bg-[linear-gradient(rgba(220,38,38,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(220,38,38,0.15)_1px,transparent_1px)] bg-[size:50px_50px] opacity-40 animate-[matrix-fall_30s_linear_infinite] shadow-[inset_0_0_150px_rgba(0,0,0,1)]"></div>
+
+                {/* Deep red animated glows */}
+                <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-900/40 via-black to-black animate-pulse"></div>
+                <div className="absolute bottom-[-20%] left-[-10%] w-[80vw] h-[80vh] bg-red-800/20 rounded-full blur-[200px] animate-pulse" style={{ animationDelay: '1s' }}></div>
+                <div className="absolute top-[10%] right-[-10%] w-[60vw] h-[60vh] bg-red-600/10 rounded-full blur-[150px] animate-bounce-slow"></div>
+
+                {/* Overlay vignette */}
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.8)_100%)]"></div>
             </div>
 
             {/* Content Container - Perfectly Centered */}

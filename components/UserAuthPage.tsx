@@ -314,11 +314,14 @@ export const UserAuthPage: React.FC<UserAuthPageProps> = ({ onSuccess, onBack })
                 </button>
             )}
 
-            {/* Dynamic Background */}
-            <div className="absolute inset-0 z-0 pointer-events-none">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(220,38,38,0.08)_0%,transparent_50%)]"></div>
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(139,92,246,0.06)_0%,transparent_50%)]"></div>
-                <div className="absolute inset-0 bg-[linear-gradient(rgba(30,0,0,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(30,0,0,0.15)_1px,transparent_1px)] bg-[size:60px_60px] opacity-10"></div>
+            {/* Dynamic Background - Red & Black Epic Theme */}
+            <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden bg-black">
+                <div className="absolute inset-0 bg-[linear-gradient(rgba(220,38,38,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(220,38,38,0.15)_1px,transparent_1px)] bg-[size:50px_50px] opacity-30 animate-pulse shadow-[inset_0_0_150px_rgba(0,0,0,1)]"></div>
+
+                <div className="absolute top-[-10%] left-[-20%] w-[80vw] h-[80vh] bg-[radial-gradient(circle,_rgba(220,38,38,0.2)_0%,_transparent_70%)] animate-pulse"></div>
+                <div className="absolute bottom-[-20%] right-[-10%] w-[90vw] h-[90vh] bg-[radial-gradient(circle,_rgba(153,27,27,0.3)_0%,_transparent_70%)] animate-pulse" style={{ animationDelay: '2s' }}></div>
+
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.8)_100%)]"></div>
             </div>
 
             <style>{`
@@ -351,7 +354,7 @@ export const UserAuthPage: React.FC<UserAuthPageProps> = ({ onSuccess, onBack })
                     </div>
 
                     {/* Form Card */}
-                    <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.06] rounded-[2rem] p-6 md:p-8 shadow-2xl space-y-5">
+                    <div className="bg-black/80 backdrop-blur-3xl border border-red-900/50 rounded-[2rem] p-6 md:p-8 shadow-[0_0_50px_rgba(220,38,38,0.15)] space-y-5">
 
                         {/* Kick Avatar Preview */}
                         {(kickAvatar || isLoadingAvatar) && (
@@ -534,7 +537,7 @@ export const UserAuthPage: React.FC<UserAuthPageProps> = ({ onSuccess, onBack })
                         <p className="text-green-500 font-bold tracking-[0.3em] text-[10px] uppercase">KICK CHAT VERIFICATION</p>
                     </div>
 
-                    <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.06] rounded-[2rem] p-6 md:p-8 shadow-2xl space-y-6">
+                    <div className="bg-black/80 backdrop-blur-3xl border border-red-900/50 rounded-[2rem] p-6 md:p-8 shadow-[0_0_50px_rgba(220,38,38,0.15)] space-y-6">
 
                         {/* User Info */}
                         <div className="flex items-center gap-4 bg-black/40 rounded-2xl p-4 border border-white/5">
