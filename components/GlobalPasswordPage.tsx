@@ -38,6 +38,9 @@ export const GlobalPasswordPage: React.FC<GlobalPasswordPageProps> = ({
     const [error, setError] = useState(false);
     const [shake, setShake] = useState(false);
     const [role, setRole] = useState<'admin' | 'user'>('admin');
+    const [isAdminMode, setIsAdminMode] = useState(false);
+    const [loginUsername, setLoginUsername] = useState('');
+    const [loginPassword, setLoginPassword] = useState('');
     const inputs = useRef<(HTMLInputElement | null)[]>([]);
     const [userType, setUserType] = useState<'NEW' | 'RETURNING'>('NEW');
 
@@ -133,12 +136,18 @@ export const GlobalPasswordPage: React.FC<GlobalPasswordPageProps> = ({
         initAuth();
     }, []);
 
-    // Focus effect for password input
+    // Focus effect for inputs
     useEffect(() => {
-        if (step === 'PASSWORD' && inputs.current[0]) {
-            setTimeout(() => inputs.current[0]?.focus(), 100);
+        if (step === 'PASSWORD') {
+            if (!loginUsername && !isAdminMode) {
+                // Focus username first if empty
+                const usernameInput = document.getElementById('login-username');
+                usernameInput?.focus();
+            } else if (inputs.current[0]) {
+                setTimeout(() => inputs.current[0]?.focus(), 100);
+            }
         }
-    }, [step]);
+    }, [step, isAdminMode]);
 
     const handleInput = (index: number, value: string) => {
         const char = value.slice(-1);
@@ -162,7 +171,7 @@ export const GlobalPasswordPage: React.FC<GlobalPasswordPageProps> = ({
     };
 
     const verifyPin = async (enteredPin: string) => {
-        // 1. Check admin password first
+        // 1. Check Admin PIN first (if in admin mode or if it matches target)
         if (enteredPin === targetPin) {
             setError(false);
             setRole('admin');
@@ -170,46 +179,46 @@ export const GlobalPasswordPage: React.FC<GlobalPasswordPageProps> = ({
             return;
         }
 
-        // 2. Check if it matches any registered user's password
-        try {
-            const hashedPin = await hashPassword(enteredPin);
-            const { data } = await supabase
-                .from('users')
-                .select('*')
-                .eq('password_hash', hashedPin)
-                .limit(1)
-                .maybeSingle();
-
-            if (data) {
-                // Fetch points from leaderboard
-                const { data: lbData } = await supabase
-                    .from('leaderboard')
-                    .select('score')
-                    .eq('username', data.kick_username)
+        // 2. If not admin, check as User Login (requires username)
+        if (!isAdminMode && loginUsername.trim()) {
+            try {
+                const hashedPin = await hashPassword(enteredPin);
+                const { data } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('kick_username', loginUsername.trim().toLowerCase())
+                    .eq('password_hash', hashedPin)
                     .maybeSingle();
 
-                const points = lbData?.score || 0;
+                if (data) {
+                    const { data: lbData } = await supabase
+                        .from('leaderboard')
+                        .select('score')
+                        .eq('username', data.kick_username)
+                        .maybeSingle();
 
-                // Found a user! Save rendered data to localStorage
-                localStorage.setItem('iabs_user', JSON.stringify({
-                    id: data.id,
-                    display_name: data.display_name,
-                    kick_username: data.kick_username,
-                    discord: data.discord || undefined,
-                    avatar: data.avatar || undefined,
-                    points: points
-                }));
-                setError(false);
-                setRole('user');
-                setUserType('RETURNING');
-                setStep('FINGERPRINT');
-                return;
+                    const points = lbData?.score || 0;
+
+                    localStorage.setItem('iabs_user', JSON.stringify({
+                        id: data.id,
+                        display_name: data.display_name,
+                        kick_username: data.kick_username,
+                        discord: data.discord || undefined,
+                        avatar: data.avatar || undefined,
+                        points: points
+                    }));
+                    setError(false);
+                    setRole('user');
+                    setUserType('RETURNING');
+                    setStep('FINGERPRINT');
+                    return;
+                }
+            } catch (e) {
+                console.error('[Auth] User check error:', e);
             }
-        } catch (e) {
-            console.error('[Auth] User check error:', e);
         }
 
-        // 3. Neither admin nor user — deny
+        // 3. Deny access
         setError(true);
         setShake(true);
         setTimeout(() => {
@@ -275,26 +284,40 @@ export const GlobalPasswordPage: React.FC<GlobalPasswordPageProps> = ({
 
                 {/* --- PASSWORD STEP --- */}
                 {step === 'PASSWORD' && (
-                    <div className={`flex flex-col items-center animate-in fade-in zoom-in duration-700 ${shake ? 'animate-shake' : ''}`}>
+                    <div className={`flex flex-col items-center w-full max-w-2xl px-6 animate-in fade-in zoom-in duration-700 ${shake ? 'animate-shake' : ''}`}>
 
-                        <div className="mb-12 relative group">
+                        <div className="mb-8 relative group">
                             <div className="absolute inset-0 bg-red-600/40 blur-[50px] rounded-full group-hover:bg-red-600/60 transition-all duration-500 animate-pulse"></div>
-                            <Lock size={80} strokeWidth={1.5} className={`relative z-10 transition-all duration-300 ${error ? 'text-red-500 drop-shadow-[0_0_30px_rgba(255,0,0,1)]' : 'text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.5)]'}`} />
+                            <Lock size={70} strokeWidth={1.5} className={`relative z-10 transition-all duration-300 ${error ? 'text-red-500 drop-shadow-[0_0_30px_rgba(255,0,0,1)]' : 'text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.5)]'}`} />
                         </div>
 
-                        <h2 className="text-5xl md:text-7xl font-black italic tracking-tighter mb-4 text-center text-transparent bg-clip-text bg-gradient-to-b from-white to-neutral-500 drop-shadow-2xl">
-                            {userType === 'NEW' ? (title || newTitle) : (title || returningTitle)}
+                        <h2 className="text-4xl md:text-7xl font-black italic tracking-tighter mb-4 text-center text-transparent bg-clip-text bg-gradient-to-b from-white to-neutral-500 drop-shadow-2xl">
+                            {isAdminMode ? 'بروتوكول القائد' : (userType === 'NEW' ? (title || newTitle) : (title || returningTitle))}
                         </h2>
 
-                        {/* Security Warning */}
-                        <div className="mb-8 bg-red-900/40 border border-red-500/30 px-6 py-2 rounded-full animate-pulse flex items-center gap-3">
-                            <div className="w-2 h-2 rounded-full bg-red-500 animate-ping"></div>
-                            <p className="text-red-200 font-bold text-sm tracking-wider">يرجى إخفاء الشاشة الآن</p>
-                        </div>
-
-                        <p className="text-red-500 font-bold tracking-[0.5em] text-sm md:text-base uppercase mb-16 text-center drop-shadow-[0_0_10px_rgba(255,0,0,0.5)]">
-                            {subtitle}
+                        <p className="text-red-500 font-bold tracking-[0.4em] text-[10px] md:text-sm uppercase mb-10 text-center drop-shadow-[0_0_10px_rgba(255,0,0,0.5)]">
+                            {isAdminMode ? 'RESTRICTED COMMAND INTERFACE' : subtitle}
                         </p>
+
+                        {!isAdminMode && (
+                            <div className="w-full max-w-sm mb-12 animate-in slide-in-from-top-4 duration-500">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 block text-center flex items-center justify-center gap-2">
+                                    <span className="text-green-500">K</span> حساب Kick
+                                </label>
+                                <div className="relative group">
+                                    <input
+                                        id="login-username"
+                                        type="text"
+                                        value={loginUsername}
+                                        onChange={(e) => setLoginUsername(e.target.value)}
+                                        placeholder="اسم المستخدم"
+                                        className="w-full bg-white/[0.03] border-2 border-white/10 focus:border-red-500/40 rounded-2xl px-6 py-4 text-white font-black text-center text-lg outline-none transition-all placeholder:text-gray-700 shadow-2xl backdrop-blur-xl"
+                                        dir="ltr"
+                                    />
+                                    <div className="absolute inset-0 rounded-2xl bg-red-600/5 opacity-0 group-focus-within:opacity-100 blur-xl transition-opacity pointer-events-none"></div>
+                                </div>
+                            </div>
+                        )}
 
                         <div style={{ direction: 'ltr' }} className="flex flex-wrap items-center justify-center gap-4 md:gap-6 mb-12">
                             {pin.map((digit, i) => (
@@ -303,7 +326,7 @@ export const GlobalPasswordPage: React.FC<GlobalPasswordPageProps> = ({
                                     <input
                                         ref={el => inputs.current[i] = el}
                                         type="text"
-                                        inputMode="text"
+                                        inputMode="numeric"
                                         autoComplete="off"
                                         maxLength={1}
                                         value={digit}
@@ -316,7 +339,7 @@ export const GlobalPasswordPage: React.FC<GlobalPasswordPageProps> = ({
                                             text-center text-4xl md:text-6xl font-black text-white 
                                             focus:outline-none focus:border-red-500 focus:scale-110
                                             transition-all duration-300 placeholder-transparent
-                                            ${error ? 'border-red-600 text-red-500 drop-shadow-[0_0_10px_rgba(255,0,0,0.8)]' : 'border-white/20'}
+                                            ${error ? 'border-red-600 text-red-500' : 'border-white/20'}
                                             ${digit ? 'border-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]' : 'hover:border-white/50'}
                                         `}
                                     />
@@ -324,16 +347,30 @@ export const GlobalPasswordPage: React.FC<GlobalPasswordPageProps> = ({
                             ))}
                         </div>
 
-                        {error && <div className="text-red-500 font-black tracking-[0.5em] animate-bounce text-lg drop-shadow-[0_0_10px_red]">ACCESS DENIED</div>}
+                        {error && <div className="text-red-500 font-black tracking-[0.5em] animate-bounce text-sm drop-shadow-[0_0_10px_red]">ACCESS DENIED</div>}
 
-                        {/* Registration Link */}
-                        <div className="mt-8 text-center">
-                            <p className="text-gray-600 text-sm font-bold mb-2">ليس لديك حساب؟</p>
+                        <div className="mt-8 flex flex-col items-center gap-6">
+                            {!isAdminMode && (
+                                <button
+                                    onClick={() => setStep('USER_AUTH')}
+                                    className="text-gray-500 hover:text-white font-black text-[11px] uppercase tracking-[0.3em] transition-all flex items-center gap-2 bg-white/5 px-6 py-3 rounded-xl border border-white/10"
+                                >
+                                    ليس لديك حساب؟ <span className="text-red-500">سجّل الآن</span>
+                                </button>
+                            )}
+
+                            <div className="h-px bg-white/5 w-40"></div>
+
                             <button
-                                onClick={() => setStep('USER_AUTH')}
-                                className="inline-flex items-center gap-2 text-red-500 hover:text-red-400 font-black text-sm uppercase tracking-widest transition-colors bg-red-500/5 hover:bg-red-500/10 px-6 py-3 rounded-xl border border-red-500/20 hover:border-red-500/30"
+                                type="button"
+                                onClick={() => {
+                                    setIsAdminMode(!isAdminMode);
+                                    setPin(new Array(pin.length).fill(''));
+                                    setError(false);
+                                }}
+                                className="text-red-900/40 hover:text-red-600 font-black text-[10px] uppercase tracking-[0.4em] transition-all hover:scale-110"
                             >
-                                <UserPlus size={16} /> سجّل الآن
+                                {isAdminMode ? 'العودة لتسجيل المستخدم' : 'انت محمااااا ؟؟؟'}
                             </button>
                         </div>
                     </div>
