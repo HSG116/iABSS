@@ -12,18 +12,24 @@ export const LETTER_GAME_QUESTIONS: LetterQuestion[] = [
     { id: 3, letter: 'أ', question: 'أنهى نيوتن نظريته بسقوط هذه الفاكهة', answer: 'أبل (تفاحة)' },
     { id: 4, letter: 'أ', question: 'أشهر عالمة في التاريخ فازت بنوبل مرتين', answer: 'أنثى العلم ماري كوري - استخدم: إيمي نويذر' },
     { id: 5, letter: 'أ', question: 'أول حرف في الأبجدية العربية', answer: 'ألف' },
+    { id: 6, letter: 'أ', question: 'أرض يمر بها خط الاستواء وتشتهر بالبن', answer: 'أثيوبيا' },
+    { id: 7, letter: 'أ', question: 'أعلى قمة جبلية في العالم', answer: 'أفرست' },
     // ── ب ──────────────────────────────────────────
     { id: 10, letter: 'ب', question: 'عاصمة فرنسا', answer: 'باريس' },
     { id: 11, letter: 'ب', question: 'حيوان قطبي جنوبي لا يطير', answer: 'بطريق' },
     { id: 12, letter: 'ب', question: 'مدينة قنواتها مائية في إيطاليا', answer: 'بندقية' },
     { id: 13, letter: 'ب', question: 'مضيق بين البحر الأحمر وخليج عدن', answer: 'باب المندب' },
     { id: 14, letter: 'ب', question: 'برج مشهور يميل في إيطاليا', answer: 'برج بيزا' },
+    { id: 15, letter: 'ب', question: 'بناء أسطوري كان في بابل ويعد من العجائب المختفية', answer: 'برج بابل' },
+    { id: 16, letter: 'ب', question: 'بلد المليون ونصف شهيد', answer: 'بلد الجزائر (الجزائر)' },
     // ── ت ──────────────────────────────────────────
     { id: 20, letter: 'ت', question: 'حيوان زاحف ضخم بفك خطير', answer: 'تمساح' },
     { id: 21, letter: 'ت', question: 'فاكهة حمراء تُضاف للسلطة', answer: 'طماطم' },
     { id: 22, letter: 'ت', question: 'ثمرة النخيل الحلوة', answer: 'تمر' },
     { id: 23, letter: 'ت', question: 'بحيرة بين بوليفيا وبيرو أعلى بحيرة ملاحية', answer: 'تيتيكاكا' },
     { id: 24, letter: 'ت', question: 'عاصمة دولة تونس', answer: 'تونس' },
+    { id: 25, letter: 'ت', question: 'تمثال ضخم يقع في الولايات المتحدة ويرمز للحرية', answer: 'تمثال الحرية' },
+    { id: 26, letter: 'ت', question: 'تاريخ عريق يقع بين تركيا والعراق', answer: 'تبليس (تبل - تركيا)' },
     // ── ث ──────────────────────────────────────────
     { id: 30, letter: 'ث', question: 'حيوان ذكي ماكر أحمر اللون', answer: 'ثعلب' },
     { id: 31, letter: 'ث', question: 'ما يتساقط أبيض بارد في الشتاء', answer: 'ثلج' },
@@ -184,8 +190,12 @@ export const LETTER_GAME_QUESTIONS: LetterQuestion[] = [
 export function getQuestionsForLevel(letter: string, level: number): LetterQuestion[] {
     const pool = LETTER_GAME_QUESTIONS.filter(q => q.letter === letter);
     if (pool.length === 0) return [];
+
+    // Pick question index based on level to ensure Stage 1 always has Question 0, Stage 2 has Question 1, etc.
+    // This removes randomness as requested by the user.
     const idx = (level - 1) % pool.length;
-    // Return pool rotated so idx is first (ensures different question per level)
+
+    // Rotate pool so the target level question is first
     return [...pool.slice(idx), ...pool.slice(0, idx)];
 }
 

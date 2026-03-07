@@ -187,7 +187,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onChangeV
         ></div>
 
         {/* Content Container */}
-        <div className="flex-1 w-full h-full relative z-10 overflow-y-auto overflow-x-hidden p-4 md:p-8 flex flex-col items-center">
+        <div className="flex-1 w-full h-full relative z-10 overflow-y-auto overflow-x-hidden flex flex-col items-center">
           {children}
         </div>
       </main>

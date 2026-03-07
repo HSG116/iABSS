@@ -299,9 +299,18 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
     };
 
     const startGame = () => {
-        // Use currentLevel to create a level-specific shuffle if desired, 
-        // or just shuffle normally. Here we shuffle normally but track the level.
-        const shuffled = [...ARABIC_LETTERS].sort(() => Math.random() - 0.5);
+        // Deterministic shuffle based on currentLevel
+        const seededRandom = (seed: number) => {
+            let currentSeed = seed;
+            return () => {
+                currentSeed = (currentSeed * 9301 + 49297) % 233280;
+                return currentSeed / 233280;
+            };
+        };
+
+        const rnd = seededRandom(currentLevel * 1000);
+        const shuffled = [...ARABIC_LETTERS].sort(() => rnd() - 0.5);
+
         let lIdx = 0;
         const initialCells: HexCellData[] = [];
         GRID_LAYOUT.forEach((cols, rowIdx) => {
@@ -443,10 +452,11 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
         setAnswerTimer(0);
         setTriedTeams([]);
         setLastAnswer({ text: '', correct: null });
-        // Load a question specific to current level
+        // Load a question specific to current level and cell
         const levelQs = getQuestionsForLevel(cell.letter, currentLevel);
         if (levelQs.length > 0) {
-            setCurrentQuestion(levelQs[Math.floor(Math.random() * levelQs.length)]);
+            // Picking the first one from the rotated list makes it deterministic for the level
+            setCurrentQuestion(levelQs[0]);
         } else {
             setCurrentQuestion(null);
         }
@@ -478,8 +488,8 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
     return (
         <div className={`w-full h-full relative overflow-hidden select-none text-white font-sans ${isOBS ? 'bg-transparent' : 'bg-[#0A0A14]'}`} dir="rtl">
 
-            {/* GLOBAL BACKGROUND - Exact Image Match Quality */}
-            {!isOBS && (
+            {/* GLOBAL BACKGROUND - Exact Image Match Quality (Hidden in Level Select to prevent bleeding) */}
+            {!isOBS && stage !== 'levelSelect' && (
                 <div className="absolute inset-0 z-0">
                     <div className="absolute inset-0 z-0 pointer-events-none" style={{ background: 'conic-gradient(from -45deg at 50% 50%, #FF6B52 0deg 90deg, #14b8a6 90deg 180deg, #FF6B52 180deg 270deg, #14b8a6 270deg 360deg)' }} />
                     <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"></div>
@@ -696,68 +706,118 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
             {/* STAGE: LEVEL SELECT MAP */}
             {!isOBS && stage === 'levelSelect' && (() => {
                 const worlds = [
-                    { id: 1, name: 'عالم المبتدئين', range: [1, 20] as [number, number], color: '#22c55e', glow: 'rgba(34,197,94,0.4)', emoji: '🟢', desc: 'أسئلة سهلة ومرحة للجميع' },
-                    { id: 2, name: 'عالم المتمرن', range: [21, 40] as [number, number], color: '#3b82f6', glow: 'rgba(59,130,246,0.4)', emoji: '🔵', desc: 'أسئلة متوسطة للمتحدين' },
-                    { id: 3, name: 'عالم المحترف', range: [41, 60] as [number, number], color: '#f97316', glow: 'rgba(249,115,22,0.4)', emoji: '🟠', desc: 'أسئلة صعبة للمحترفين' },
-                    { id: 4, name: 'عالم الأبطال', range: [61, 80] as [number, number], color: '#ef4444', glow: 'rgba(239,68,68,0.4)', emoji: '🔴', desc: 'أسئلة صعبة جداً للأبطال' },
-                    { id: 5, name: 'عالم الأساطير', range: [81, 100] as [number, number], color: '#a855f7', glow: 'rgba(168,85,247,0.4)', emoji: '🟣', desc: 'أسئلة للخبراء فقط' },
+                    { id: 1, name: 'الغابة الخضراء', range: [1, 20] as [number, number], color: '#22c55e', glow: 'rgba(34,197,94,0.4)', image: '/island_green.png', desc: 'أسئلة سهلة ومرحة للجميع' },
+                    { id: 2, name: 'قمم الجليد', range: [21, 40] as [number, number], color: '#3b82f6', glow: 'rgba(59,130,246,0.4)', image: '/island_ice.png', desc: 'أسئلة متوسطة للمتحدين' },
+                    { id: 3, name: 'وادي الحمم', range: [41, 60] as [number, number], color: '#f97316', glow: 'rgba(249,115,22,0.4)', image: '/island_lava.png', desc: 'أسئلة صعبة للمحترفين' },
+                    { id: 4, name: 'عرين التنين', range: [61, 80] as [number, number], color: '#ef4444', glow: 'rgba(239,68,68,0.4)', image: '/island_lava.png', desc: 'أسئلة صعبة جداً للأبطال' },
+                    { id: 5, name: 'عالم الأساطير', range: [81, 100] as [number, number], color: '#a855f7', glow: 'rgba(168,85,247,0.4)', image: '/island_purple.png', desc: 'أسئلة للخبراء فقط' },
                 ];
                 return (
-                    <div className="relative z-20 w-full h-full flex flex-col items-center overflow-hidden animate-in fade-in duration-500">
-                        {/* Header */}
-                        <div className="flex w-full max-w-7xl items-center justify-between px-10 pt-8 pb-4 z-10">
-                            <button onClick={() => setStage('settings')} className="flex items-center gap-3 bg-white/5 hover:bg-white/10 px-6 py-3 rounded-full border border-white/10 text-white font-black italic transition-all">
-                                <ArrowLeft size={20} /> الإعدادات
+                    <div className="absolute inset-0 z-[100] bg-[#050510] flex flex-col items-center overflow-hidden animate-in fade-in duration-700">
+                        {/* Immersive Space Background */}
+                        <div className="absolute inset-0 pointer-events-none opacity-40">
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,#1e1e3e,transparent)]"></div>
+                            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30"></div>
+                        </div>
+
+                        {/* Top Navigation Header */}
+                        <div className="flex w-full items-center justify-between px-20 pt-10 pb-6 z-20 shrink-0">
+                            <button onClick={() => setStage('settings')} className="group flex items-center gap-4 bg-white/5 hover:bg-white/10 px-10 py-5 rounded-full border border-white/10 text-white font-black italic transition-all hover:-translate-x-2">
+                                <ArrowLeft size={28} className="group-hover:animate-pulse" /> الرجوع للإعدادات
                             </button>
-                            <div className="text-center">
-                                <h1 className="text-5xl font-black italic text-white">🗺️ خريطة المراحل</h1>
-                                <p className="text-white/40 font-bold text-sm uppercase tracking-widest mt-1">اختر مرحلتك للانطلاق</p>
+                            <div className="text-center relative">
+                                <h1 className="text-7xl font-black italic text-white drop-shadow-[0_5px_15px_rgba(0,0,0,0.5)] relative z-10">🗺️ خريطة العوالم</h1>
+                                <p className="text-indigo-400 font-bold text-sm tracking-[0.6em] mt-2 uppercase">Your Epic Journey Starts Here</p>
                             </div>
-                            <div className="px-6 py-3 bg-indigo-600/20 border border-indigo-500/30 rounded-full text-indigo-400 font-black text-sm">
-                                أعلى مرحلة: {highestUnlocked}
+                            <div className="flex flex-col items-end">
+                                <div className="px-10 py-4 bg-indigo-600 border-2 border-indigo-400/50 rounded-2xl text-white font-black text-2xl shadow-xl shadow-indigo-600/30">
+                                    المستوى المفتوح: {highestUnlocked}
+                                </div>
                             </div>
                         </div>
 
-                        {/* Worlds */}
-                        <div className="flex-1 w-full max-w-7xl px-8 pb-8 overflow-y-auto">
+                        {/* Map Scrollable Core */}
+                        <div className="flex-1 w-full px-12 pb-32 overflow-y-auto overflow-x-hidden custom-scrollbar-blue relative">
+                            {/* Floating Clouds Background */}
+                            <div className="absolute inset-0 pointer-events-none">
+                                {Array.from({ length: 12 }).map((_, i) => (
+                                    <div key={i} className="absolute blur-3xl bg-white rounded-full translate-x-1/2 opacity-[0.03]"
+                                        style={{
+                                            width: `${Math.random() * 500 + 300}px`,
+                                            height: `${Math.random() * 200 + 100}px`,
+                                            top: `${Math.random() * 4000}px`,
+                                            left: `${Math.random() * 100}%`,
+                                            animation: `float ${Math.random() * 25 + 20}s linear infinite alternate`
+                                        }} />
+                                ))}
+                            </div>
+
                             {worlds.map(world => (
-                                <div key={world.id} className="mb-8">
-                                    {/* World Header */}
-                                    <div className="flex items-center gap-4 mb-4">
-                                        <span className="text-4xl">{world.emoji}</span>
-                                        <div>
-                                            <h2 className="text-2xl font-black italic" style={{ color: world.color }}>{world.name}</h2>
-                                            <p className="text-white/40 text-sm font-bold">{world.desc}</p>
+                                <div key={world.id} className="mb-64 relative z-10 first:mt-32">
+                                    {/* Major World Entryway - BALANCED PROPORTIONS */}
+                                    <div className="flex flex-col items-center mb-48 group">
+                                        {/* Island - Sized for clarity not dominance */}
+                                        <div className="relative w-[380px] h-[280px] transition-all duration-1000 group-hover:scale-110">
+                                            <div className={`absolute inset-0 blur-[80px] rounded-full opacity-20 filter`} style={{ backgroundColor: world.color }}></div>
+                                            <img src={world.image} className="w-full h-full object-contain drop-shadow-[0_45px_70px_rgba(0,0,0,0.8)] animate-[float_10s_ease-in-out_infinite]" />
                                         </div>
-                                        <div className="mr-auto h-px flex-1" style={{ background: `linear-gradient(to right, ${world.color}60, transparent)` }}></div>
-                                        <div className="text-white/30 text-xs font-bold">
-                                            {world.range[0]} - {world.range[1]}
+
+                                        {/* Name Below Island - Sized for readability */}
+                                        <div className="mt-12 flex flex-col items-center w-full">
+                                            <h2 className="text-[6vw] font-black italic tracking-tighter drop-shadow-[0_12px_40px_rgba(0,0,0,1)] leading-[0.9] mb-6 whitespace-nowrap" style={{ color: world.color }}>{world.name}</h2>
+                                            <div className="bg-white/5 backdrop-blur-3xl px-12 py-3 rounded-2xl border border-white/10 shadow-3xl">
+                                                <p className="text-white font-black text-2xl tracking-widest italic uppercase opacity-80">{world.desc}</p>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    {/* Level Grid */}
-                                    <div className="grid grid-cols-10 gap-2">
-                                        {Array.from({ length: 20 }, (_, i) => world.range[0] + i).map(lvl => {
-                                            const isCompleted = lvl < currentLevel;
-                                            const isCurrent = lvl === currentLevel;
-                                            return (
-                                                <button
-                                                    key={lvl}
-                                                    onClick={() => { setCurrentLevel(lvl); setStage('lobby'); }}
-                                                    className={`relative h-16 rounded-2xl font-black text-lg transition-all duration-200 border-2 flex flex-col items-center justify-center gap-0.5 hover:scale-110 active:scale-95 ${isCurrent ? 'scale-110' : ''}`}
-                                                    style={{
-                                                        backgroundColor: isCompleted ? `${world.color}30` : isCurrent ? world.color : `${world.color}10`,
-                                                        borderColor: isCurrent ? 'white' : `${world.color}50`,
-                                                        color: isCurrent ? 'white' : world.color,
-                                                        boxShadow: isCurrent ? `0 0 25px ${world.glow}, 0 0 50px ${world.glow}` : isCompleted ? `0 4px 12px ${world.glow}` : undefined,
-                                                        animation: isCurrent ? 'pulse 2s infinite' : undefined,
-                                                    }}
-                                                >
-                                                    <span>{isCompleted ? '✓' : lvl}</span>
-                                                    {isCurrent && <span className="text-[8px] font-black uppercase tracking-widest opacity-80">الآن</span>}
-                                                </button>
-                                            );
-                                        })}
+                                    {/* Level Zig-Zag Trail */}
+                                    <div className="flex flex-col gap-48 items-center w-full">
+                                        {Array.from({ length: Math.ceil(20 / 4) }).map((_, rowIndex) => (
+                                            <div key={rowIndex} className={`flex gap-32 md:gap-40 lg:gap-56 items-center ${rowIndex % 2 !== 0 ? 'flex-row-reverse' : 'flex-row'}`}>
+                                                {Array.from({ length: 4 }).map((_, colIndex) => {
+                                                    const lvl = world.range[0] + rowIndex * 4 + colIndex;
+                                                    if (lvl > world.range[1]) return null;
+
+                                                    const isCompleted = lvl < highestUnlocked;
+                                                    const isLocked = lvl > highestUnlocked;
+                                                    const isCurrent = lvl === currentLevel;
+
+                                                    return (
+                                                        <div key={lvl} className="relative group">
+                                                            {/* Path Overlay */}
+                                                            {colIndex < 3 && lvl < world.range[1] && (
+                                                                <div className={`absolute top-1/2 ${rowIndex % 2 === 0 ? 'left-full w-32 md:w-40 lg:w-56' : 'right-full w-32 md:w-40 lg:w-56'} h-2 border-t-8 border-dashed ${isLocked ? 'border-white/5 opacity-10' : 'border-white/20'} z-0`}></div>
+                                                            )}
+
+                                                            <button
+                                                                onClick={() => { if (!isLocked) { setCurrentLevel(lvl); setStage('lobby'); } }}
+                                                                className={`relative w-48 h-80 transition-all duration-700 hover:scale-110 active:scale-95 flex flex-col items-center justify-center group ${isLocked ? 'cursor-not-allowed grayscale brightness-50' : 'cursor-pointer'}`}
+                                                            >
+                                                                <div className={`relative z-20 w-24 h-24 rounded-[2rem] flex items-center justify-center font-black text-4xl border-4 shadow-3xl transition-all duration-700 transform ${isLocked ? 'bg-black/90 border-white/5 text-white/5 scale-90' : isCurrent ? 'bg-white border-white text-black scale-125 shadow-[0_0_60px_rgba(255,255,255,0.7)] rotate-3' : isCompleted ? 'bg-indigo-600 border-indigo-400 text-white' : 'bg-[#151525] border-white/10 text-white/40 group-hover:text-white'}`}>
+                                                                    {isLocked ? <Shield size={32} /> : isCompleted ? <Check size={40} strokeWidth={4} /> : lvl}
+                                                                    {!isLocked && (
+                                                                        <div className="absolute top-full left-1/2 -translate-x-1/2 w-1 h-20 bg-gradient-to-b from-white/40 to-transparent blur-[1px]"></div>
+                                                                    )}
+                                                                </div>
+
+                                                                <div className="mt-12 group-hover:scale-115 transition-transform duration-1000">
+                                                                    <div className="relative w-40 h-40">
+                                                                        <img src={world.image} className={`w-full h-full object-contain drop-shadow-[0_30px_50px_rgba(0,0,0,1)] ${isLocked ? 'opacity-20 blur-[1px]' : 'filter brightness-110'} animate-[float_8s_ease-in-out_infinite]`} style={{ animationDelay: `${lvl * 0.3}s` }} />
+                                                                    </div>
+                                                                </div>
+
+                                                                {isCurrent && (
+                                                                    <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 bg-yellow-400 text-black px-6 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest border-2 border-white animate-bounce shadow-xl">
+                                                                        المرحلة الحالية ⚔️
+                                                                    </div>
+                                                                )}
+                                                            </button>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
                             ))}
@@ -767,524 +827,530 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
             })()}
 
             {/* STAGE: LOBBY (HIDDEN IN OBS) */}
-            {!isOBS && stage === 'lobby' && (
-                <div className="relative z-20 w-full h-full flex items-center justify-center p-12 animate-in slide-in-from-bottom duration-700">
-                    <div className="w-full max-w-7xl h-full flex flex-col gap-10">
-                        <div className="flex items-center justify-between">
-                            <button onClick={() => setStage('settings')} className="flex items-center gap-4 bg-white/5 hover:bg-white/10 px-8 py-4 rounded-full border-2 border-white/10 transition-all font-black text-xl italic"><ArrowLeft /> العودة للإعدادات</button>
-                            <div className="text-center">
-                                <h1 className="text-7xl font-black italic text-white drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]">بإنتظار المحاربين...</h1>
-                                <div className="flex items-center justify-center gap-4 mt-4">
-                                    <div className={`px-10 py-3 rounded-full border-4 border-white font-black text-2xl transition-all shadow-xl ${allowJoin ? 'bg-emerald-500 animate-bounce' : 'bg-red-600'}`}>
-                                        {allowJoin ? `أكتب [ ${entryKeyword} ] في الشات للانضمام!` : 'الانضمام مغلق الآن'}
+            {
+                !isOBS && stage === 'lobby' && (
+                    <div className="relative z-20 w-full h-full flex items-center justify-center p-12 animate-in slide-in-from-bottom duration-700">
+                        <div className="w-full max-w-7xl h-full flex flex-col gap-10">
+                            <div className="flex items-center justify-between">
+                                <button onClick={() => setStage('settings')} className="flex items-center gap-4 bg-white/5 hover:bg-white/10 px-8 py-4 rounded-full border-2 border-white/10 transition-all font-black text-xl italic"><ArrowLeft /> العودة للإعدادات</button>
+                                <div className="text-center">
+                                    <h1 className="text-7xl font-black italic text-white drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]">بإنتظار المحاربين...</h1>
+                                    <div className="flex items-center justify-center gap-4 mt-4">
+                                        <div className={`px-10 py-3 rounded-full border-4 border-white font-black text-2xl transition-all shadow-xl ${allowJoin ? 'bg-emerald-500 animate-bounce' : 'bg-red-600'}`}>
+                                            {allowJoin ? `أكتب [ ${entryKeyword} ] في الشات للانضمام!` : 'الانضمام مغلق الآن'}
+                                        </div>
+                                        <button onClick={() => broadcastFullState()} title="تحديث OBS يدوياً" className="p-3 bg-white/10 hover:bg-white/20 rounded-full border-2 border-white/20 text-white transition-all active:scale-95">
+                                            <RefreshCw size={24} />
+                                        </button>
                                     </div>
-                                    <button onClick={() => broadcastFullState()} title="تحديث OBS يدوياً" className="p-3 bg-white/10 hover:bg-white/20 rounded-full border-2 border-white/20 text-white transition-all active:scale-95">
-                                        <RefreshCw size={24} />
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <button
+                                        onClick={() => {
+                                            const url = `${window.location.origin}/?obs=true&view=LETTER_GAME&transparent=true`;
+                                            navigator.clipboard.writeText(url);
+                                            setLinkCopied(true);
+                                            setTimeout(() => setLinkCopied(false), 2000);
+                                        }}
+                                        className={`flex items-center gap-3 px-8 py-5 rounded-[1.5rem] font-black transition-all border-2 shadow-lg ${linkCopied ? 'bg-emerald-500 border-white text-white' : 'bg-indigo-600/10 border-indigo-500/30 text-indigo-400 hover:bg-indigo-600 hover:text-white'}`}
+                                    >
+                                        {linkCopied ? <Check size={24} /> : <Link size={24} />}
+                                        <span className="text-xl italic">{linkCopied ? 'تم النسخ' : 'نسخ رابط OBS'}</span>
+                                    </button>
+
+
+                                    <button onClick={() => { setAllowJoin(false); startGame(); }} className="flex items-center gap-6 bg-gradient-to-r from-yellow-500 to-orange-600 px-12 py-6 rounded-[2rem] font-black text-4xl italic text-white shadow-2xl hover:scale-105 active:scale-95 transition-all select-none">بـدء الـتـحـدي <Play fill="currentColor" size={32} /></button>
+                                </div>
+                            </div>
+
+                            <div className="flex-1 grid grid-cols-2 gap-12 overflow-hidden">
+                                {/* Girls Section */}
+                                <div className="bg-[#FF6B52]/10 backdrop-blur-2xl border-4 border-[#FF6B52]/50 rounded-[4rem] p-10 flex flex-col items-center relative overflow-hidden shadow-2xl">
+                                    <div className="absolute top-0 left-0 w-full h-3 flex overflow-hidden">
+                                        {women.length > 0 ? (
+                                            women.slice(-50).map((p, i) => (
+                                                <div key={i} className="flex-1 h-full animate-in slide-in-from-right duration-500" style={{ backgroundColor: p.color, boxShadow: `0 0 15px ${p.color}` }}></div>
+                                            ))
+                                        ) : (
+                                            <div className="w-full h-full bg-[#FF6B52]"></div>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-4 mb-6 w-full justify-center mt-4">
+                                        <div className="text-9xl font-black text-[#FF6B52] drop-shadow-[0_0_30px_rgba(255,107,82,0.5)]">{women.length}</div>
+                                        <div className="text-right">
+                                            <h3 className="text-5xl font-black text-white italic tracking-tighter drop-shadow-lg">{team1Name}</h3>
+                                            <div className="flex flex-col items-center gap-2 mt-4 bg-white/5 py-3 px-6 rounded-2xl border border-white/10">
+                                                <span className="text-xs font-black text-[#FF6B52] uppercase tracking-[0.3em]">دليل ألوان الفريق</span>
+                                                <div className="flex gap-3">
+                                                    {['#FF0000', '#FF6B52', '#FF1493', '#800080', '#FFFFFF'].map(c => (
+                                                        <div key={c} className="w-6 h-6 rounded-full border-2 border-white/40 shadow-[0_0_15px_rgba(255,255,255,0.2)]" style={{ backgroundColor: c }}></div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {/* Live Color Spectrum */}
+                                    <div className="w-full px-12 mb-10">
+                                        <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden flex gap-0.5 p-0.5 border border-white/10">
+                                            {women.map((p, i) => (
+                                                <div key={i} className="flex-1 h-full rounded-sm" style={{ backgroundColor: p.color }}></div>
+                                            ))}
+                                            {women.length === 0 && <div className="w-full h-full bg-transparent"></div>}
+                                        </div>
+                                        <p className="text-[10px] font-black text-[#FF6B52]/40 text-center uppercase tracking-[0.3em] mt-2">Team Color Spectrum</p>
+                                    </div>
+                                    <div className="flex-1 w-full grid grid-cols-6 gap-6 overflow-y-auto content-start custom-scrollbar-pink pr-4 pb-10">
+                                        {women.map(p => (
+                                            <div key={p.username} className="flex flex-col items-center gap-2 animate-in zoom-in duration-500 group">
+                                                <div className="relative p-1.5 rounded-[2rem] transition-all group-hover:scale-110 shadow-2xl" style={{ background: `conic-gradient(from 0deg, ${p.color}, transparent, ${p.color})` }}>
+                                                    <ProAvatar username={p.username} url={p.avatar} size="w-24 h-24" />
+                                                    <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full border-4 border-[#0f0f1b] shadow-xl animate-pulse" style={{ backgroundColor: p.color }}></div>
+                                                </div>
+                                                <span className="text-xs font-black truncate w-full text-center mt-2 group-hover:scale-110 transition-transform" style={{ color: p.color, textShadow: `0 0 10px ${p.color}44` }}>{p.username}</span>
+                                            </div>
+                                        ))}
+                                        {allowJoin && <div className="w-20 h-20 rounded-[1.5rem] border-4 border-dashed border-white/10 flex items-center justify-center text-white/10 animate-pulse"><Users /></div>}
+                                    </div>
+                                    <button onClick={() => setAllowJoin(!allowJoin)} className={`mt-auto w-full py-5 rounded-3xl font-black text-xl border-2 transition-all ${allowJoin ? 'bg-red-500/20 border-red-500/50 text-red-500' : 'bg-emerald-500/20 border-emerald-500/50 text-emerald-500'}`}>
+                                        {allowJoin ? `إيقاف استقبال ${team1Name}` : `فتح استقبال ${team1Name}`}
+                                    </button>
+                                </div>
+
+                                {/* Boys Section */}
+                                <div className="bg-[#14b8a6]/10 backdrop-blur-2xl border-4 border-[#14b8a6]/50 rounded-[4rem] p-10 flex flex-col items-center relative overflow-hidden shadow-2xl">
+                                    <div className="absolute top-0 left-0 w-full h-3 flex overflow-hidden">
+                                        {men.length > 0 ? (
+                                            men.slice(-50).map((p, i) => (
+                                                <div key={i} className="flex-1 h-full animate-in slide-in-from-left duration-500" style={{ backgroundColor: p.color, boxShadow: `0 0 15px ${p.color}` }}></div>
+                                            ))
+                                        ) : (
+                                            <div className="w-full h-full bg-[#14b8a6]"></div>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-4 mb-6 w-full justify-center mt-4">
+                                        <div className="text-9xl font-black text-[#14b8a6] drop-shadow-[0_0_30px_rgba(20,184,166,0.5)]">{men.length}</div>
+                                        <div className="text-right">
+                                            <h3 className="text-5xl font-black text-white italic tracking-tighter drop-shadow-lg">{team2Name}</h3>
+                                            <div className="flex flex-col items-center gap-2 mt-4 bg-white/5 py-3 px-6 rounded-2xl border border-white/10">
+                                                <span className="text-xs font-black text-[#14b8a6] uppercase tracking-[0.3em]">دليل ألوان الفريق</span>
+                                                <div className="flex gap-3">
+                                                    {['#FFA500', '#FFFF00', '#00FF00', '#14b8a6', '#00BFFF'].map(c => (
+                                                        <div key={c} className="w-6 h-6 rounded-full border-2 border-white/40 shadow-[0_0_15px_rgba(255,255,255,0.2)]" style={{ backgroundColor: c }}></div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {/* Live Color Spectrum */}
+                                    <div className="w-full px-12 mb-10">
+                                        <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden flex gap-0.5 p-0.5 border border-white/10">
+                                            {men.map((p, i) => (
+                                                <div key={i} className="flex-1 h-full rounded-sm" style={{ backgroundColor: p.color }}></div>
+                                            ))}
+                                            {men.length === 0 && <div className="w-full h-full bg-transparent"></div>}
+                                        </div>
+                                        <p className="text-[10px] font-black text-[#14b8a6]/40 text-center uppercase tracking-[0.3em] mt-2">Team Color Spectrum</p>
+                                    </div>
+                                    <div className="flex-1 w-full grid grid-cols-6 gap-6 overflow-y-auto content-start custom-scrollbar-blue pr-4 pb-10">
+                                        {men.map(p => (
+                                            <div key={p.username} className="flex flex-col items-center gap-2 animate-in zoom-in duration-500 group">
+                                                <div className="relative p-1.5 rounded-[2rem] transition-all group-hover:scale-110 shadow-2xl" style={{ background: `conic-gradient(from 0deg, ${p.color}, transparent, ${p.color})` }}>
+                                                    <ProAvatar username={p.username} url={p.avatar} size="w-24 h-24" />
+                                                    <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full border-4 border-[#0f0f1b] shadow-xl animate-pulse" style={{ backgroundColor: p.color }}></div>
+                                                </div>
+                                                <span className="text-xs font-black truncate w-full text-center mt-2 group-hover:scale-110 transition-transform" style={{ color: p.color, textShadow: `0 0 10px ${p.color}44` }}>{p.username}</span>
+                                            </div>
+                                        ))}
+                                        {allowJoin && <div className="w-20 h-20 rounded-[1.5rem] border-4 border-dashed border-white/10 flex items-center justify-center text-white/10 animate-pulse"><Users /></div>}
+                                    </div>
+                                    <button onClick={() => setAllowJoin(!allowJoin)} className={`mt-auto w-full py-5 rounded-3xl font-black text-xl border-2 transition-all ${allowJoin ? 'bg-red-500/20 border-red-500/50 text-red-500' : 'bg-emerald-500/20 border-emerald-500/50 text-emerald-500'}`}>
+                                        {allowJoin ? `إيقاف استقبال ${team2Name}` : `فتح استقبال ${team2Name}`}
                                     </button>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-4">
-                                <button
-                                    onClick={() => {
-                                        const url = `${window.location.origin}/?obs=true&view=LETTER_GAME&transparent=true`;
-                                        navigator.clipboard.writeText(url);
-                                        setLinkCopied(true);
-                                        setTimeout(() => setLinkCopied(false), 2000);
-                                    }}
-                                    className={`flex items-center gap-3 px-8 py-5 rounded-[1.5rem] font-black transition-all border-2 shadow-lg ${linkCopied ? 'bg-emerald-500 border-white text-white' : 'bg-indigo-600/10 border-indigo-500/30 text-indigo-400 hover:bg-indigo-600 hover:text-white'}`}
-                                >
-                                    {linkCopied ? <Check size={24} /> : <Link size={24} />}
-                                    <span className="text-xl italic">{linkCopied ? 'تم النسخ' : 'نسخ رابط OBS'}</span>
-                                </button>
-
-
-                                <button onClick={() => { setAllowJoin(false); startGame(); }} className="flex items-center gap-6 bg-gradient-to-r from-yellow-500 to-orange-600 px-12 py-6 rounded-[2rem] font-black text-4xl italic text-white shadow-2xl hover:scale-105 active:scale-95 transition-all select-none">بـدء الـتـحـدي <Play fill="currentColor" size={32} /></button>
-                            </div>
-                        </div>
-
-                        <div className="flex-1 grid grid-cols-2 gap-12 overflow-hidden">
-                            {/* Girls Section */}
-                            <div className="bg-[#FF6B52]/10 backdrop-blur-2xl border-4 border-[#FF6B52]/50 rounded-[4rem] p-10 flex flex-col items-center relative overflow-hidden shadow-2xl">
-                                <div className="absolute top-0 left-0 w-full h-3 flex overflow-hidden">
-                                    {women.length > 0 ? (
-                                        women.slice(-50).map((p, i) => (
-                                            <div key={i} className="flex-1 h-full animate-in slide-in-from-right duration-500" style={{ backgroundColor: p.color, boxShadow: `0 0 15px ${p.color}` }}></div>
-                                        ))
-                                    ) : (
-                                        <div className="w-full h-full bg-[#FF6B52]"></div>
-                                    )}
-                                </div>
-                                <div className="flex items-center gap-4 mb-6 w-full justify-center mt-4">
-                                    <div className="text-9xl font-black text-[#FF6B52] drop-shadow-[0_0_30px_rgba(255,107,82,0.5)]">{women.length}</div>
-                                    <div className="text-right">
-                                        <h3 className="text-5xl font-black text-white italic tracking-tighter drop-shadow-lg">{team1Name}</h3>
-                                        <div className="flex flex-col items-center gap-2 mt-4 bg-white/5 py-3 px-6 rounded-2xl border border-white/10">
-                                            <span className="text-xs font-black text-[#FF6B52] uppercase tracking-[0.3em]">دليل ألوان الفريق</span>
-                                            <div className="flex gap-3">
-                                                {['#FF0000', '#FF6B52', '#FF1493', '#800080', '#FFFFFF'].map(c => (
-                                                    <div key={c} className="w-6 h-6 rounded-full border-2 border-white/40 shadow-[0_0_15px_rgba(255,255,255,0.2)]" style={{ backgroundColor: c }}></div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                {/* Live Color Spectrum */}
-                                <div className="w-full px-12 mb-10">
-                                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden flex gap-0.5 p-0.5 border border-white/10">
-                                        {women.map((p, i) => (
-                                            <div key={i} className="flex-1 h-full rounded-sm" style={{ backgroundColor: p.color }}></div>
-                                        ))}
-                                        {women.length === 0 && <div className="w-full h-full bg-transparent"></div>}
-                                    </div>
-                                    <p className="text-[10px] font-black text-[#FF6B52]/40 text-center uppercase tracking-[0.3em] mt-2">Team Color Spectrum</p>
-                                </div>
-                                <div className="flex-1 w-full grid grid-cols-6 gap-6 overflow-y-auto content-start custom-scrollbar-pink pr-4 pb-10">
-                                    {women.map(p => (
-                                        <div key={p.username} className="flex flex-col items-center gap-2 animate-in zoom-in duration-500 group">
-                                            <div className="relative p-1.5 rounded-[2rem] transition-all group-hover:scale-110 shadow-2xl" style={{ background: `conic-gradient(from 0deg, ${p.color}, transparent, ${p.color})` }}>
-                                                <ProAvatar username={p.username} url={p.avatar} size="w-24 h-24" />
-                                                <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full border-4 border-[#0f0f1b] shadow-xl animate-pulse" style={{ backgroundColor: p.color }}></div>
-                                            </div>
-                                            <span className="text-xs font-black truncate w-full text-center mt-2 group-hover:scale-110 transition-transform" style={{ color: p.color, textShadow: `0 0 10px ${p.color}44` }}>{p.username}</span>
-                                        </div>
-                                    ))}
-                                    {allowJoin && <div className="w-20 h-20 rounded-[1.5rem] border-4 border-dashed border-white/10 flex items-center justify-center text-white/10 animate-pulse"><Users /></div>}
-                                </div>
-                                <button onClick={() => setAllowJoin(!allowJoin)} className={`mt-auto w-full py-5 rounded-3xl font-black text-xl border-2 transition-all ${allowJoin ? 'bg-red-500/20 border-red-500/50 text-red-500' : 'bg-emerald-500/20 border-emerald-500/50 text-emerald-500'}`}>
-                                    {allowJoin ? `إيقاف استقبال ${team1Name}` : `فتح استقبال ${team1Name}`}
-                                </button>
-                            </div>
-
-                            {/* Boys Section */}
-                            <div className="bg-[#14b8a6]/10 backdrop-blur-2xl border-4 border-[#14b8a6]/50 rounded-[4rem] p-10 flex flex-col items-center relative overflow-hidden shadow-2xl">
-                                <div className="absolute top-0 left-0 w-full h-3 flex overflow-hidden">
-                                    {men.length > 0 ? (
-                                        men.slice(-50).map((p, i) => (
-                                            <div key={i} className="flex-1 h-full animate-in slide-in-from-left duration-500" style={{ backgroundColor: p.color, boxShadow: `0 0 15px ${p.color}` }}></div>
-                                        ))
-                                    ) : (
-                                        <div className="w-full h-full bg-[#14b8a6]"></div>
-                                    )}
-                                </div>
-                                <div className="flex items-center gap-4 mb-6 w-full justify-center mt-4">
-                                    <div className="text-9xl font-black text-[#14b8a6] drop-shadow-[0_0_30px_rgba(20,184,166,0.5)]">{men.length}</div>
-                                    <div className="text-right">
-                                        <h3 className="text-5xl font-black text-white italic tracking-tighter drop-shadow-lg">{team2Name}</h3>
-                                        <div className="flex flex-col items-center gap-2 mt-4 bg-white/5 py-3 px-6 rounded-2xl border border-white/10">
-                                            <span className="text-xs font-black text-[#14b8a6] uppercase tracking-[0.3em]">دليل ألوان الفريق</span>
-                                            <div className="flex gap-3">
-                                                {['#FFA500', '#FFFF00', '#00FF00', '#14b8a6', '#00BFFF'].map(c => (
-                                                    <div key={c} className="w-6 h-6 rounded-full border-2 border-white/40 shadow-[0_0_15px_rgba(255,255,255,0.2)]" style={{ backgroundColor: c }}></div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                {/* Live Color Spectrum */}
-                                <div className="w-full px-12 mb-10">
-                                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden flex gap-0.5 p-0.5 border border-white/10">
-                                        {men.map((p, i) => (
-                                            <div key={i} className="flex-1 h-full rounded-sm" style={{ backgroundColor: p.color }}></div>
-                                        ))}
-                                        {men.length === 0 && <div className="w-full h-full bg-transparent"></div>}
-                                    </div>
-                                    <p className="text-[10px] font-black text-[#14b8a6]/40 text-center uppercase tracking-[0.3em] mt-2">Team Color Spectrum</p>
-                                </div>
-                                <div className="flex-1 w-full grid grid-cols-6 gap-6 overflow-y-auto content-start custom-scrollbar-blue pr-4 pb-10">
-                                    {men.map(p => (
-                                        <div key={p.username} className="flex flex-col items-center gap-2 animate-in zoom-in duration-500 group">
-                                            <div className="relative p-1.5 rounded-[2rem] transition-all group-hover:scale-110 shadow-2xl" style={{ background: `conic-gradient(from 0deg, ${p.color}, transparent, ${p.color})` }}>
-                                                <ProAvatar username={p.username} url={p.avatar} size="w-24 h-24" />
-                                                <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full border-4 border-[#0f0f1b] shadow-xl animate-pulse" style={{ backgroundColor: p.color }}></div>
-                                            </div>
-                                            <span className="text-xs font-black truncate w-full text-center mt-2 group-hover:scale-110 transition-transform" style={{ color: p.color, textShadow: `0 0 10px ${p.color}44` }}>{p.username}</span>
-                                        </div>
-                                    ))}
-                                    {allowJoin && <div className="w-20 h-20 rounded-[1.5rem] border-4 border-dashed border-white/10 flex items-center justify-center text-white/10 animate-pulse"><Users /></div>}
-                                </div>
-                                <button onClick={() => setAllowJoin(!allowJoin)} className={`mt-auto w-full py-5 rounded-3xl font-black text-xl border-2 transition-all ${allowJoin ? 'bg-red-500/20 border-red-500/50 text-red-500' : 'bg-emerald-500/20 border-emerald-500/50 text-emerald-500'}`}>
-                                    {allowJoin ? `إيقاف استقبال ${team2Name}` : `فتح استقبال ${team2Name}`}
-                                </button>
-                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* STAGE: PLAYING (EXACT IMAGE MATCH DESIGN) */}
-            {stage === 'playing' && (
-                <div className={`relative w-full h-full flex flex-col items-center justify-center transition-all duration-1000 ${isOBS ? 'bg-transparent overflow-visible' : 'bg-[#0f0f1b] overflow-hidden'}`}>
-                    {/* Background elements - Explicitly hidden in OBS */}
-                    {!isOBS && (
-                        <>
-                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,#5A22A322,transparent)] pointer-events-none"></div>
-                            <div className="absolute inset-0 z-0 pointer-events-none" style={{ background: 'conic-gradient(from -45deg at 50% 50%, #FF6B52 0deg 90deg, #14b8a6 90deg 180deg, #FF6B52 180deg 270deg, #14b8a6 270deg 360deg)' }} />
-                        </>
-                    )}
+            {
+                stage === 'playing' && (
+                    <div className={`relative w-full h-full flex flex-col items-center justify-center transition-all duration-1000 ${isOBS ? 'bg-transparent overflow-visible' : 'bg-[#0f0f1b] overflow-hidden'}`}>
+                        {/* Background elements - Explicitly hidden in OBS */}
+                        {!isOBS && (
+                            <>
+                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,#5A22A322,transparent)] pointer-events-none"></div>
+                                <div className="absolute inset-0 z-0 pointer-events-none" style={{ background: 'conic-gradient(from -45deg at 50% 50%, #FF6B52 0deg 90deg, #14b8a6 90deg 180deg, #FF6B52 180deg 270deg, #14b8a6 270deg 360deg)' }} />
+                            </>
+                        )}
 
-                    {/* OBS Specific Background Glow Grid */}
-                    {isOBS && (
-                        <div className="absolute inset-0 pointer-events-none overflow-hidden select-none">
-                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(90,34,163,0.1),transparent)]"></div>
-                            <style>{`
+                        {/* OBS Specific Background Glow Grid */}
+                        {isOBS && (
+                            <div className="absolute inset-0 pointer-events-none overflow-hidden select-none">
+                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(90,34,163,0.1),transparent)]"></div>
+                                <style>{`
                                 @keyframes boardFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
                                 @keyframes neonPulse { 0%, 100% { opacity: 0.4; filter: brightness(1); } 50% { opacity: 0.8; filter: brightness(2); } }
                                 @keyframes letterGlow { 0%, 100% { text-shadow: 0 0 10px rgba(255,255,255,0.5); } 50% { text-shadow: 0 0 30px rgba(255,255,255,1), 0 0 50px rgba(90,34,163,0.5); } }
                             `}</style>
-                        </div>
-                    )}
+                            </div>
+                        )}
 
-                    {/* Scale Wrapper for OBS - Hide board elements when a cell is active in OBS */}
-                    <div className={`w-full h-full flex flex-col items-center justify-center transition-all duration-700 ${isOBS ? 'scale-[0.5] overflow-visible' : ''} ${isOBS && activeCell ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+                        {/* Scale Wrapper for OBS - Hide board elements when a cell is active in OBS */}
+                        <div className={`w-full h-full flex flex-col items-center justify-center transition-all duration-700 ${isOBS ? 'scale-[0.5] overflow-visible' : ''} ${isOBS && activeCell ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
 
-                        {/* Left Panel: Girls (Repositioned to corner for OBS) */}
-                        <div className={`absolute z-30 flex flex-col items-center transition-all ${isOBS ? 'top-[-80px] right-10 scale-90' : 'top-10 right-10'}`}>
-                            <div className={`${isOBS ? 'bg-[#FF6B52]/90 backdrop-blur-xl border-white/30' : 'bg-[#FF6B52] border-[#5A22A3]'} border-4 rounded-[2.5rem] px-8 py-4 text-center shadow-[0_12px_24px_rgba(0,0,0,0.3)] transform -rotate-1`}>
-                                <h2 className="text-white font-black text-2xl drop-shadow-md">{team1Name}</h2>
-                                <div className="mt-3 flex flex-wrap justify-center gap-1 max-w-[150px]">
-                                    {women.slice(0, 10).map(p => <ProAvatar key={p.username} username={p.avatar} url={p.avatar} size="w-7 h-7" />)}
+                            {/* Left Panel: Girls (Repositioned to corner for OBS) */}
+                            <div className={`absolute z-30 flex flex-col items-center transition-all ${isOBS ? 'top-[-80px] right-10 scale-90' : 'top-10 right-10'}`}>
+                                <div className={`${isOBS ? 'bg-[#FF6B52]/90 backdrop-blur-xl border-white/30' : 'bg-[#FF6B52] border-[#5A22A3]'} border-4 rounded-[2.5rem] px-8 py-4 text-center shadow-[0_12px_24px_rgba(0,0,0,0.3)] transform -rotate-1`}>
+                                    <h2 className="text-white font-black text-2xl drop-shadow-md">{team1Name}</h2>
+                                    <div className="mt-3 flex flex-wrap justify-center gap-1 max-w-[150px]">
+                                        {women.slice(0, 10).map(p => <ProAvatar key={p.username} username={p.avatar} url={p.avatar} size="w-7 h-7" />)}
+                                    </div>
                                 </div>
+                            </div>
+
+                            {/* Right Panel: Boys (Repositioned to corner for OBS) */}
+                            <div className={`absolute z-30 flex flex-col items-center transition-all ${isOBS ? 'top-[-80px] left-10 scale-90' : 'top-10 left-10'}`}>
+                                <div className={`${isOBS ? 'bg-[#14b8a6]/90 backdrop-blur-xl border-white/30' : 'bg-[#14b8a6] border-[#5A22A3]'} border-4 rounded-[2.5rem] px-8 py-4 text-center shadow-[0_12px_24px_rgba(0,0,0,0.3)] transform rotate-1`}>
+                                    <h2 className="text-white font-black text-2xl drop-shadow-md">{team2Name}</h2>
+                                    <div className="mt-3 flex flex-wrap justify-center gap-1 max-w-[150px]">
+                                        {men.slice(0, 10).map(p => <ProAvatar key={p.username} username={p.avatar} url={p.avatar} size="w-7 h-7" />)}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Center Header (With Level Indicator) */}
+                            <div className={`absolute ${isOBS ? 'top-[-180px]' : 'top-10'} left-1/2 transform -translate-x-1/2 z-20 text-center`}>
+                                <h1 className={`${isOBS ? 'text-7xl' : 'text-8xl'} font-black italic text-white drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]`}>حروف</h1>
+                                {!isOBS && (
+                                    <div className="mt-4 inline-flex items-center gap-3 bg-indigo-600 px-6 py-2 rounded-full border-2 border-white/20 shadow-xl">
+                                        <Trophy size={20} className="text-yellow-400" />
+                                        <span className="font-black text-xl italic uppercase">المرحلة {currentLevel}</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* BOARD */}
+                            <div className={`relative z-10 animate-in zoom-in slide-in-from-bottom-20 duration-1000 ${isOBS ? 'animate-[boardFloat_10s_ease-in-out_infinite]' : ''}`} style={{ width: `${boardWidth}px`, height: `${boardHeight}px` }}>
+                                {/* SVG Filters and Gradients Definitions - Reusable for all cells */}
+                                <svg className="absolute w-0 h-0 overflow-hidden">
+                                    <defs>
+                                        <linearGradient id="grad-neutral" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" style={{ stopColor: '#ffffff' }} />
+                                            <stop offset="100%" style={{ stopColor: '#e2e8f0' }} />
+                                        </linearGradient>
+                                        <linearGradient id="grad-team1" x1="0%" y1="0%" x2="0%" y2="100%">
+                                            <stop offset="0%" style={{ stopColor: '#FF8A75' }} />
+                                            <stop offset="100%" style={{ stopColor: '#FF6B52' }} />
+                                        </linearGradient>
+                                        <linearGradient id="grad-team2" x1="0%" y1="0%" x2="0%" y2="100%">
+                                            <stop offset="0%" style={{ stopColor: '#2DD4BF' }} />
+                                            <stop offset="100%" style={{ stopColor: '#14b8a6' }} />
+                                        </linearGradient>
+                                        <linearGradient id="grad-winning" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" style={{ stopColor: '#FDE047' }} />
+                                            <stop offset="100%" style={{ stopColor: '#EAB308' }} />
+                                        </linearGradient>
+                                        <linearGradient id="grad-obs-empty" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" style={{ stopColor: 'rgba(255,255,255,0.1)' }} />
+                                            <stop offset="100%" style={{ stopColor: 'rgba(255,255,255,0.02)' }} />
+                                        </linearGradient>
+                                        <filter id="ultra-glow" x="-50%" y="-50%" width="200%" height="200%">
+                                            <feGaussianBlur stdDeviation="8" result="blur" />
+                                            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                                        </filter>
+                                    </defs>
+                                </svg>
+                                {cells.map(cell => {
+                                    const isOffset = cell.row % 2 !== 0;
+                                    const left = (cell.col * X_OFFSET) + (isOffset ? X_OFFSET / 2 : 0);
+                                    const top = cell.row * Y_OFFSET;
+                                    const isActive = activeCell?.id === cell.id;
+                                    const isWinning = winningPath.includes(cell.id);
+
+                                    let fillId = isOBS ? 'url(#grad-obs-empty)' : 'url(#grad-neutral)';
+                                    // Fix: Add solid background for active cell in OBS
+                                    if (isOBS && isActive && cell.owner === 'none') fillId = 'url(#grad-neutral)';
+
+                                    let strokeColor = isOBS ? 'rgba(255,255,255,0.3)' : '#5A22A3';
+                                    let letterColor = isOBS ? 'white' : '#5A22A3';
+
+                                    if (cell.owner === 'team1') {
+                                        fillId = 'url(#grad-team1)';
+                                        strokeColor = '#5A22A3';
+                                        letterColor = 'white';
+                                    } else if (cell.owner === 'team2') {
+                                        fillId = 'url(#grad-team2)';
+                                        strokeColor = '#5A22A3';
+                                        letterColor = 'white';
+                                    }
+
+                                    return (
+                                        <div key={cell.id} onClick={() => selectCell(cell)} className={`absolute flex items-center justify-center cursor-pointer transition-all duration-300 ${isActive ? 'scale-110 z-50 drop-shadow-[0_0_60px_rgba(255,255,255,0.9)]' : 'hover:scale-105 hover:z-40 z-10'} ${isWinning ? 'animate-bounce' : ''}`} style={{ left: `${left}px`, top: `${top}px`, width: `${SVG_WIDTH}px`, height: `${SVG_HEIGHT}px` }}>
+                                            <svg width={SVG_WIDTH} height={SVG_HEIGHT} className="absolute inset-0 overflow-visible z-0">
+                                                {/* Main Hex Body with Sci-Fi Borders */}
+                                                <polygon points={hexPoints} fill={fillId} stroke={strokeColor} strokeWidth={isOBS ? 4 : STROKE_WIDTH} strokeLinejoin="round" className={isOBS && cell.owner === 'none' ? 'animate-[neonPulse_4s_infinite]' : ''} />
+
+                                                {/* Inner Neon Line for OBS */}
+                                                {isOBS && cell.owner === 'none' && (
+                                                    <polygon points={hexPoints} fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1" strokeLinejoin="round" style={{ transform: 'scale(0.85)', transformOrigin: 'center' }} />
+                                                )}
+
+                                                {/* Glass/Gloss Overlay - Enhanced */}
+                                                <polygon
+                                                    points={hexPoints}
+                                                    fill="white"
+                                                    style={{ opacity: isOBS ? 0.05 : 0.2, transform: 'scale(0.95)', transformOrigin: 'center' }}
+                                                    className="pointer-events-none"
+                                                />
+
+                                                {isWinning && (
+                                                    <polygon points={hexPoints} fill="none" stroke="url(#grad-winning)" strokeWidth="15" strokeLinejoin="round" style={{ filter: 'url(#ultra-glow)' }} />
+                                                )}
+                                            </svg>
+
+                                            {/* Stylized Letter - High Impact Typography */}
+                                            <div className={`relative z-10 font-black mt-2 select-none transition-all duration-500 italic ${isOBS ? 'text-[4.5rem] animate-[letterGlow_5s_infinite]' : 'text-[3.5rem]'} ${cell.owner !== 'none' ? 'scale-75 opacity-30 blur-[1px]' : 'scale-100'}`} style={{ color: letterColor, textShadow: isOBS ? '0 10px 40px rgba(0,0,0,0.9), 0 0 10px rgba(255,255,255,0.4)' : '0 4px 8px rgba(0,0,0,0.2)' }}>
+                                                {cell.letter}
+                                            </div>
+
+                                            {/* Selection FX - Multi-layer Heavy Duty */}
+                                            {isActive && (
+                                                <>
+                                                    <div className="absolute inset-[-25px] border-[6px] border-dashed border-white/60 rounded-full animate-[spin_4s_linear_infinite] z-[-1]"></div>
+                                                    <div className="absolute inset-[-35px] border-[2px] border-white/20 rounded-full animate-[spin_10s_linear_reverse_infinite] z-[-2]"></div>
+                                                </>
+                                            )}
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
 
-                        {/* Right Panel: Boys (Repositioned to corner for OBS) */}
-                        <div className={`absolute z-30 flex flex-col items-center transition-all ${isOBS ? 'top-[-80px] left-10 scale-90' : 'top-10 left-10'}`}>
-                            <div className={`${isOBS ? 'bg-[#14b8a6]/90 backdrop-blur-xl border-white/30' : 'bg-[#14b8a6] border-[#5A22A3]'} border-4 rounded-[2.5rem] px-8 py-4 text-center shadow-[0_12px_24px_rgba(0,0,0,0.3)] transform rotate-1`}>
-                                <h2 className="text-white font-black text-2xl drop-shadow-md">{team2Name}</h2>
-                                <div className="mt-3 flex flex-wrap justify-center gap-1 max-w-[150px]">
-                                    {men.slice(0, 10).map(p => <ProAvatar key={p.username} username={p.avatar} url={p.avatar} size="w-7 h-7" />)}
+                        {/* QUESTION OVERLAY (NOW PRESET-FREE) */}
+                        {activeCell && (
+                            <div className="fixed inset-0 z-[100] flex items-center justify-center p-10 animate-in zoom-in duration-300">
+                                {/* In OBS, use a solid black background for the modal area when active */}
+                                {isOBS && <div className="absolute inset-0 bg-black/90 backdrop-blur-3xl animate-in fade-in duration-500"></div>}
+                                {!isOBS && <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setActiveCell(null)}></div>}
+
+                                <div className={`w-full max-w-2xl bg-[#0a0a1a] border-8 border-[#5A22A3] rounded-[3rem] p-8 shadow-[0_0_100px_rgba(0,0,0,1)] relative z-10 text-center transition-all duration-500 ${isOBS ? 'scale-[0.8]' : ''}`}>
+                                    <div className="flex flex-col items-center gap-12">
+                                        <div className="relative">
+                                            <div className="absolute inset-0 bg-white/20 blur-2xl rounded-full scale-125 animate-pulse"></div>
+                                            <div className={`px-12 py-4 rounded-[2rem] bg-white border-4 border-[#5A22A3] text-black font-black text-7xl italic shadow-xl relative z-10 leading-none`}>
+                                                {activeCell.letter}
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            {currentQuestion ? (
+                                                <>
+                                                    <h2 className="text-2xl font-black text-white leading-tight drop-shadow-lg">{currentQuestion.question}</h2>
+                                                    <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4 relative">
+                                                        <span className="text-gray-400 font-bold block mb-1 uppercase tracking-widest text-[10px]">الإجابة المتوقعة</span>
+                                                        <span className="text-xl font-black text-emerald-200">{currentQuestion.answer}</span>
+                                                    </div>
+                                                    <p className="text-sm font-bold text-white/40 italic">أي إجابة تبدأ بحرف ( {activeCell.letter} ) تُعتبر صحيحة</p>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <h2 className="text-3xl font-black text-white italic drop-shadow-lg">تحدي الحرف!</h2>
+                                                    <p className="text-xl font-bold text-white/60">اكتب كلمة تبدأ بحرف <span className="text-white font-black">{activeCell.letter}</span></p>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-16">
+                                        {/* Buzzer Area remains here */}
+                                    </div>
+
+                                    {buzzedTeam ? (
+                                        <div className="space-y-8 animate-in zoom-in">
+                                            <div className={`p-4 rounded-2xl border-4 flex items-center justify-between gap-4 ${buzzedTeam === 'team1' ? 'border-[#FF6B52] bg-[#FF6B52]/10' : 'border-[#14b8a6] bg-[#14b8a6]/10'}`}>
+                                                <div className="flex items-center gap-4">
+                                                    {buzzedPlayer && <ProAvatar username={buzzedPlayer.username} url={buzzedPlayer.avatar} size="w-16 h-16" />}
+                                                    <div className="text-right">
+                                                        <div className="text-white font-black text-xl italic">{buzzedPlayer?.username}</div>
+                                                        <div className={`text-sm font-black mt-1 ${buzzedTeam === 'team1' ? 'text-[#FF6B52]' : 'text-[#14b8a6]'}`}>{buzzedTeam === 'team1' ? team1Name : team2Name}</div>
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col items-center">
+                                                    <div className="text-4xl font-black text-white italic tabular-nums">
+                                                        {answerTimer}s
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {lastAnswer.text ? (
+                                                <div className={`p-6 rounded-3xl border-4 text-center animate-in slide-in-from-bottom flex flex-col items-center gap-3 ${lastAnswer.correct === true ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' : 'bg-red-500/20 border-red-500 text-red-400'}`}>
+                                                    <div className="text-sm font-black uppercase tracking-widest opacity-60">الإجابة المكتوبة:</div>
+                                                    <div className="text-4xl font-black">{lastAnswer.text}</div>
+                                                    <div className="p-3 bg-white/10 rounded-full">
+                                                        {lastAnswer.correct === true ? <Check size={32} /> : <X size={32} />}
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="flex flex-col items-center gap-6 animate-pulse p-10 bg-white/5 rounded-3xl border-2 border-dashed border-white/10">
+                                                    <BrainCircuit size={64} className="text-purple-500" />
+                                                    <h4 className="text-3xl font-black text-white italic">اكتب الإجابة في الشات !!</h4>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col items-center gap-8 p-10 bg-white/5 rounded-3xl border-2 border-dashed border-white/10 relative overflow-hidden">
+                                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-[shimmer_2s_infinite]"></div>
+
+                                            <div className="flex gap-12 items-center">
+                                                <div className={`flex flex-col items-center gap-2 transition-opacity ${triedTeams.includes('team1') ? 'opacity-20 grayscale' : 'opacity-100'}`}>
+                                                    <div className="w-16 h-16 rounded-2xl bg-[#FF6B52] border-4 border-[#5A22A3] flex items-center justify-center text-white shadow-lg">🌸</div>
+                                                    <span className="text-[10px] font-black text-[#FF6B52] uppercase mt-1 truncate max-w-[80px]">{team1Name}</span>
+                                                </div>
+
+                                                <div className="flex flex-col items-center gap-4">
+                                                    <div className="w-24 h-24 bg-[#5A22A3] rounded-[2rem] flex items-center justify-center shadow-2xl animate-bounce border-4 border-white/20">
+                                                        <BellRing size={48} className="text-white" />
+                                                    </div>
+                                                    <h4 className="text-4xl font-black text-white italic tracking-tight">أكتب "جرس" للرن!</h4>
+                                                </div>
+
+                                                <div className={`flex flex-col items-center gap-2 transition-opacity ${triedTeams.includes('team2') ? 'opacity-20 grayscale' : 'opacity-100'}`}>
+                                                    <div className="w-16 h-16 rounded-2xl bg-[#14b8a6] border-4 border-[#5A22A3] flex items-center justify-center text-white shadow-lg">🧊</div>
+                                                    <span className="text-[10px] font-black text-[#14b8a6] uppercase mt-1 truncate max-w-[80px]">{team2Name}</span>
+                                                </div>
+                                            </div>
+
+                                            {triedTeams.length === 1 && (
+                                                <div className="bg-red-500/20 text-red-500 px-6 py-2 rounded-full font-black text-sm border border-red-500/30 animate-pulse">
+                                                    ⚠️ الفريق الأول أخطأ.. الدور للفريق الثاني!
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {!isOBS && (
+                                        <div className="mt-12 pt-8 border-t border-white/5 flex gap-4 opacity-30 hover:opacity-100 transition-opacity">
+                                            <button onClick={() => finalizeRound(true, 'team1')} className="flex-1 bg-[#FF6B52]/10 p-5 rounded-2xl border-2 border-[#FF6B52]/30 text-[#FF6B52] font-black text-xl hover:bg-[#FF6B52] hover:text-white transition-all">تخطي للبنات 🌸</button>
+                                            <button onClick={() => finalizeRound(true, 'team2')} className="flex-1 bg-[#14b8a6]/10 p-5 rounded-2xl border-2 border-[#14b8a6]/30 text-[#14b8a6] font-black text-xl hover:bg-[#14b8a6] hover:text-white transition-all">تخطي للأولاد 🧊</button>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
-                        </div>
+                        )}
+                    </div>
+                )
+            }
 
-                        {/* Center Header (With Level Indicator) */}
-                        <div className={`absolute ${isOBS ? 'top-[-180px]' : 'top-10'} left-1/2 transform -translate-x-1/2 z-20 text-center`}>
-                            <h1 className={`${isOBS ? 'text-7xl' : 'text-8xl'} font-black italic text-white drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]`}>حروف</h1>
+
+            {/* STAGE: ENDED - ULTRA PREMIUM LEVEL COMPLETE SCREEN */}
+            {
+                stage === 'ended' && (
+                    <div className={`absolute inset-0 z-[200] flex items-center justify-center overflow-hidden ${isOBS ? 'bg-transparent' : 'bg-[#030310]'}`}>
+                        {/* GLOBAL BACKGROUND - Celebration mode */}
+                        <div className="absolute inset-0 z-0">
+                            <div className={`absolute inset-0 transition-colors duration-1000 ${winner === 'team1' ? 'bg-[#FF6B52]/20' : 'bg-[#14b8a6]/20'}`} />
                             {!isOBS && (
-                                <div className="mt-4 inline-flex items-center gap-3 bg-indigo-600 px-6 py-2 rounded-full border-2 border-white/20 shadow-xl">
-                                    <Trophy size={20} className="text-yellow-400" />
-                                    <span className="font-black text-xl italic uppercase">المرحلة {currentLevel}</span>
+                                <>
+                                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(90,34,163,0.3)_0%,transparent_70%)]"></div>
+                                    <div className="absolute inset-0" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.01) 2px, rgba(255,255,255,0.01) 4px)' }}></div>
+                                </>
+                            )}
+                            {/* CSS PARTICLES */}
+                            {Array.from({ length: 50 }).map((_, i) => (
+                                <div key={i}
+                                    className={`absolute rounded-full animate-[float_10s_ease-in-out_infinite] ${winner === 'team1' ? 'bg-[#FF6B52]' : 'bg-[#14b8a6]'}`}
+                                    style={{
+                                        width: `${Math.random() * 8 + 4}px`,
+                                        height: `${Math.random() * 8 + 4}px`,
+                                        top: `${Math.random() * 100}%`,
+                                        left: `${Math.random() * 100}%`,
+                                        animationDelay: `${Math.random() * 5}s`,
+                                        opacity: Math.random() * 0.5 + 0.2,
+                                        filter: 'blur(1px)'
+                                    }}
+                                />
+                            ))}
+                        </div>
+
+                        {/* Main Content */}
+                        <div className="relative z-10 flex flex-col items-center gap-6 max-w-xl w-full px-6 text-center animate-in zoom-in duration-700">
+                            {/* WINNER TITLE */}
+                            <div className="flex flex-col items-center gap-4 animate-in slide-in-from-top-20 duration-[1000ms]">
+                                <div className={`flex items-center gap-3 px-6 py-2 bg-white/5 border-2 rounded-full backdrop-blur-md ${winner === 'team1' ? 'border-[#FF6B52]/30' : 'border-[#14b8a6]/30'}`}>
+                                    <Trophy size={16} className="text-yellow-400" />
+                                    <span className="text-white font-black text-sm uppercase tracking-widest italic">نصر رائع!</span>
+                                    <Trophy size={16} className="text-yellow-400" />
+                                </div>
+
+                                <div className="relative mt-4">
+                                    <h1 className={`text-[4rem] font-black italic tracking-tighter leading-none select-none animate-pulse ${winner === 'team1' ? 'text-[#FF6B52]' : 'text-[#14b8a6]'}`}>
+                                        فـــــــــــــــــاز
+                                    </h1>
+                                    <div className={`absolute -inset-10 blur-3xl opacity-20 animate-pulse ${winner === 'team1' ? 'bg-[#FF6B52]' : 'bg-[#14b8a6]'}`}></div>
+                                </div>
+                            </div>
+
+                            {/* BIG TEAM CARD */}
+                            <div className={`relative w-full max-w-md py-10 px-6 rounded-[3rem] border-4 shadow-2xl flex flex-col items-center gap-6 animate-in zoom-in duration-700 delay-300 ${winner === 'team1' ? 'bg-black/60 border-[#FF6B52]/50' : 'bg-black/60 border-[#14b8a6]/50'}`}>
+                                <div className={`absolute inset-0 rounded-[3rem] animate-pulse ${winner === 'team1' ? 'shadow-[0_0_40px_rgba(255,107,82,0.3)]' : 'shadow-[0_0_40px_rgba(20,184,166,0.3)]'}`}></div>
+                                <div className="relative group">
+                                    <div className={`w-36 h-36 rounded-[2.5rem] flex items-center justify-center text-7xl border-8 shadow-2xl transition-transform duration-500 group-hover:scale-105 ${winner === 'team1' ? 'bg-[#FF6B52] border-white/20' : 'bg-[#14b8a6] border-white/20'}`}>
+                                        {winner === 'team1' ? '🌸' : '🧊'}
+                                    </div>
+                                    <div className="absolute -top-6 -right-6 w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center border-4 border-[#0a0a1a] shadow-xl rotate-12 animate-bounce">
+                                        <Crown size={32} className="text-black" />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4 relative z-10 text-center">
+                                    <h2 className="text-6xl font-black italic tracking-tighter drop-shadow-lg text-white animate-pulse">
+                                        {winner === 'team1' ? team1Name : team2Name}
+                                    </h2>
+                                    <div className={`mx-auto h-1.5 w-32 rounded-full ${winner === 'team1' ? 'bg-[#FF6B52]' : 'bg-[#14b8a6]'}`}></div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4 w-full mt-4">
+                                    <div className="bg-white/5 backdrop-blur-md p-6 rounded-3xl border border-white/5 text-center">
+                                        <div className="text-white/40 font-black text-[10px] uppercase mb-1">المرحلة</div>
+                                        <div className="text-4xl font-black text-white italic">{currentLevel - 1}</div>
+                                    </div>
+                                    <div className="bg-white/5 backdrop-blur-md p-6 rounded-3xl border border-white/5 text-center">
+                                        <div className="text-white/40 font-black text-[10px] uppercase mb-1">المحاربين</div>
+                                        <div className="text-4xl font-black text-white italic">{winner === 'team1' ? women.length : men.length}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {!isOBS && (
+                                <div className="flex gap-4 mt-4">
+                                    <button
+                                        onClick={() => startGame()}
+                                        className={`flex items-center gap-4 px-10 py-5 rounded-2xl font-black text-2xl text-white transition-all hover:scale-105 active:scale-95 shadow-lg border-b-4 border-black/20 ${winner === 'team1' ? 'bg-[#FF6B52]' : 'bg-[#14b8a6]'}`}
+                                    >
+                                        <Play fill="currentColor" size={24} /> المرحلة التالية
+                                    </button>
+                                    <button
+                                        onClick={onHome}
+                                        className="flex items-center gap-3 bg-white/10 hover:bg-white/20 text-white px-8 py-5 rounded-2xl font-black text-lg transition-all border-2 border-white/10"
+                                    >
+                                        <Home size={24} /> الرئيسية
+                                    </button>
                                 </div>
                             )}
                         </div>
 
-                        {/* BOARD */}
-                        <div className={`relative z-10 animate-in zoom-in slide-in-from-bottom-20 duration-1000 ${isOBS ? 'animate-[boardFloat_10s_ease-in-out_infinite]' : ''}`} style={{ width: `${boardWidth}px`, height: `${boardHeight}px` }}>
-                            {/* SVG Filters and Gradients Definitions - Reusable for all cells */}
-                            <svg className="absolute w-0 h-0 overflow-hidden">
-                                <defs>
-                                    <linearGradient id="grad-neutral" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" style={{ stopColor: '#ffffff' }} />
-                                        <stop offset="100%" style={{ stopColor: '#e2e8f0' }} />
-                                    </linearGradient>
-                                    <linearGradient id="grad-team1" x1="0%" y1="0%" x2="0%" y2="100%">
-                                        <stop offset="0%" style={{ stopColor: '#FF8A75' }} />
-                                        <stop offset="100%" style={{ stopColor: '#FF6B52' }} />
-                                    </linearGradient>
-                                    <linearGradient id="grad-team2" x1="0%" y1="0%" x2="0%" y2="100%">
-                                        <stop offset="0%" style={{ stopColor: '#2DD4BF' }} />
-                                        <stop offset="100%" style={{ stopColor: '#14b8a6' }} />
-                                    </linearGradient>
-                                    <linearGradient id="grad-winning" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" style={{ stopColor: '#FDE047' }} />
-                                        <stop offset="100%" style={{ stopColor: '#EAB308' }} />
-                                    </linearGradient>
-                                    <linearGradient id="grad-obs-empty" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" style={{ stopColor: 'rgba(255,255,255,0.1)' }} />
-                                        <stop offset="100%" style={{ stopColor: 'rgba(255,255,255,0.02)' }} />
-                                    </linearGradient>
-                                    <filter id="ultra-glow" x="-50%" y="-50%" width="200%" height="200%">
-                                        <feGaussianBlur stdDeviation="8" result="blur" />
-                                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                                    </filter>
-                                </defs>
-                            </svg>
-                            {cells.map(cell => {
-                                const isOffset = cell.row % 2 !== 0;
-                                const left = (cell.col * X_OFFSET) + (isOffset ? X_OFFSET / 2 : 0);
-                                const top = cell.row * Y_OFFSET;
-                                const isActive = activeCell?.id === cell.id;
-                                const isWinning = winningPath.includes(cell.id);
-
-                                let fillId = isOBS ? 'url(#grad-obs-empty)' : 'url(#grad-neutral)';
-                                // Fix: Add solid background for active cell in OBS
-                                if (isOBS && isActive && cell.owner === 'none') fillId = 'url(#grad-neutral)';
-
-                                let strokeColor = isOBS ? 'rgba(255,255,255,0.3)' : '#5A22A3';
-                                let letterColor = isOBS ? 'white' : '#5A22A3';
-
-                                if (cell.owner === 'team1') {
-                                    fillId = 'url(#grad-team1)';
-                                    strokeColor = '#5A22A3';
-                                    letterColor = 'white';
-                                } else if (cell.owner === 'team2') {
-                                    fillId = 'url(#grad-team2)';
-                                    strokeColor = '#5A22A3';
-                                    letterColor = 'white';
-                                }
-
-                                return (
-                                    <div key={cell.id} onClick={() => selectCell(cell)} className={`absolute flex items-center justify-center cursor-pointer transition-all duration-300 ${isActive ? 'scale-110 z-50 drop-shadow-[0_0_60px_rgba(255,255,255,0.9)]' : 'hover:scale-105 hover:z-40 z-10'} ${isWinning ? 'animate-bounce' : ''}`} style={{ left: `${left}px`, top: `${top}px`, width: `${SVG_WIDTH}px`, height: `${SVG_HEIGHT}px` }}>
-                                        <svg width={SVG_WIDTH} height={SVG_HEIGHT} className="absolute inset-0 overflow-visible z-0">
-                                            {/* Main Hex Body with Sci-Fi Borders */}
-                                            <polygon points={hexPoints} fill={fillId} stroke={strokeColor} strokeWidth={isOBS ? 4 : STROKE_WIDTH} strokeLinejoin="round" className={isOBS && cell.owner === 'none' ? 'animate-[neonPulse_4s_infinite]' : ''} />
-
-                                            {/* Inner Neon Line for OBS */}
-                                            {isOBS && cell.owner === 'none' && (
-                                                <polygon points={hexPoints} fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1" strokeLinejoin="round" style={{ transform: 'scale(0.85)', transformOrigin: 'center' }} />
-                                            )}
-
-                                            {/* Glass/Gloss Overlay - Enhanced */}
-                                            <polygon
-                                                points={hexPoints}
-                                                fill="white"
-                                                style={{ opacity: isOBS ? 0.05 : 0.2, transform: 'scale(0.95)', transformOrigin: 'center' }}
-                                                className="pointer-events-none"
-                                            />
-
-                                            {isWinning && (
-                                                <polygon points={hexPoints} fill="none" stroke="url(#grad-winning)" strokeWidth="15" strokeLinejoin="round" style={{ filter: 'url(#ultra-glow)' }} />
-                                            )}
-                                        </svg>
-
-                                        {/* Stylized Letter - High Impact Typography */}
-                                        <div className={`relative z-10 font-black mt-2 select-none transition-all duration-500 italic ${isOBS ? 'text-[4.5rem] animate-[letterGlow_5s_infinite]' : 'text-[3.5rem]'} ${cell.owner !== 'none' ? 'scale-75 opacity-30 blur-[1px]' : 'scale-100'}`} style={{ color: letterColor, textShadow: isOBS ? '0 10px 40px rgba(0,0,0,0.9), 0 0 10px rgba(255,255,255,0.4)' : '0 4px 8px rgba(0,0,0,0.2)' }}>
-                                            {cell.letter}
-                                        </div>
-
-                                        {/* Selection FX - Multi-layer Heavy Duty */}
-                                        {isActive && (
-                                            <>
-                                                <div className="absolute inset-[-25px] border-[6px] border-dashed border-white/60 rounded-full animate-[spin_4s_linear_infinite] z-[-1]"></div>
-                                                <div className="absolute inset-[-35px] border-[2px] border-white/20 rounded-full animate-[spin_10s_linear_reverse_infinite] z-[-2]"></div>
-                                            </>
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    {/* QUESTION OVERLAY (NOW PRESET-FREE) */}
-                    {activeCell && (
-                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-10 animate-in zoom-in duration-300">
-                            {/* In OBS, use a solid black background for the modal area when active */}
-                            {isOBS && <div className="absolute inset-0 bg-black/90 backdrop-blur-3xl animate-in fade-in duration-500"></div>}
-                            {!isOBS && <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setActiveCell(null)}></div>}
-
-                            <div className={`w-full max-w-2xl bg-[#0a0a1a] border-8 border-[#5A22A3] rounded-[3rem] p-8 shadow-[0_0_100px_rgba(0,0,0,1)] relative z-10 text-center transition-all duration-500 ${isOBS ? 'scale-[0.8]' : ''}`}>
-                                <div className="flex flex-col items-center gap-12">
-                                    <div className="relative">
-                                        <div className="absolute inset-0 bg-white/20 blur-2xl rounded-full scale-125 animate-pulse"></div>
-                                        <div className={`px-12 py-4 rounded-[2rem] bg-white border-4 border-[#5A22A3] text-black font-black text-7xl italic shadow-xl relative z-10 leading-none`}>
-                                            {activeCell.letter}
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        {currentQuestion ? (
-                                            <>
-                                                <h2 className="text-2xl font-black text-white leading-tight drop-shadow-lg">{currentQuestion.question}</h2>
-                                                <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4 relative">
-                                                    <span className="text-gray-400 font-bold block mb-1 uppercase tracking-widest text-[10px]">الإجابة المتوقعة</span>
-                                                    <span className="text-xl font-black text-emerald-200">{currentQuestion.answer}</span>
-                                                </div>
-                                                <p className="text-sm font-bold text-white/40 italic">أي إجابة تبدأ بحرف ( {activeCell.letter} ) تُعتبر صحيحة</p>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <h2 className="text-3xl font-black text-white italic drop-shadow-lg">تحدي الحرف!</h2>
-                                                <p className="text-xl font-bold text-white/60">اكتب كلمة تبدأ بحرف <span className="text-white font-black">{activeCell.letter}</span></p>
-                                            </>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="mt-16">
-                                    {/* Buzzer Area remains here */}
-                                </div>
-
-                                {buzzedTeam ? (
-                                    <div className="space-y-8 animate-in zoom-in">
-                                        <div className={`p-4 rounded-2xl border-4 flex items-center justify-between gap-4 ${buzzedTeam === 'team1' ? 'border-[#FF6B52] bg-[#FF6B52]/10' : 'border-[#14b8a6] bg-[#14b8a6]/10'}`}>
-                                            <div className="flex items-center gap-4">
-                                                {buzzedPlayer && <ProAvatar username={buzzedPlayer.username} url={buzzedPlayer.avatar} size="w-16 h-16" />}
-                                                <div className="text-right">
-                                                    <div className="text-white font-black text-xl italic">{buzzedPlayer?.username}</div>
-                                                    <div className={`text-sm font-black mt-1 ${buzzedTeam === 'team1' ? 'text-[#FF6B52]' : 'text-[#14b8a6]'}`}>{buzzedTeam === 'team1' ? team1Name : team2Name}</div>
-                                                </div>
-                                            </div>
-                                            <div className="flex flex-col items-center">
-                                                <div className="text-4xl font-black text-white italic tabular-nums">
-                                                    {answerTimer}s
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {lastAnswer.text ? (
-                                            <div className={`p-6 rounded-3xl border-4 text-center animate-in slide-in-from-bottom flex flex-col items-center gap-3 ${lastAnswer.correct === true ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' : 'bg-red-500/20 border-red-500 text-red-400'}`}>
-                                                <div className="text-sm font-black uppercase tracking-widest opacity-60">الإجابة المكتوبة:</div>
-                                                <div className="text-4xl font-black">{lastAnswer.text}</div>
-                                                <div className="p-3 bg-white/10 rounded-full">
-                                                    {lastAnswer.correct === true ? <Check size={32} /> : <X size={32} />}
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div className="flex flex-col items-center gap-6 animate-pulse p-10 bg-white/5 rounded-3xl border-2 border-dashed border-white/10">
-                                                <BrainCircuit size={64} className="text-purple-500" />
-                                                <h4 className="text-3xl font-black text-white italic">اكتب الإجابة في الشات !!</h4>
-                                            </div>
-                                        )}
-                                    </div>
-                                ) : (
-                                    <div className="flex flex-col items-center gap-8 p-10 bg-white/5 rounded-3xl border-2 border-dashed border-white/10 relative overflow-hidden">
-                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-[shimmer_2s_infinite]"></div>
-
-                                        <div className="flex gap-12 items-center">
-                                            <div className={`flex flex-col items-center gap-2 transition-opacity ${triedTeams.includes('team1') ? 'opacity-20 grayscale' : 'opacity-100'}`}>
-                                                <div className="w-16 h-16 rounded-2xl bg-[#FF6B52] border-4 border-[#5A22A3] flex items-center justify-center text-white shadow-lg">🌸</div>
-                                                <span className="text-[10px] font-black text-[#FF6B52] uppercase mt-1 truncate max-w-[80px]">{team1Name}</span>
-                                            </div>
-
-                                            <div className="flex flex-col items-center gap-4">
-                                                <div className="w-24 h-24 bg-[#5A22A3] rounded-[2rem] flex items-center justify-center shadow-2xl animate-bounce border-4 border-white/20">
-                                                    <BellRing size={48} className="text-white" />
-                                                </div>
-                                                <h4 className="text-4xl font-black text-white italic tracking-tight">أكتب "جرس" للرن!</h4>
-                                            </div>
-
-                                            <div className={`flex flex-col items-center gap-2 transition-opacity ${triedTeams.includes('team2') ? 'opacity-20 grayscale' : 'opacity-100'}`}>
-                                                <div className="w-16 h-16 rounded-2xl bg-[#14b8a6] border-4 border-[#5A22A3] flex items-center justify-center text-white shadow-lg">🧊</div>
-                                                <span className="text-[10px] font-black text-[#14b8a6] uppercase mt-1 truncate max-w-[80px]">{team2Name}</span>
-                                            </div>
-                                        </div>
-
-                                        {triedTeams.length === 1 && (
-                                            <div className="bg-red-500/20 text-red-500 px-6 py-2 rounded-full font-black text-sm border border-red-500/30 animate-pulse">
-                                                ⚠️ الفريق الأول أخطأ.. الدور للفريق الثاني!
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-
-                                {!isOBS && (
-                                    <div className="mt-12 pt-8 border-t border-white/5 flex gap-4 opacity-30 hover:opacity-100 transition-opacity">
-                                        <button onClick={() => finalizeRound(true, 'team1')} className="flex-1 bg-[#FF6B52]/10 p-5 rounded-2xl border-2 border-[#FF6B52]/30 text-[#FF6B52] font-black text-xl hover:bg-[#FF6B52] hover:text-white transition-all">تخطي للبنات 🌸</button>
-                                        <button onClick={() => finalizeRound(true, 'team2')} className="flex-1 bg-[#14b8a6]/10 p-5 rounded-2xl border-2 border-[#14b8a6]/30 text-[#14b8a6] font-black text-xl hover:bg-[#14b8a6] hover:text-white transition-all">تخطي للأولاد 🧊</button>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-                </div>
-            )}
-
-
-            {/* STAGE: ENDED - ULTRA PREMIUM LEVEL COMPLETE SCREEN */}
-            {stage === 'ended' && (
-                <div className={`absolute inset-0 z-[200] flex items-center justify-center overflow-hidden ${isOBS ? 'bg-transparent' : 'bg-[#030310]'}`}>
-                    {/* GLOBAL BACKGROUND - Celebration mode */}
-                    <div className="absolute inset-0 z-0">
-                        <div className={`absolute inset-0 transition-colors duration-1000 ${winner === 'team1' ? 'bg-[#FF6B52]/20' : 'bg-[#14b8a6]/20'}`} />
-                        {!isOBS && (
-                            <>
-                                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(90,34,163,0.3)_0%,transparent_70%)]"></div>
-                                <div className="absolute inset-0" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.01) 2px, rgba(255,255,255,0.01) 4px)' }}></div>
-                            </>
-                        )}
-                        {/* CSS PARTICLES */}
-                        {Array.from({ length: 50 }).map((_, i) => (
-                            <div key={i}
-                                className={`absolute rounded-full animate-[float_10s_ease-in-out_infinite] ${winner === 'team1' ? 'bg-[#FF6B52]' : 'bg-[#14b8a6]'}`}
-                                style={{
-                                    width: `${Math.random() * 8 + 4}px`,
-                                    height: `${Math.random() * 8 + 4}px`,
-                                    top: `${Math.random() * 100}%`,
-                                    left: `${Math.random() * 100}%`,
-                                    animationDelay: `${Math.random() * 5}s`,
-                                    opacity: Math.random() * 0.5 + 0.2,
-                                    filter: 'blur(1px)'
-                                }}
-                            />
-                        ))}
-                    </div>
-
-                    {/* Main Content */}
-                    <div className="relative z-10 flex flex-col items-center gap-6 max-w-xl w-full px-6 text-center animate-in zoom-in duration-700">
-                        {/* WINNER TITLE */}
-                        <div className="flex flex-col items-center gap-4 animate-in slide-in-from-top-20 duration-[1000ms]">
-                            <div className={`flex items-center gap-3 px-6 py-2 bg-white/5 border-2 rounded-full backdrop-blur-md ${winner === 'team1' ? 'border-[#FF6B52]/30' : 'border-[#14b8a6]/30'}`}>
-                                <Trophy size={16} className="text-yellow-400" />
-                                <span className="text-white font-black text-sm uppercase tracking-widest italic">نصر رائع!</span>
-                                <Trophy size={16} className="text-yellow-400" />
-                            </div>
-
-                            <div className="relative mt-4">
-                                <h1 className={`text-[4rem] font-black italic tracking-tighter leading-none select-none animate-pulse ${winner === 'team1' ? 'text-[#FF6B52]' : 'text-[#14b8a6]'}`}>
-                                    فـــــــــــــــــاز
-                                </h1>
-                                <div className={`absolute -inset-10 blur-3xl opacity-20 animate-pulse ${winner === 'team1' ? 'bg-[#FF6B52]' : 'bg-[#14b8a6]'}`}></div>
-                            </div>
-                        </div>
-
-                        {/* BIG TEAM CARD */}
-                        <div className={`relative w-full max-w-md py-10 px-6 rounded-[3rem] border-4 shadow-2xl flex flex-col items-center gap-6 animate-in zoom-in duration-700 delay-300 ${winner === 'team1' ? 'bg-black/60 border-[#FF6B52]/50' : 'bg-black/60 border-[#14b8a6]/50'}`}>
-                            <div className={`absolute inset-0 rounded-[3rem] animate-pulse ${winner === 'team1' ? 'shadow-[0_0_40px_rgba(255,107,82,0.3)]' : 'shadow-[0_0_40px_rgba(20,184,166,0.3)]'}`}></div>
-                            <div className="relative group">
-                                <div className={`w-36 h-36 rounded-[2.5rem] flex items-center justify-center text-7xl border-8 shadow-2xl transition-transform duration-500 group-hover:scale-105 ${winner === 'team1' ? 'bg-[#FF6B52] border-white/20' : 'bg-[#14b8a6] border-white/20'}`}>
-                                    {winner === 'team1' ? '🌸' : '🧊'}
-                                </div>
-                                <div className="absolute -top-6 -right-6 w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center border-4 border-[#0a0a1a] shadow-xl rotate-12 animate-bounce">
-                                    <Crown size={32} className="text-black" />
-                                </div>
-                            </div>
-
-                            <div className="space-y-4 relative z-10 text-center">
-                                <h2 className="text-6xl font-black italic tracking-tighter drop-shadow-lg text-white animate-pulse">
-                                    {winner === 'team1' ? team1Name : team2Name}
-                                </h2>
-                                <div className={`mx-auto h-1.5 w-32 rounded-full ${winner === 'team1' ? 'bg-[#FF6B52]' : 'bg-[#14b8a6]'}`}></div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4 w-full mt-4">
-                                <div className="bg-white/5 backdrop-blur-md p-6 rounded-3xl border border-white/5 text-center">
-                                    <div className="text-white/40 font-black text-[10px] uppercase mb-1">المرحلة</div>
-                                    <div className="text-4xl font-black text-white italic">{currentLevel - 1}</div>
-                                </div>
-                                <div className="bg-white/5 backdrop-blur-md p-6 rounded-3xl border border-white/5 text-center">
-                                    <div className="text-white/40 font-black text-[10px] uppercase mb-1">المحاربين</div>
-                                    <div className="text-4xl font-black text-white italic">{winner === 'team1' ? women.length : men.length}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {!isOBS && (
-                            <div className="flex gap-4 mt-4">
-                                <button
-                                    onClick={() => startGame()}
-                                    className={`flex items-center gap-4 px-10 py-5 rounded-2xl font-black text-2xl text-white transition-all hover:scale-105 active:scale-95 shadow-lg border-b-4 border-black/20 ${winner === 'team1' ? 'bg-[#FF6B52]' : 'bg-[#14b8a6]'}`}
-                                >
-                                    <Play fill="currentColor" size={24} /> المرحلة التالية
-                                </button>
-                                <button
-                                    onClick={onHome}
-                                    className="flex items-center gap-3 bg-white/10 hover:bg-white/20 text-white px-8 py-5 rounded-2xl font-black text-lg transition-all border-2 border-white/10"
-                                >
-                                    <Home size={24} /> الرئيسية
-                                </button>
-                            </div>
-                        )}
-                    </div>
-
-                    <style>{`
+                        <style>{`
                         @keyframes winTitle { 0%, 100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.05); filter: brightness(1.2); } }
                         @keyframes float { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-50px) rotate(180deg); } }
                         @keyframes teamPulse { 0% { box-shadow: 0 0 20px rgba(255,255,255,0); } 50% { box-shadow: 0 0 100px currentColor; } 100% { box-shadow: 0 0 20px rgba(255,255,255,0); } }
                         @keyframes levelStar { 0%, 100% { opacity: 0.2; transform: scale(1); } 50% { opacity: 1; transform: scale(1.5); } }
                         @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
                     `}</style>
-                </div>
-            )}
+                    </div>
+                )
+            }
 
             <style>{`
                 .animate-spin-slow { animation: spin 8s linear infinite; }
