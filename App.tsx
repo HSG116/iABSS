@@ -329,16 +329,16 @@ const App: React.FC = () => {
           onClick={isComingSoon ? undefined : onClick}
           disabled={isComingSoon || isEditMode}
           className={`group relative flex items-center justify-center gap-3 md:gap-4 overflow-hidden border-2 transition-all duration-300 active:scale-95 text-white font-black italic
-            ${isEditMode ? "border-white/40 ring-4 ring-white/10 scale-95 opacity-80" : "border-red-500/30"}
+            ${isEditMode ? "border-white/40 ring-4 ring-white/10 scale-95 opacity-80" : "border-white/10"}
             ${!isVisible && isEditMode ? "opacity-40 grayscale" : ""}
-            ${isComingSoon ? "bg-zinc-900 cursor-not-allowed grayscale pointer-events-none" : "bg-black/90 backdrop-blur-2xl shadow-[0_10px_30px_rgba(255,0,0,0.2)] hover:shadow-[0_15px_50px_rgba(255,0,0,0.6)] hover:bg-black hover:border-red-500/80"}
+            ${isComingSoon ? "bg-zinc-900 cursor-not-allowed grayscale pointer-events-none" : "bg-iabs-red shadow-[0_15px_40px_rgba(255,0,0,0.3)]"}
             ${isPrimary
-              ? "px-6 py-4 text-xl md:text-2xl rounded-[1.5rem] hover:scale-[1.03] w-full lg:max-w-lg"
-              : "px-3 py-3 text-sm md:text-base rounded-[1rem] hover:scale-[1.03] w-full"
+              ? "px-6 py-4 text-xl md:text-2xl rounded-[2rem] hover:scale-105 w-full lg:max-w-lg shadow-[0_20px_50px_rgba(255,0,0,0.4)]"
+              : "px-3 py-3 text-sm md:text-base rounded-[1.5rem] hover:scale-105 w-full"
             } `}
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-red-600/0 via-red-600/20 to-transparent translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out pointer-events-none z-20"></div>
-          <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-red-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-10"></div>
+          <div className="absolute inset-0 bg-white/30 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 skew-x-[-35deg] pointer-events-none z-20"></div>
+          <div className="absolute top-0 left-0 w-full h-[45%] bg-gradient-to-b from-white/30 to-transparent pointer-events-none z-10"></div>
 
           {hasOBS && (
             <div className="absolute top-0 left-0 z-50 flex items-center gap-1 bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded-br-xl border-b border-r border-white/20 shadow-lg group-hover:bg-red-600/80 transition-colors">
@@ -348,12 +348,12 @@ const App: React.FC = () => {
           )}
 
           <div className="relative z-30 flex-shrink-0 transition-all duration-500 transform group-hover:scale-110 group-hover:rotate-6 flex items-center justify-center">
-            <div className={`relative ${isPrimary ? 'w-14 h-14 bg-red-900/30' : 'w-10 h-10 bg-red-900/20'} rounded-2xl border border-red-500/20 flex items-center justify-center shadow-[inset_0_0_20px_rgba(255,0,0,0.2)] group-hover:border-red-500/50 group-hover:bg-red-900/50 transition-all duration-500 ${isComingSoon ? 'opacity-30' : ''}`}>
-              <Icon size={isPrimary ? 28 : 20} className="text-red-500 drop-shadow-[0_0_15px_rgba(255,0,0,0.8)] group-hover:text-white transition-colors duration-300" strokeWidth={2.5} />
+            <div className={`relative ${isPrimary ? 'w-10 h-10' : 'w-8 h-8'} flex items-center justify-center ${isComingSoon ? 'opacity-30' : ''}`}>
+              <Icon size={isPrimary ? 32 : 20} color="#FFFFFF" strokeWidth={2.5} className="drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
             </div>
           </div>
 
-          <span className={`relative z-30 text-white font-black italic tracking-tighter uppercase leading-none bg-transparent drop-shadow-[0_0_10px_rgba(0,0,0,0.8)] ${isComingSoon ? 'opacity-30' : ''}`}>
+          <span className={`relative z-30 text-white font-black italic tracking-tighter uppercase leading-none bg-transparent ${isComingSoon ? 'opacity-30' : ''}`}>
             {title}
           </span>
 
@@ -614,45 +614,35 @@ const App: React.FC = () => {
       case 'HOME':
       default:
         return (
-          <div className="flex-1 flex flex-col items-center w-full max-w-7xl px-4 py-8 animate-in fade-in slide-in-from-bottom duration-1000">
-            {/* Top Logo and Title Section */}
-            <div className="relative flex flex-col items-center mb-16 w-full mt-4">
-              <div className="absolute inset-0 bg-red-900/20 blur-[120px] rounded-[100%] scale-150 animate-pulse pointer-events-none"></div>
-
-              <img src="https://i.ibb.co/pvCN1NQP/95505180312.png" className="h-40 md:h-48 mb-8 animate-float drop-shadow-[0_0_80px_rgba(255,0,0,0.8)] z-10" alt="iABS Logo" />
-
-              <div className="relative text-center z-10 w-full">
-                <h1
-                  className="text-7xl md:text-9xl font-black italic tracking-tighter select-none mb-2"
-                  style={{
-                    color: 'transparent',
-                    WebkitTextStroke: '2px rgba(255, 255, 255, 0.1)',
-                    backgroundImage: 'linear-gradient(to bottom, #ffffff, #888888)',
-                    WebkitBackgroundClip: 'text',
-                    textShadow: '0 10px 50px rgba(255,0,0,0.5), 0 0 100px rgba(255,0,0,0.3)'
-                  }}
-                >
+          <div className="flex-1 flex flex-col items-center w-full max-w-7xl px-4 py-4 animate-in fade-in slide-in-from-bottom-12 duration-1000">
+            <div className="mb-8 relative flex flex-col items-center">
+              <div className="absolute inset-0 bg-iabs-red/10 blur-[150px] rounded-full scale-125 animate-pulse"></div>
+              <img src="https://i.ibb.co/pvCN1NQP/95505180312.png" className="h-32 mb-4 animate-float drop-shadow-[0_0_50px_rgba(255,0,0,0.5)]" alt="iABS Logo" />
+              <div className="relative text-center">
+                <h1 className="text-6xl md:text-8xl font-black red-neon-text leading-none italic tracking-tighter select-none drop-shadow-[0_10px_30px_rgba(255,0,0,0.6)]">
                   iABS ARENA
                 </h1>
+                <div className="mt-6 flex flex-col items-center gap-4 animate-in slide-in-from-bottom duration-1000 delay-300">
+                  <div className="h-[1px] w-full max-w-lg bg-gradient-to-r from-transparent via-red-500/50 to-transparent"></div>
 
-                <h2 className="text-red-500 font-bold tracking-[1em] text-xs md:text-sm uppercase mb-10 drop-shadow-[0_0_15px_rgba(255,0,0,0.8)] animate-pulse">
-                  WORLD CLASS GAMING PLATFORM
-                </h2>
+                  <h2 className="text-xl md:text-3xl font-black text-white px-4 text-center leading-relaxed drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] tracking-wide">
+                    اكبر منصة ألعاب تفاعلية للبثوث المباشرة <br />
+                    <span className="text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.6)]">بالعاب اكثر من 23 لعبة</span>
+                  </h2>
 
-                <div className="flex flex-col flex-wrap items-center justify-center gap-6 animate-in slide-in-from-bottom duration-1000 delay-300">
-                  <div className="h-[2px] w-full max-w-2xl bg-gradient-to-r from-transparent via-red-600 to-transparent opacity-50 shadow-[0_0_20px_red]"></div>
-
-                  <div className="bg-black/80 backdrop-blur-2xl px-10 py-5 rounded-[3rem] border border-red-900/50 shadow-[0_0_50px_rgba(220,38,38,0.2)] hover:border-red-500/50 hover:shadow-[0_0_50px_rgba(220,38,38,0.4)] transition-all duration-500 hover:-translate-y-2 group relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-r from-red-600/0 via-red-600/10 to-transparent -translate-x-[200%] group-hover:translate-x-[200%] transition-transform duration-1000 ease-in-out"></div>
-                    <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-red-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-                    <h2 className="text-2xl md:text-4xl font-black text-white text-center leading-relaxed font-mono italic flex flex-col items-center gap-2">
-                      أكبر منصة ألعاب تفاعلية للبثوث<br />
-                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600 drop-shadow-[0_0_20px_rgba(255,0,0,0.8)]">+23 لعبة احترافية</span>
-                    </h2>
+                  <div className="relative bg-zinc-900/80 px-8 py-3 rounded-full border-2 border-white/10 hover:border-violet-500/50 transition-all hover:scale-105 group backdrop-blur-xl shadow-xl">
+                    <div className="flex items-center gap-4 text-xl md:text-3xl font-black text-white italic">
+                      <span className="opacity-80">أكبر من منصة</span>
+                      <span className="text-violet-500 relative px-4 inline-block drop-shadow-[0_0_25px_rgba(139,92,246,0.6)] animate-pulse">
+                        جولة
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+                          <span className="text-red-600 text-[1.8em] font-black drop-shadow-[0_0_20px_rgba(220,38,38,1)]" style={{ transform: 'rotate(-15deg) translateY(-5%)' }}>X</span>
+                        </div>
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="h-[2px] w-full max-w-2xl bg-gradient-to-r from-transparent via-red-600 to-transparent opacity-50 shadow-[0_0_20px_red]"></div>
+                  <div className="h-[1px] w-full max-w-lg bg-gradient-to-r from-transparent via-red-500/50 to-transparent"></div>
                 </div>
               </div>
             </div>
