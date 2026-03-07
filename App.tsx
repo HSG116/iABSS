@@ -778,44 +778,35 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            {/* Featured Game: Letter Match */}
-            <div className="w-full flex flex-col items-center pt-8 pb-12 gap-8 animate-in slide-in-from-bottom duration-1000">
+            {/* Featured Epic Game: حروف مع حمودي */}
+            <div className="w-full flex justify-center pb-16 animate-in slide-in-from-bottom duration-1000">
               <button
                 onClick={() => setCurrentView('LETTER_GAME')}
-                className="group relative w-full max-w-4xl p-1 bg-gradient-to-r from-purple-600 via-blue-500 to-red-600 rounded-[3.5rem] shadow-[0_30px_80px_-20px_rgba(147,51,234,0.6)] hover:scale-[1.02] active:scale-95 transition-all duration-500 overflow-hidden"
+                className="group relative w-[95%] md:w-[80%] lg:max-w-5xl bg-black/90 backdrop-blur-3xl border-2 border-red-500/30 hover:border-red-500/80 rounded-[3rem] p-6 md:p-10 shadow-[0_10px_40px_rgba(220,38,38,0.2)] hover:shadow-[0_20px_80px_rgba(220,38,38,0.6)] hover:bg-black transition-all duration-500 active:scale-95 overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8"
               >
-                <div className="absolute inset-0 bg-black/40 backdrop-blur-3xl rounded-[inherit]"></div>
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-transparent to-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-red-600/0 via-red-600/20 to-transparent translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out pointer-events-none z-20"></div>
 
-                <div className="relative px-12 py-10 rounded-[3.2rem] flex flex-col md:flex-row items-center justify-between gap-8 border border-white/10 group-hover:border-white/20">
-                  <div className="flex items-center gap-8">
-                    <div className="w-24 h-24 bg-[#5A22A3] rounded-[2rem] flex items-center justify-center shadow-2xl group-hover:rotate-12 transition-transform duration-500 border-4 border-white/10 group-hover:border-white/40">
-                      <LayoutIcon size={56} className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]" />
-                    </div>
-                    <div className="text-right">
-                      <div className="flex items-center gap-4 mb-2">
-                        <span className="text-7xl font-black italic tracking-tighter text-yellow-400 drop-shadow-[0_0_20px_rgba(234,179,8,0.5)]">حروف</span>
-                        <span className="text-4xl font-black italic tracking-tighter text-blue-400">مع</span>
-                        <span className="text-7xl font-black italic tracking-tighter text-red-500 drop-shadow-[0_0_20px_rgba(239,68,68,0.5)]">حمودي</span>
-                      </div>
-                      <div className="text-white/40 font-black text-xs uppercase tracking-[0.5em] group-hover:text-white/60 transition-colors">EXCLUSIVE CHAT BATTLE • نظام الجرس الجديد</div>
-                    </div>
+                <div className="absolute top-0 left-0 z-50 flex items-center gap-2 bg-black/60 backdrop-blur-md px-4 py-1.5 rounded-br-2xl border-b border-r border-red-500/30 group-hover:bg-red-600 group-hover:border-red-500 transition-colors">
+                  <Video size={18} className="text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.8)]" />
+                  <span className="text-xs md:text-sm font-black text-white uppercase tracking-widest drop-shadow-md">OBS SUPPORTED</span>
+                </div>
+
+                <div className="flex flex-col md:flex-row items-center md:items-start gap-8 z-30 w-full md:w-auto text-center md:text-right mt-6 md:mt-0">
+                  <div className="w-24 h-24 md:w-32 md:h-32 bg-red-900/30 rounded-3xl border border-red-500/20 flex items-center justify-center shadow-[inset_0_0_30px_rgba(255,0,0,0.2)] group-hover:border-red-500/50 group-hover:bg-red-900/50 transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 flex-shrink-0">
+                    <LayoutIcon size={56} className="text-red-500 drop-shadow-[0_0_20px_rgba(255,0,0,0.8)] group-hover:text-white transition-colors duration-300" strokeWidth={2.5} />
                   </div>
-
-                  <div className="flex items-center gap-6">
-                    <div className="flex flex-col items-end">
-                      <div className="bg-kick-green text-black px-6 py-1.5 rounded-full font-black text-sm mb-2 shadow-lg animate-pulse uppercase tracking-widest">Live Now</div>
-                      <div className="text-white/30 font-bold text-[10px] uppercase tracking-widest">Connect to Chat</div>
-                    </div>
-                    <div className="w-20 h-20 bg-white/5 group-hover:bg-white text-white/50 group-hover:text-black rounded-full flex items-center justify-center transition-all duration-500 border-4 border-white/5 group-hover:border-transparent">
-                      <ChevronRight size={48} className="translate-x-1 group-hover:translate-x-0 transition-transform" />
-                    </div>
+                  <div className="flex flex-col justify-center">
+                    <h3 className="text-5xl md:text-7xl font-black italic text-white drop-shadow-[0_0_15px_rgba(0,0,0,0.8)] tracking-tighter mb-4">
+                      حروف مع حمودي
+                    </h3>
+                    <p className="text-red-400 font-bold text-sm md:text-lg tracking-[0.3em] uppercase group-hover:text-red-300 transition-colors">
+                      INTERACTIVE CHAT BATTLE • نظام جديد كلياً
+                    </p>
                   </div>
                 </div>
 
-                {/* Shimmer Effect */}
-                <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[inherit]">
-                  <div className="absolute top-0 left-[-100%] w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-[-30deg] animate-[shimmer_3s_infinite]"></div>
+                <div className="hidden md:flex w-20 h-20 bg-red-900/20 group-hover:bg-red-600 rounded-full items-center justify-center border-2 border-red-500/20 group-hover:border-white transition-all duration-500 z-30 group-hover:scale-110 shadow-[0_0_15px_rgba(255,0,0,0.3)] group-hover:shadow-[0_0_30px_rgba(255,0,0,0.8)] flex-shrink-0">
+                  <ChevronRight size={40} className="text-red-500 group-hover:text-white translate-x-1 group-hover:translate-x-0 transition-all duration-300" />
                 </div>
               </button>
             </div>
