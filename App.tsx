@@ -634,7 +634,7 @@ const App: React.FC = () => {
                     <div className="flex flex-col items-center gap-2 text-center">
                       <div className="flex items-center gap-2 text-2xl md:text-3xl font-black text-white italic">
                         <span className="text-green-500 animate-pulse drop-shadow-[0_0_15px_rgba(34,197,94,0.6)]">+1000</span>
-                        <span>شخص يلعبون بالشات  🔥</span>
+                        <span>شخص لعب بالشات  🔥</span>
                       </div>
                       <span className="text-white/60 text-sm md:text-base font-bold tracking-widest mt-1">
                         يمكنك رؤيتهم في قائمة المتصدرين 🏆
