@@ -39,7 +39,7 @@ import {
   Maximize2, MonitorOff, CheckCircle2, AlertTriangle,
   Crown, Medal, Loader2, RefreshCw, ChevronRight, Video,
   Sword, Globe, Brain, Vote, Bomb, Type, Footprints, Flame, Smile,
-  ArrowUp, ArrowDown, Edit2, Save, Eye, EyeOff, Maximize, Minimize, Layout as LayoutIcon, X
+  ArrowUp, ArrowDown, Edit2, Save, Eye, EyeOff, Maximize, Minimize, Layout as LayoutIcon, X, LogIn
 } from 'lucide-react';
 import { getAssetUrl } from './utils/assets';
 import { chatService } from './services/chatService';
@@ -794,35 +794,40 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            {/* Featured Epic Game: حروف مع حمودي */}
+            {/* Featured Epic Game Button: Black Sidebar Version */}
             <div className="w-full flex justify-center pb-16 animate-in slide-in-from-bottom duration-1000">
               <button
                 onClick={() => setCurrentView('LETTER_GAME')}
-                className="group relative w-[95%] md:w-[80%] lg:max-w-5xl bg-black/90 backdrop-blur-3xl border-2 border-red-500/30 hover:border-red-500/80 rounded-[3rem] p-6 md:p-10 shadow-[0_10px_40px_rgba(220,38,38,0.2)] hover:shadow-[0_20px_80px_rgba(220,38,38,0.6)] hover:bg-black transition-all duration-500 active:scale-95 overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8"
+                className="group relative w-full max-w-xl h-[100px] md:h-[130px] bg-black border-2 border-red-600/20 hover:border-red-600/80 rounded-[2.5rem] shadow-[0_15px_40px_rgba(0,0,0,0.6)] hover:shadow-[0_20px_80px_rgba(220,38,38,0.3)] hover:scale-105 transition-all duration-500 active:scale-95 overflow-hidden flex items-center justify-between px-8 md:px-12"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-red-600/0 via-red-600/20 to-transparent translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out pointer-events-none z-20"></div>
+                {/* Standard Premium Effects */}
+                <div className="absolute inset-0 bg-white/5 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 skew-x-[-35deg] pointer-events-none z-20"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-red-600/0 via-red-600/5 to-transparent pointer-events-none"></div>
 
-                <div className="absolute top-0 left-0 z-50 flex items-center gap-2 bg-black/60 backdrop-blur-md px-4 py-1.5 rounded-br-2xl border-b border-r border-red-500/30 group-hover:bg-red-600 group-hover:border-red-500 transition-colors">
-                  <Video size={18} className="text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.8)]" />
-                  <span className="text-xs md:text-sm font-black text-white uppercase tracking-widest drop-shadow-md">OBS SUPPORTED</span>
-                </div>
-
-                <div className="flex flex-col md:flex-row items-center md:items-start gap-8 z-30 w-full md:w-auto text-center md:text-right mt-6 md:mt-0">
-                  <div className="w-24 h-24 md:w-32 md:h-32 bg-red-900/30 rounded-3xl border border-red-500/20 flex items-center justify-center shadow-[inset_0_0_30px_rgba(255,0,0,0.2)] group-hover:border-red-500/50 group-hover:bg-red-900/50 transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 flex-shrink-0">
-                    <LayoutIcon size={56} className="text-red-500 drop-shadow-[0_0_20px_rgba(255,0,0,0.8)] group-hover:text-white transition-colors duration-300" strokeWidth={2.5} />
+                {/* Left Side: Entry Mark */}
+                <div className="relative z-30 flex items-center gap-4">
+                  <div className="w-12 h-12 md:w-14 md:h-14 bg-red-600/10 border border-red-600/30 rounded-full flex items-center justify-center shadow-lg group-hover:bg-red-600 group-hover:border-white transition-all duration-500 group-hover:rotate-[-12deg]">
+                    <Swords size={24} className="text-red-500 group-hover:text-white transition-colors" />
                   </div>
-                  <div className="flex flex-col justify-center">
-                    <h3 className="text-5xl md:text-7xl font-black italic text-white drop-shadow-[0_0_15px_rgba(0,0,0,0.8)] tracking-tighter mb-4">
-                      حروف مع حمودي
-                    </h3>
-                    <p className="text-red-400 font-bold text-sm md:text-lg tracking-[0.3em] uppercase group-hover:text-red-300 transition-colors">
-                      INTERACTIVE CHAT BATTLE • نظام جديد كلياً
-                    </p>
+                  <div className="hidden md:flex flex-col items-start leading-none">
+                    <span className="text-red-500 font-black text-xs uppercase tracking-widest mb-1">BATTLE START</span>
+                    <span className="text-white/20 font-bold text-[8px] uppercase tracking-[0.3em]">ARENA CHALLENGE</span>
                   </div>
                 </div>
 
-                <div className="hidden md:flex w-20 h-20 bg-red-900/20 group-hover:bg-red-600 rounded-full items-center justify-center border-2 border-red-500/20 group-hover:border-white transition-all duration-500 z-30 group-hover:scale-110 shadow-[0_0_15px_rgba(255,0,0,0.3)] group-hover:shadow-[0_0_30px_rgba(255,0,0,0.8)] flex-shrink-0">
-                  <ChevronRight size={40} className="text-red-500 group-hover:text-white translate-x-1 group-hover:translate-x-0 transition-all duration-300" />
+                {/* Right Side: The Image (contains its own text) */}
+                <div className="relative z-30 h-full flex items-center p-3 md:p-4">
+                  <img
+                    src="/photo/image76.png"
+                    alt="Letters Challenge"
+                    className="h-full w-auto object-contain drop-shadow-[0_4px_20px_rgba(255,0,0,0.2)] transition-transform duration-700 group-hover:scale-110 group-hover:translate-x-[-10px]"
+                  />
+                </div>
+
+                {/* OBS Badge */}
+                <div className="absolute top-0 right-0 z-50 flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-3 py-1 rounded-bl-2xl border-l border-b border-red-600/30 group-hover:bg-red-600 transition-colors">
+                  <Video size={12} className="text-white" />
+                  <span className="text-[10px] font-black text-white uppercase tracking-tighter">OBS SUPPORTED</span>
                 </div>
               </button>
             </div>
