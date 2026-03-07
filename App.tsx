@@ -271,8 +271,10 @@ const App: React.FC = () => {
         supabase.removeChannel(channel);
       };
     }
+  }, [currentView]);
 
-    // Security Check for Admin Panel
+  // Security Check for Admin Panel
+  useEffect(() => {
     if (currentView === 'ADMIN_PANEL') {
       try {
         const stored = localStorage.getItem('admin_access_granted');
@@ -285,6 +287,14 @@ const App: React.FC = () => {
       }
     }
   }, [currentView]);
+
+  // PROTECTION: Prevent regular users from accessing the HOME page
+  useEffect(() => {
+    if (isAuthorized && userRole === 'user' && currentView === 'HOME') {
+      console.log("[Security] Redirecting user from HOME to DASHBOARD");
+      setCurrentView('USER_DASHBOARD');
+    }
+  }, [isAuthorized, userRole, currentView]);
 
   const handleCategorySelect = (id: string) => {
     setSelectedCategory(id);
@@ -304,7 +314,13 @@ const App: React.FC = () => {
 
 
 
-  const handleGoHome = () => setCurrentView('HOME');
+  const handleGoHome = () => {
+    if (userRole === 'user') {
+      setCurrentView('USER_DASHBOARD');
+    } else {
+      setCurrentView('HOME');
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('site_access_granted');

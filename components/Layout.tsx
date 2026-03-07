@@ -116,11 +116,11 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onChangeV
 
               <div className="relative group/home">
                 <div className="absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-1 bg-red-600 text-white text-[8px] font-black rounded-lg opacity-0 group-hover/home:opacity-100 transition-all duration-300 whitespace-nowrap z-50 pointer-events-none shadow-[0_0_10px_rgba(220,38,38,0.4)]">
-                  العودة للرئيسية
+                  {userRole === 'user' ? 'لوحة القيادة' : 'العودة للرئيسية'}
                 </div>
                 <button
-                  onClick={() => onChangeView('HOME')}
-                  title="العودة للقائمة الرئيسية"
+                  onClick={() => onChangeView(userRole === 'user' ? 'USER_DASHBOARD' as any : 'HOME')}
+                  title={userRole === 'user' ? "العودة للوحة القيادة" : "العودة للقائمة الرئيسية"}
                   className="relative p-2 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white transition-all rounded-xl border border-red-600/30 active:scale-95 shadow-[0_0_10px_rgba(220,38,38,0.2)] hover:shadow-[0_0_20px_rgba(220,38,38,0.6)] group"
                 >
                   <Home size={18} className="relative z-10" />

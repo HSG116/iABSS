@@ -235,7 +235,8 @@ export const GlobalPasswordPage: React.FC<GlobalPasswordPageProps> = ({
         }, 5000);
     };
 
-    const finishScan = () => {
+    const finishScan = (roleOverride?: 'admin' | 'user') => {
+        const finalRole = roleOverride || role;
         if (successSound.current) {
             successSound.current.play().catch(() => { });
         }
@@ -246,12 +247,12 @@ export const GlobalPasswordPage: React.FC<GlobalPasswordPageProps> = ({
             token: targetPin,
             timestamp: Date.now(),
             valid: true,
-            role: role
+            role: finalRole
         }));
 
         // Wait for "Access Granted" / "Welcome Back" message
         setTimeout(() => {
-            onSuccess(role);
+            onSuccess(finalRole);
         }, 2000);
     };
 
@@ -488,7 +489,7 @@ export const GlobalPasswordPage: React.FC<GlobalPasswordPageProps> = ({
                     <UserAuthPage
                         onSuccess={(userData) => {
                             setRole('user');
-                            finishScan();
+                            finishScan('user');
                         }}
                         onBack={() => setStep('PASSWORD')}
                     />
