@@ -20,3 +20,19 @@ export const getAssetUrl = (path: string | null | undefined) => {
     const normalizedBase = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
     return `${normalizedBase}${cleanPath}`;
 };
+
+export const getFrameUrl = (path: string | null | undefined) => {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+
+    // Remove leading slash
+    let cleanPath = path.startsWith('/') ? path.substring(1) : path;
+
+    // Auto-prefix with frame/ if it's just a filename and not already prefixed
+    if (!cleanPath.startsWith('frame/') && !cleanPath.includes('/')) {
+        cleanPath = `frame/${cleanPath}`;
+    }
+
+    return getAssetUrl(cleanPath) || '';
+};
+

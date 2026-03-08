@@ -65,11 +65,13 @@ CREATE POLICY "Allow users to read own transactions" ON transactions
 -- 7. Initial Seed Data (Premium Selection)
 INSERT INTO store_items (name, description, type, price, image_url, config)
 VALUES 
-('Neon Red Frame', 'الإطار الأحمر المتوهج لملاك الساحة', 'FRAME', 500, '', '{"borderColor": "#ef4444", "boxShadow": "0 0 15px #ef4444", "borderStyle": "inset"}'),
-('Cyber Green Frame', 'إطار الطاقة الخضراء المتجددة', 'FRAME', 750, '', '{"borderColor": "#10b981", "boxShadow": "0 0 20px #10b981", "borderStyle": "dashed"}'),
-('Royal Gold Frame', 'إطار الذهب الملكي للأعضاء النخبة', 'FRAME', 1500, '', '{"borderColor": "#fbbf24", "boxShadow": "0 0 25px #fbbf24", "borderWidth": "4px"}'),
+('الإطار البرونزي', 'إطار كلاسيكي للمبتدئين في هب عزيز', 'FRAME', 500, 'برونزي .png', '{"borderColor": "#cd7f32"}'),
+('الإطار الفضي', 'إطار فضي مميز للمنافسين الطموحين', 'FRAME', 1500, 'سلفر .png', '{"borderColor": "#c0c0c0"}'),
+('الإطار الذهبي', 'إطار الذهب الفاخر للأعضاء المتألقين', 'FRAME', 3000, 'قولد.png', '{"borderColor": "#ffd700"}'),
+('إطار الدايموند', 'إطار الألماس النادر والمبهر', 'FRAME', 4500, 'دايموند .png', '{"borderColor": "#b9f2ff"}'),
+('الإطار النخبوي', 'الإطار الحصري للأساطير والنخبة فقط', 'FRAME', 7000, 'نخبوي.png', '{"borderColor": "#ff0000", "boxShadow": "0 0 20px #ff0000"}'),
 ('Diamond Sparkle', 'توهج الألماس الفريد', 'EFFECT', 2000, '', '{"animation": "pulse", "color": "#60a5fa"}'),
 ('Eagle Badge', 'وسام الصقر الجارح', 'BADGE', 300, '', '{"icon": "Zap", "color": "#f87171"}'),
 ('Crown of Kings', 'تاج الملوك الذهبي', 'BADGE', 5000, '', '{"icon": "Crown", "color": "#fbbf24"}'),
-('Ocean Blue Frame', 'إطار الموج الأزرق الهادئ', 'FRAME', 600, '', '{"borderColor": "#3b82f6", "boxShadow": "0 0 15px #3b82f6"}'),
 ('Ghostly Aura', 'هالة الشبح الغامضة', 'EFFECT', 1200, '', '{"opacity": "0.5", "filter": "blur(2px)"}');
+

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, Loader2 } from 'lucide-react';
-import { getAssetUrl } from '../utils/assets';
+import { getAssetUrl, getFrameUrl } from '../utils/assets';
 import { chatService } from '../services/chatService';
 import { supabase } from '../services/supabase';
 
@@ -172,23 +172,7 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
         }
     };
 
-    const resolveFramePath = (path: string) => {
-        if (!path) return '';
-        if (path.startsWith('http')) return path;
-
-        // Handle names like "1.png" correctly
-        let cleanPath = path;
-        if (path.startsWith('/')) cleanPath = path.substring(1);
-
-        // If it looks like a filename in frame/ directory or is a known frame
-        if (/^\d+\.png$/.test(cleanPath) || !cleanPath.includes('/')) {
-            if (!cleanPath.startsWith('frame/')) {
-                return `/frame/${cleanPath}`;
-            }
-        }
-
-        return getAssetUrl(cleanPath) || '';
-    };
+    // Frame Resolution helper moved to utils/assets.ts
 
     return (
         <div
@@ -223,7 +207,7 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
                     className="absolute inset-0 pointer-events-none flex items-center justify-center z-[100]"
                 >
                     <img
-                        src={resolveFramePath(frameUrl)}
+                        src={getFrameUrl(frameUrl)}
                         className="w-[125%] h-[125%] max-w-none object-contain filter drop-shadow-[0_0_20px_rgba(0,0,0,0.8)]"
                         alt="Frame"
                         onError={() => {

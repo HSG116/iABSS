@@ -6,7 +6,7 @@ import {
     ArrowRight, Box, Palette, Image as ImageIcon, LogOut
 } from 'lucide-react';
 import { supabase } from '../services/supabase';
-import { getAssetUrl } from '../utils/assets';
+import { getAssetUrl, getFrameUrl } from '../utils/assets';
 import { ProAvatar } from './ProAvatar';
 
 interface UserDashboardProps {
@@ -230,7 +230,20 @@ const Store = ({ userId, kickUsername, points, onPurchase }: any) => {
                 supabase.from('user_inventory').select('item_id').eq('user_id', userId)
             ]);
 
-            if (storeItems) setItems(storeItems);
+            if (storeItems) {
+                // Sort items: Put restricted items at the end, others by price
+                const sorted = [...storeItems].sort((a, b) => {
+                    const aConfig = typeof a.config === 'string' ? JSON.parse(a.config) : a.config;
+                    const bConfig = typeof b.config === 'string' ? JSON.parse(b.config) : b.config;
+                    const aRest = aConfig?.restrictedTo;
+                    const bRest = bConfig?.restrictedTo;
+
+                    if (aRest && !bRest) return 1;
+                    if (!aRest && bRest) return -1;
+                    return (a.price || 0) - (b.price || 0);
+                });
+                setItems(sorted);
+            }
             if (userInv) {
                 const ids = new Set(userInv.map((inv: any) => inv.item_id));
                 setOwnedItemsIds(ids);
@@ -310,9 +323,12 @@ const Store = ({ userId, kickUsername, points, onPurchase }: any) => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {items.map((item) => {
                     const isOwned = ownedItemsIds.has(item.id);
+                    const config = typeof item.config === 'string' ? JSON.parse(item.config) : item.config;
+                    const restrictedTo = config?.restrictedTo;
+                    const isForbidden = restrictedTo && restrictedTo.toLowerCase() !== kickUsername?.toLowerCase();
 
                     return (
-                        <div key={item.id} className={`bg-white/[0.03] border rounded-[2rem] p-6 transition-all group overflow-hidden relative flex flex-col ${isOwned ? 'border-green-500/20 opacity-90' : 'border-white/10 hover:border-yellow-500/30'}`}>
+                        <div key={item.id} className={`bg-white/[0.03] border rounded-[2rem] p-6 transition-all group overflow-hidden relative flex flex-col ${isOwned ? 'border-green-500/20 opacity-90' : isForbidden ? 'border-red-500/10 grayscale-[0.5]' : 'border-white/10 hover:border-yellow-500/30'}`}>
                             {/* Premium Glow and Patterns */}
                             <div className="absolute -top-10 -right-10 w-32 h-32 bg-red-600/5 blur-3xl rounded-full group-hover:bg-red-600/10 transition-all"></div>
                             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40 opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -328,7 +344,7 @@ const Store = ({ userId, kickUsername, points, onPurchase }: any) => {
                                     <div className="w-20 h-20 bg-zinc-800 rounded-2xl overflow-hidden border border-white/10 relative shadow-2xl">
                                         <User size={40} className="m-auto mt-5 text-zinc-700" />
                                         {item.image_url && (
-                                            <img src={getAssetUrl(item.image_url)} className="absolute inset-0 w-full h-full object-contain scale-125" alt="" />
+                                            <img src={item.type === 'FRAME' ? getFrameUrl(item.image_url) : getAssetUrl(item.image_url)} className="absolute inset-0 w-full h-full object-contain scale-125" alt="" />
                                         )}
                                     </div>
 
@@ -359,22 +375,29 @@ const Store = ({ userId, kickUsername, points, onPurchase }: any) => {
                                 </div>
 
                                 <button
-                                    onClick={() => handleBuy(item)}
-                                    disabled={isOwned}
+                                    onClick={() => !isOwned && !isForbidden && handleBuy(item)}
+                                    disabled={loading || isOwned || isForbidden}
                                     className={`w-full mt-auto py-4 rounded-xl font-black text-sm uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-3 group/btn relative overflow-hidden
                                         ${isOwned
                                             ? 'bg-green-500/10 text-green-500 border border-green-500/20 cursor-default'
-                                            : 'bg-white/5 hover:bg-yellow-500 hover:text-black border border-white/10'}`}
+                                            : isForbidden
+                                                ? 'bg-zinc-900 text-zinc-600 border border-white/5 cursor-not-allowed'
+                                                : 'bg-white/5 hover:bg-yellow-500 hover:text-black border border-white/10'}`}
                                 >
                                     {isOwned ? (
                                         <>
                                             <CheckCircle size={18} />
                                             <span>مـمـتـلـك</span>
                                         </>
+                                    ) : isForbidden ? (
+                                        <>
+                                            <Lock size={18} className="text-zinc-600" />
+                                            <span>إطـار حـصـري</span>
+                                        </>
                                     ) : (
                                         <>
                                             <ShoppingBag size={18} className="transition-transform group-hover/btn:-translate-y-1" />
-                                            <span>{item.price.toLocaleString()} نقطة</span>
+                                            <span>{item.price === 0 ? 'امتلاك مجاني' : `${item.price.toLocaleString()} نقطة`}</span>
                                         </>
                                     )}
                                 </button>
@@ -486,7 +509,7 @@ const Locker = ({ userId, kickUsername, onEquipChanged }: any) => {
                                 <div className="w-20 h-20 bg-zinc-800 rounded-2xl overflow-hidden border border-white/10 relative">
                                     <User size={40} className="m-auto mt-5 text-zinc-700" />
                                     {inv.store_items.image_url && (
-                                        <img src={getAssetUrl(inv.store_items.image_url)} className="absolute inset-0 w-full h-full object-contain scale-125" alt="" />
+                                        <img src={inv.store_items.type === 'FRAME' ? getFrameUrl(inv.store_items.image_url) : getAssetUrl(inv.store_items.image_url)} className="absolute inset-0 w-full h-full object-contain scale-125" alt="" />
                                     )}
                                 </div>
 
