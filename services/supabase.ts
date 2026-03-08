@@ -232,11 +232,38 @@ export const leaderboardService = {
   async adjustPlayerStats(username: string, scoreDelta: number, winsDelta: number) {
     if (!isConfigured) return { error: null };
     const { data: existing } = await supabase.from('leaderboard').select('*').ilike('username', username).maybeSingle();
+
+    let finalScore = 0;
+    let finalWins = 0;
+    let res;
+
     if (existing) {
-      return await supabase.from('leaderboard').update({ score: Math.max(0, (existing.score || 0) + scoreDelta), wins: Math.max(0, (existing.wins || 0) + winsDelta) }).eq('id', existing.id);
+      finalScore = Math.max(0, (existing.score || 0) + scoreDelta);
+      finalWins = Math.max(0, (existing.wins || 0) + winsDelta);
+      res = await supabase.from('leaderboard').update({
+        score: finalScore,
+        wins: finalWins
+      }).eq('id', existing.id);
     } else {
-      return await supabase.from('leaderboard').insert([{ username, score: Math.max(0, scoreDelta), wins: Math.max(0, winsDelta) }]);
+      finalScore = Math.max(0, scoreDelta);
+      finalWins = Math.max(0, winsDelta);
+      res = await supabase.from('leaderboard').insert([{
+        username,
+        score: finalScore,
+        wins: finalWins
+      }]);
     }
+
+    if (!res.error) {
+      await adminService.logAction('CORE_ADMIN', 'STATS_ADJUST', {
+        username,
+        scoreDelta,
+        winsDelta,
+        finalScore,
+        finalWins
+      });
+    }
+    return res;
   },
   async verifyAdminPassword(inputPassword: string): Promise<boolean> {
     if (!isConfigured) return inputPassword === (process.env.ADMIN_FALLBACK_PASSWORD || '');

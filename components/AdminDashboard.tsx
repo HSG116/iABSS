@@ -6,7 +6,7 @@ import {
   Megaphone, Activity, History, Settings, Users,
   Zap, Palette, Eye, EyeOff, RotateCw, Trophy,
   Music, Sparkles, Wind, Flame, Ticket, Fingerprint,
-  Users2, Gavel, Radio, LayoutDashboard, Terminal
+  Users2, Gavel, Radio, LayoutDashboard, Terminal, X
 } from 'lucide-react';
 import { leaderboardService, adminService, supabase } from '../services/supabase';
 import { chatService } from '../services/chatService';
@@ -29,7 +29,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   const [statusMsg, setStatusMsg] = useState('');
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [statType, setStatType] = useState<'points' | 'credits'>('points');
+  const [statType, setStatType] = useState<'points' | 'credits' | 'wins'>('points');
 
   // Ban tool states
   const [banReason, setBanReason] = useState('مخالفة قوانين الدردشة');
@@ -203,13 +203,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     setTimeout(() => setStatusMsg(''), 3000);
   };
 
-  const handleAdjustStats = async (isAdding: boolean) => {
+  const handleAdjustStats = async (isAdding: boolean, customAmount?: number) => {
     if (!targetUser) return showStatus('يرجى إدخال اسم المستخدم', true);
-    const amount = isAdding ? pointDelta : -pointDelta;
+    const amount = customAmount !== undefined ? (isAdding ? customAmount : -customAmount) : (isAdding ? pointDelta : -pointDelta);
 
     let error;
     if (statType === 'points') {
-      const res = await leaderboardService.adjustPlayerStats(targetUser, amount, isAdding ? 1 : 0);
+      const res = await leaderboardService.adjustPlayerStats(targetUser, amount, 0);
+      error = res.error;
+    } else if (statType === 'wins') {
+      const res = await leaderboardService.adjustPlayerStats(targetUser, 0, amount);
       error = res.error;
     } else {
       const res = await adminService.adjustCredits(targetUser, amount);
@@ -218,9 +221,27 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
     if (error) showStatus('حدث خطأ', true);
     else {
-      showStatus(`تم تحديث رصيد ${targetUser}`);
+      showStatus(`تم تحديث بيانات ${targetUser}`);
       fetchData();
     }
+  };
+
+  const handleResetUser = async (username: string) => {
+    if (!confirm(`هل أنت متأكد من تصفير جميع بيانات ${username}؟ (نقاط، فوز، رصيد)`)) return;
+
+    // Reset Leaderboard stats
+    await leaderboardService.adjustPlayerStats(username, -999999, -999999);
+
+    // Reset Credits
+    const { data: p } = await adminService.getAllProfiles();
+    const userProf = p.find((u: any) => u.username.toLowerCase() === username.toLowerCase());
+    if (userProf && userProf.credits > 0) {
+      await adminService.adjustCredits(username, -userProf.credits);
+    }
+
+    await adminService.logAction('CORE_ADMIN', 'RESET_USER_STATS', { username });
+    showStatus(`تم تصفير بيانات ${username}`);
+    fetchData();
   };
 
   const handleToggleBan = async (username: string, currentBan: boolean) => {
@@ -444,8 +465,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         </td>
                         <td className="p-6">
                           <div className="flex items-center gap-2 justify-center">
-                            <button onClick={() => { setTargetUser(p.username); showStatus(`تم تحديد ${p.username} للتعديل`); }} className="p-3 bg-blue-600/10 text-blue-500 rounded-xl hover:bg-blue-600 hover:text-white transition-all"><Star size={20} /></button>
-                            <button onClick={() => handleToggleBan(p.username, p.is_banned)} className={`p-3 rounded-xl transition-all ${p.is_banned ? 'bg-kick-green text-black' : 'bg-red-600/10 text-red-500 hover:bg-red-600 hover:text-white'}`}>{p.is_banned ? <Unlock size={20} /> : <Ban size={20} />}</button>
+                            <button onClick={() => { setTargetUser(p.username); setStatType('points'); showStatus(`تم تحديد ${p.username} للتعديل`); }} className="p-3 bg-blue-600/10 text-blue-500 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-lg shadow-blue-500/10" title="تعديل النقاط"><Trophy size={20} /></button>
+                            <button onClick={() => { setTargetUser(p.username); setStatType('wins'); showStatus(`تم تحديد ${p.username} لتعديل الفوز`); }} className="p-3 bg-yellow-600/10 text-yellow-500 rounded-xl hover:bg-yellow-600 hover:text-white transition-all shadow-lg shadow-yellow-500/10" title="تعديل الفوز"><Star size={20} /></button>
+                            <button onClick={() => { setTargetUser(p.username); setStatType('credits'); showStatus(`تم تحديد ${p.username} لتعديل الرصيد`); }} className="p-3 bg-kick-green/10 text-kick-green rounded-xl hover:bg-kick-green hover:text-black transition-all shadow-lg shadow-green-500/10" title="تعديل الرصيد"><Zap size={20} /></button>
+                            <button onClick={() => handleToggleBan(p.username, p.is_banned)} className={`p-3 rounded-xl transition-all shadow-lg ${p.is_banned ? 'bg-kick-green text-black' : 'bg-red-600/10 text-red-500 hover:bg-red-600 hover:text-white shadow-red-500/10'}`} title={p.is_banned ? 'فك الحظر' : 'حظر'} >{p.is_banned ? <Unlock size={20} /> : <Ban size={20} />}</button>
+                            <button onClick={() => handleResetUser(p.username)} className="p-3 bg-white/5 text-white/40 rounded-xl hover:bg-white/10 hover:text-white transition-all" title="تصفير البيانات"><RotateCw size={20} /></button>
                           </div>
                         </td>
                       </tr>
@@ -456,24 +480,47 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
               {/* Stats Injector Overlay (Always present at bottom or side) */}
               {targetUser && (
-                <div className="fixed bottom-10 right-10 z-[100] animate-in slide-in-from-bottom-20 duration-500">
-                  <div className="glass-card p-10 rounded-[3rem] border border-blue-500/30 bg-black/90 shadow-[0_30px_100px_rgba(0,0,0,1)] w-96 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-blue-600 shadow-[0_0_20px_rgba(37,99,235,1)]"></div>
-                    <button onClick={() => setTargetUser('')} className="absolute top-6 left-6 text-zinc-500 hover:text-white"><Unlock size={20} /></button>
-                    <h3 className="text-xl font-black italic mb-6 text-blue-500 flex items-center gap-2 truncate pr-10">Infecting: {targetUser}</h3>
-                    <div className="space-y-6">
-                      <div className="space-y-3">
-                        <div className="flex gap-2 p-1 bg-white/5 rounded-xl border border-white/10">
-                          <button onClick={() => setStatType('points')} className={`flex-1 py-2 text-[10px] font-black rounded-lg transition-all ${statType === 'points' ? 'bg-blue-600 text-white' : 'text-zinc-500'}`}>POINTS (نقاط)</button>
-                          <button onClick={() => setStatType('credits')} className={`flex-1 py-2 text-[10px] font-black rounded-lg transition-all ${statType === 'credits' ? 'bg-kick-green text-black' : 'text-zinc-500'}`}>CURRENCY (أرصدة)</button>
-                        </div>
-                        <input type="number" value={pointDelta} onChange={(e) => setPointDelta(Number(e.target.value))} className="w-full bg-black border border-white/10 rounded-xl p-3 text-center text-white font-black" />
+                <div className="fixed bottom-10 right-10 z-[100] animate-in slide-in-from-right-20 duration-500">
+                  <div className="glass-card p-10 rounded-[3.5rem] border border-blue-500/30 bg-black/95 shadow-[0_30px_100px_rgba(0,0,0,1)] w-[420px] relative overflow-hidden">
+                    <div className={`absolute top-0 left-0 w-full h-1.5 shadow-[0_0_20px_rgba(37,99,235,0.5)] ${statType === 'points' ? 'bg-blue-600' : statType === 'wins' ? 'bg-yellow-500' : 'bg-kick-green'}`}></div>
+                    <button onClick={() => setTargetUser('')} className="absolute top-8 left-8 text-zinc-500 hover:text-white p-2 hover:bg-white/5 rounded-full transition-all"><X size={20} /></button>
+
+                    <div className="flex items-center gap-6 mb-8 mt-2">
+                      <ProAvatar url={profiles.find(p => p.username === targetUser)?.avatar_url} username={targetUser} size="w-16 h-16" />
+                      <div className="flex-1 overflow-hidden">
+                        <h3 className="text-2xl font-black italic text-white truncate">{targetUser}</h3>
+                        <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest leading-none mt-1">Player Injection Mode</p>
                       </div>
+                    </div>
+
+                    <div className="space-y-8">
+                      <div className="space-y-4">
+                        <div className="flex gap-2 p-1 bg-white/5 rounded-2xl border border-white/10">
+                          <button onClick={() => setStatType('points')} className={`flex-1 py-3 text-[10px] font-black rounded-xl transition-all ${statType === 'points' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-zinc-500 hover:text-white'}`}>POINTS</button>
+                          <button onClick={() => setStatType('wins')} className={`flex-1 py-3 text-[10px] font-black rounded-xl transition-all ${statType === 'wins' ? 'bg-yellow-500 text-black shadow-lg shadow-yellow-500/20' : 'text-zinc-500 hover:text-white'}`}>WINS</button>
+                          <button onClick={() => setStatType('credits')} className={`flex-1 py-3 text-[10px] font-black rounded-xl transition-all ${statType === 'credits' ? 'bg-kick-green text-black shadow-lg shadow-green-500/20' : 'text-zinc-500 hover:text-white'}`}>CREDITS</button>
+                        </div>
+
+                        <div className="flex items-center gap-4 bg-black border border-white/5 rounded-2xl p-4">
+                          <button onClick={() => setPointDelta(Math.max(1, pointDelta - 10))} className="w-12 h-12 flex items-center justify-center bg-white/5 rounded-xl hover:bg-white/10 transition-all font-black">-</button>
+                          <input type="number" value={pointDelta} onChange={(e) => setPointDelta(Number(e.target.value))} className="flex-1 bg-transparent text-center text-3xl text-white font-black outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                          <button onClick={() => setPointDelta(pointDelta + 10)} className="w-12 h-12 flex items-center justify-center bg-white/5 rounded-xl hover:bg-white/10 transition-all font-black">+</button>
+                        </div>
+
+                        <div className="grid grid-cols-4 gap-2">
+                          {[1, 5, 20, 100].map(val => (
+                            <button key={val} onClick={() => handleAdjustStats(true, val)} className="py-3 bg-white/[0.03] border border-white/5 rounded-xl text-[10px] font-black hover:bg-white/10 transition-all">+{val}</button>
+                          ))}
+                        </div>
+                      </div>
+
                       <div className="flex gap-4">
-                        <button onClick={() => handleAdjustStats(true)} className={`flex-1 py-5 font-black rounded-2xl shadow-xl active:scale-95 transition-all ${statType === 'points' ? 'bg-blue-600 text-white' : 'bg-kick-green text-black'}`}>
-                          {statType === 'points' ? 'Add Points' : 'Add Credits'}
+                        <button onClick={() => handleAdjustStats(true)} className={`flex-2 py-6 font-black rounded-3xl shadow-xl active:scale-95 transition-all text-xl italic uppercase tracking-wider flex-1 ${statType === 'points' ? 'bg-blue-600 text-white' : statType === 'wins' ? 'bg-yellow-500 text-black' : 'bg-kick-green text-black'}`}>
+                          Apply Update
                         </button>
-                        <button onClick={() => handleAdjustStats(false)} className="px-5 py-5 bg-red-600/10 text-red-500 border border-red-500/20 rounded-2xl"><UserMinus size={20} /></button>
+                        <button onClick={() => handleAdjustStats(false)} className="w-20 py-6 bg-red-600/10 text-red-500 border border-red-500/20 rounded-3xl flex items-center justify-center hover:bg-red-600 hover:text-white transition-all group" title="Subtract Value">
+                          <UserMinus size={24} className="group-hover:scale-110 transition-transform" />
+                        </button>
                       </div>
                     </div>
                   </div>
