@@ -341,10 +341,14 @@ const Store = ({ userId, kickUsername, points, onPurchase }: any) => {
 
                             <div className="relative mb-6">
                                 <div className={`w-full aspect-square bg-black/60 rounded-3xl border flex items-center justify-center relative overflow-hidden transition-all ${isOwned ? 'border-green-500/20' : 'border-white/5 group-hover:border-yellow-500/20'}`}>
-                                    <div className="w-20 h-20 bg-zinc-800 rounded-2xl overflow-hidden border border-white/10 relative shadow-2xl">
-                                        <User size={40} className="m-auto mt-5 text-zinc-700" />
+                                    <div className={`w-20 h-20 flex items-center justify-center relative ${item.type === 'FRAME' ? '' : 'bg-zinc-800 rounded-full border border-white/10 overflow-hidden shadow-2xl'}`}>
+                                        <User size={40} className={`${item.type === 'FRAME' ? 'text-white/10' : 'mt-5 text-zinc-700'}`} />
                                         {item.image_url && (
-                                            <img src={item.type === 'FRAME' ? getFrameUrl(item.image_url) : getAssetUrl(item.image_url)} className="absolute inset-0 w-full h-full object-contain scale-125" alt="" />
+                                            <img
+                                                src={item.type === 'FRAME' ? getFrameUrl(item.image_url) : getAssetUrl(item.image_url)}
+                                                className={`absolute inset-0 w-full h-full object-contain ${item.type === 'FRAME' ? 'scale-[1.45]' : 'scale-125'}`}
+                                                alt=""
+                                            />
                                         )}
                                     </div>
 
@@ -506,10 +510,14 @@ const Locker = ({ userId, kickUsername, onEquipChanged }: any) => {
                     {ownedItems.map((inv) => (
                         <div key={inv.id} className={`bg-white/[0.03] border rounded-[2rem] p-6 transition-all group ${inv.is_equipped ? 'border-green-500/50 shadow-[0_0_30px_rgba(34,197,94,0.1)]' : 'border-white/10'}`}>
                             <div className="w-full aspect-square bg-black/60 rounded-3xl border border-white/5 flex items-center justify-center mb-6 relative overflow-hidden">
-                                <div className="w-20 h-20 bg-zinc-800 rounded-2xl overflow-hidden border border-white/10 relative">
-                                    <User size={40} className="m-auto mt-5 text-zinc-700" />
+                                <div className={`w-20 h-20 flex items-center justify-center relative ${inv.store_items.type === 'FRAME' ? '' : 'bg-zinc-800 rounded-full border border-white/10 overflow-hidden shadow-2xl'}`}>
+                                    <User size={40} className={`${inv.store_items.type === 'FRAME' ? 'text-white/10' : 'mt-5 text-zinc-700'}`} />
                                     {inv.store_items.image_url && (
-                                        <img src={inv.store_items.type === 'FRAME' ? getFrameUrl(inv.store_items.image_url) : getAssetUrl(inv.store_items.image_url)} className="absolute inset-0 w-full h-full object-contain scale-125" alt="" />
+                                        <img
+                                            src={inv.store_items.type === 'FRAME' ? getFrameUrl(inv.store_items.image_url) : getAssetUrl(inv.store_items.image_url)}
+                                            className={`absolute inset-0 w-full h-full object-contain ${inv.store_items.type === 'FRAME' ? 'scale-[1.45]' : 'scale-125'}`}
+                                            alt=""
+                                        />
                                     )}
                                 </div>
 
