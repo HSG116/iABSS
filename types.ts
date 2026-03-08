@@ -95,6 +95,7 @@ export interface Song {
   id: string;
   title: string;
   url: string;
+  category?: 'regular' | 'ramadan';
 }
 
 export interface Game {

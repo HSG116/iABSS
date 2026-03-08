@@ -146,7 +146,7 @@ export const MusicalChairsGame: React.FC<MusicalChairsGameProps> = ({ onHome, is
       selectionDuration: 12,
       volume: 0.6,
       hideNumbers: false,
-      selectedSongs: SONGS_DB.map(s => s.id),
+      selectedSongs: SONGS_DB.filter(s => s.category === 'ramadan').map(s => s.id),
       selectedMap: ARENA_MAPS[0],
       autoProgress: false,
       eliminationCount: 1,
@@ -826,6 +826,32 @@ export const MusicalChairsGame: React.FC<MusicalChairsGameProps> = ({ onHome, is
                      <div className="glass-card p-6 rounded-[2.5rem] border border-white/5 flex flex-col shadow-2xl">
                         <div className="flex items-center justify-between mb-6">
                            <h3 className="text-xl font-black text-white flex items-center gap-4"><Music size={22} className="text-red-600" /> قائمة الموسيقى</h3>
+                        </div>
+                        <div className="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide">
+                           <button
+                              onClick={() => setConfig({ ...config, selectedSongs: SONGS_DB.filter(s => s.category === 'ramadan').map(s => s.id) })}
+                              className="px-4 py-2 rounded-xl bg-red-600/20 text-red-500 font-black text-[10px] hover:bg-red-600 hover:text-white transition-all border border-red-600/30 whitespace-nowrap"
+                           >
+                              🌙 الرمضانية فقط
+                           </button>
+                           <button
+                              onClick={() => setConfig({ ...config, selectedSongs: SONGS_DB.filter(s => s.category === 'regular').map(s => s.id) })}
+                              className="px-4 py-2 rounded-xl bg-white/5 text-gray-400 font-black text-[10px] hover:bg-white/10 hover:text-white transition-all border border-white/5 whitespace-nowrap"
+                           >
+                              🎵 العادية فقط
+                           </button>
+                           <button
+                              onClick={() => setConfig({ ...config, selectedSongs: SONGS_DB.map(s => s.id) })}
+                              className="px-4 py-2 rounded-xl bg-white/5 text-gray-400 font-black text-[10px] hover:bg-white/10 hover:text-white transition-all border border-white/5 whitespace-nowrap"
+                           >
+                              🔀 الكل المختلط
+                           </button>
+                           <button
+                              onClick={() => setConfig({ ...config, selectedSongs: [] })}
+                              className="px-4 py-2 rounded-xl bg-white/5 text-gray-400 font-black text-[10px] hover:bg-white/10 hover:text-white transition-all border border-white/5 whitespace-nowrap"
+                           >
+                              ❌ إلغاء الكل
+                           </button>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto custom-scrollbar pr-2 mb-6">
                            {SONGS_DB.map(song => (

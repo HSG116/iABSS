@@ -4,6 +4,79 @@ import { Category, Question, Song } from './types';
 // 🎵 Musical Chairs Songs (Updated & Expanded)
 // ==========================================
 export const SONGS_DB: Song[] = [
+  // --- Ramadan Songs (New) ---
+  {
+    id: 'ramadan_1',
+    title: 'جلا من سواه',
+    url: '/Music/Download (19).mp3',
+    category: 'ramadan'
+  },
+  {
+    id: 'ramadan_2',
+    title: 'قد أفطرت',
+    url: '/Music/Download (18).mp3',
+    category: 'ramadan'
+  },
+  {
+    id: 'ramadan_3',
+    title: 'يرتوي بالحب قلبي',
+    url: '/Music/Download (27).mp3',
+    category: 'ramadan'
+  },
+  {
+    id: 'ramadan_4',
+    title: 'عروس النور',
+    url: '/Music/Download (20).mp3',
+    category: 'ramadan'
+  },
+  {
+    id: 'ramadan_5',
+    title: 'كنت ميتاً في بحور الغي',
+    url: '/Music/Download (21).mp3',
+    category: 'ramadan'
+  },
+  {
+    id: 'ramadan_6',
+    title: 'يا حلماً أيقظ أشواقي',
+    url: '/Music/Download (25).mp3',
+    category: 'ramadan'
+  },
+  {
+    id: 'ramadan_7',
+    title: 'عن اللي صفح نصفح',
+    url: '/Music/Download (22).mp3',
+    category: 'ramadan'
+  },
+  {
+    id: 'ramadan_8',
+    title: 'القول قول الصوارم',
+    url: '/Music/Download (23).mp3',
+    category: 'ramadan'
+  },
+  {
+    id: 'ramadan_9',
+    title: 'ضم عرقاً في اليد',
+    url: '/Music/Download (24).mp3',
+    category: 'ramadan'
+  },
+  {
+    id: 'ramadan_10',
+    title: 'فبالله كم تستطب القروح',
+    url: '/Music/Download (26).mp3',
+    category: 'ramadan'
+  },
+  {
+    id: 'ramadan_11',
+    title: 'جمال الوجود',
+    url: '/Music/Download (28).mp3',
+    category: 'ramadan'
+  },
+  {
+    id: 'ramadan_12',
+    title: 'رقت عيناي شوقاً',
+    url: '/Music/Download (17).mp3',
+    category: 'ramadan'
+  },
   {
     id: 'song_13',
     title: 'محمود التركي - يمة حميد (حصرياً) _ Mahmood Al Turky - Yema Hamid (Exclusive) _ 2015',

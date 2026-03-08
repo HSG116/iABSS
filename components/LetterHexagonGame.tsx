@@ -103,6 +103,15 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
     const [lastAnswer, setLastAnswer] = useState<{ text: string, correct: boolean | null }>({ text: '', correct: null });
     const [linkCopied, setLinkCopied] = useState(false);
 
+    // Track winners per level
+    const [levelWinners, setLevelWinners] = useState<Record<number, 'team1' | 'team2'>>(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('iabs_letter_level_winners');
+            return saved ? JSON.parse(saved) : {};
+        }
+        return {};
+    });
+
     const channelRef = useRef<any>(null);
     const broadcastRef = useRef<any>(null);
 
@@ -387,6 +396,14 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
         setWinningPath(path);
         setStage('ended');
         playSfx('win');
+
+        // Save winner for current level
+        setLevelWinners(prev => {
+            const next = { ...prev, [currentLevel]: team };
+            localStorage.setItem('iabs_letter_level_winners', JSON.stringify(next));
+            return next;
+        });
+
         if (currentLevel < 100) {
             const next = currentLevel + 1;
             setCurrentLevel(next);
@@ -729,7 +746,20 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                 <h1 className="text-7xl font-black italic text-white drop-shadow-[0_5px_15px_rgba(0,0,0,0.5)] relative z-10">🗺️ خريطة العوالم</h1>
                                 <p className="text-indigo-400 font-bold text-sm tracking-[0.6em] mt-2 uppercase">Your Epic Journey Starts Here</p>
                             </div>
-                            <div className="flex flex-col items-end">
+                            <div className="flex items-center gap-6">
+                                {/* WIN COUNTER SUMMARY */}
+                                <div className="flex items-center bg-black/40 backdrop-blur-2xl px-8 py-3 rounded-2xl border border-white/10 shadow-2xl">
+                                    <div className="flex flex-col items-center">
+                                        <span className="text-[#FF6B52] font-black text-xs uppercase tracking-widest">فوز البنات</span>
+                                        <span className="text-white font-black text-3xl italic">{Object.values(levelWinners).filter(v => v === 'team1').length}</span>
+                                    </div>
+                                    <div className="w-px h-12 bg-white/10 mx-6"></div>
+                                    <div className="flex flex-col items-center">
+                                        <span className="text-[#14b8a6] font-black text-xs uppercase tracking-widest">فوز الأولاد</span>
+                                        <span className="text-white font-black text-3xl italic">{Object.values(levelWinners).filter(v => v === 'team2').length}</span>
+                                    </div>
+                                </div>
+
                                 <div className="px-10 py-4 bg-indigo-600 border-2 border-indigo-400/50 rounded-2xl text-white font-black text-2xl shadow-xl shadow-indigo-600/30">
                                     المستوى المفتوح: {highestUnlocked}
                                 </div>
@@ -794,7 +824,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                                                 onClick={() => { if (!isLocked) { setCurrentLevel(lvl); setStage('lobby'); } }}
                                                                 className={`relative w-48 h-80 transition-all duration-700 hover:scale-110 active:scale-95 flex flex-col items-center justify-center group ${isLocked ? 'cursor-not-allowed grayscale brightness-50' : 'cursor-pointer'}`}
                                                             >
-                                                                <div className={`relative z-20 w-24 h-24 rounded-[2rem] flex items-center justify-center font-black text-4xl border-4 shadow-3xl transition-all duration-700 transform ${isLocked ? 'bg-black/90 border-white/5 text-white/5 scale-90' : isCurrent ? 'bg-white border-white text-black scale-125 shadow-[0_0_60px_rgba(255,255,255,0.7)] rotate-3' : isCompleted ? 'bg-indigo-600 border-indigo-400 text-white' : 'bg-[#151525] border-white/10 text-white/40 group-hover:text-white'}`}>
+                                                                <div className={`relative z-20 w-24 h-24 rounded-[2rem] flex items-center justify-center font-black text-4xl border-4 shadow-3xl transition-all duration-700 transform ${isLocked ? 'bg-black/90 border-white/5 text-white/5 scale-90' : isCurrent ? 'bg-white border-white text-black scale-125 shadow-[0_0_60px_rgba(255,255,255,0.7)] rotate-3' : isCompleted ? (levelWinners[lvl] === 'team1' ? 'bg-[#FF6B52] border-[#ffb4a2] text-white shadow-[#FF6B52]/40 shadow-xl' : 'bg-[#14b8a6] border-[#7dede1] text-white shadow-[#14b8a6]/40 shadow-xl') : 'bg-[#151525] border-white/10 text-white/40 group-hover:text-white'}`}>
                                                                     {isLocked ? <Shield size={32} /> : isCompleted ? <Check size={40} strokeWidth={4} /> : lvl}
                                                                     {!isLocked && (
                                                                         <div className="absolute top-full left-1/2 -translate-x-1/2 w-1 h-20 bg-gradient-to-b from-white/40 to-transparent blur-[1px]"></div>
