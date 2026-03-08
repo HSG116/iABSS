@@ -210,12 +210,8 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
                         referrerPolicy="no-referrer"
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center font-black text-white/20 text-3xl bg-white/5 uppercase select-none">
-                        <img
-                            src={`https://ui-avatars.com/api/?name=${uLower || '?'}&background=random&color=fff&bold=true`}
-                            className="w-full h-full object-cover opacity-60"
-                            alt={uLower}
-                        />
+                    <div className="w-full h-full flex items-center justify-center font-black text-white/10 text-3xl bg-white/5 uppercase select-none">
+                        <User size={size.includes('w-10') ? 20 : 32} className="opacity-20" />
                     </div>
                 )}
                 {isRefreshing && (

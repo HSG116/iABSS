@@ -215,10 +215,10 @@ class ChatService {
       try {
         const proxies = [
           `https://decapi.me/kick/avatar/${slug}`,
-          `https://api.allorigins.win/get?url=${encodeURIComponent(`https://kick.com/api/v2/channels/${slug}`)}&disableCache=true`,
-          `https://corsproxy.io/?${encodeURIComponent(`https://kick.com/api/v2/channels/${slug}`)}`,
-          `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(`https://kick.com/api/v2/channels/${slug}`)}`,
-          `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(`https://kick.com/api/v1/channels/${slug}`)}`
+          `https://api.allorigins.win/get?url=${encodeURIComponent(`https://kick.com/api/v1/channels/${slug}`)}&disableCache=true`,
+          `https://corsproxy.io/?${encodeURIComponent(`https://kick.com/api/v1/channels/${slug}`)}`,
+          `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(`https://kick.com/api/v1/channels/${slug}`)}`,
+          `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(`https://kick.com/api/v2/channels/${slug}`)}`
         ];
 
         for (const proxyUrl of proxies) {
@@ -250,16 +250,18 @@ class ChatService {
                 data = rawData;
               }
 
-              // Try multiple possible paths for the avatar URL
+              // Exhaustive check for avatar paths in v1 and v2 responses
               avatar = data.user?.profile_pic ||
                 data.user?.profilepic ||
                 data.profile_pic ||
                 data.user?.avatar?.url ||
                 data.user?.avatar ||
-                data.chatroom?.sender?.profile_pic || '';
+                data.avatar_url ||
+                (data.chatroom?.sender?.profile_pic) ||
+                (data.livestream?.thumbnail?.url) || '';
             }
 
-            if (avatar && avatar.length > 5) {
+            if (avatar && avatar.length > 10) {
               // Ensure it's a full URL
               let finalAvatar = avatar;
               if (finalAvatar.startsWith('//')) finalAvatar = 'https:' + finalAvatar;
