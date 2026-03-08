@@ -219,8 +219,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       error = res.error;
     }
 
-    if (error) showStatus('حدث خطأ', true);
-    else {
+    if (error) {
+      console.error("[AdminAction] Stat adjustment failed:", error);
+      showStatus('حدث خطأ: ' + (typeof error === 'string' ? error : (error.message || 'فشلت العملية')), true);
+    } else {
       showStatus(`تم تحديث بيانات ${targetUser}`);
       fetchData();
     }
@@ -526,18 +528,32 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                       </div>
 
                       <div className="space-y-12">
+                        {/* Current Stats Overview */}
+                        <div className="flex items-center gap-6 md:gap-8">
+                          {[
+                            { label: 'الرصيد§', value: profiles.find(p => p.username === targetUser)?.credits || 0, color: 'text-kick-green' },
+                            { label: 'النقاط★', value: profiles.find(p => p.username === targetUser)?.score || 0, color: 'text-blue-500' },
+                            { label: 'الفوز🏆', value: profiles.find(p => p.username === targetUser)?.wins || 0, color: 'text-yellow-500' }
+                          ].map((stat, i) => (
+                            <div key={i} className="flex-1 bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-6 text-center shadow-inner">
+                              <p className="text-[9px] font-black text-zinc-600 uppercase mb-2 tracking-widest">{stat.label}</p>
+                              <p className={`text-3xl font-black italic ${stat.color}`}>{stat.value.toLocaleString()}</p>
+                            </div>
+                          ))}
+                        </div>
+
                         {/* Precision Input Module */}
                         <div className="bg-black border border-white/5 rounded-[4.5rem] p-12 flex flex-col items-center gap-10 shadow-inner md:relative">
                           <span className="text-[9px] font-black text-zinc-700 uppercase tracking-[0.8em]">Adjusting Value Interface</span>
                           <div className="flex items-center gap-14">
-                            <button onClick={() => setPointDelta(Math.max(1, pointDelta - 10))} className="w-24 h-24 flex items-center justify-center bg-white/5 border border-white/5 rounded-[2rem] hover:bg-white/10 transition-all text-4xl font-black shadow-xl">-</button>
+                            <button onClick={() => setPointDelta(Math.max(1, (Number(pointDelta) || 0) - 10))} className="w-24 h-24 flex items-center justify-center bg-white/5 border border-white/5 rounded-[2rem] hover:bg-white/10 transition-all text-4xl font-black shadow-xl">-</button>
                             <input
                               type="number"
                               value={pointDelta}
                               onChange={(e) => setPointDelta(Number(e.target.value))}
                               className={`w-56 bg-transparent text-center text-7xl md:text-9xl font-black outline-none tracking-tighter [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none transition-colors duration-500 ${statType === 'points' ? 'text-blue-500' : statType === 'wins' ? 'text-yellow-500' : 'text-kick-green'}`}
                             />
-                            <button onClick={() => setPointDelta(pointDelta + 10)} className="w-24 h-24 flex items-center justify-center bg-white/5 border border-white/5 rounded-[2rem] hover:bg-white/10 transition-all text-4xl font-black shadow-xl">+</button>
+                            <button onClick={() => setPointDelta((Number(pointDelta) || 0) + 10)} className="w-24 h-24 flex items-center justify-center bg-white/5 border border-white/5 rounded-[2rem] hover:bg-white/10 transition-all text-4xl font-black shadow-xl">+</button>
                           </div>
 
                           {/* Fast Injection Buttons */}
