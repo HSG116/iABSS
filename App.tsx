@@ -505,9 +505,9 @@ const App: React.FC = () => {
                     <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
                       <Medal size={80} className="text-slate-400" />
                     </div>
-                    <div className="mb-6 relative">
-                      <ProAvatar url={leaderboardData[1].avatar_url} username={leaderboardData[1].username} frameUrl={leaderboardData[1].active_frame_url} size="w-24 h-24" />
-                      <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-slate-400 text-black flex items-center justify-center font-black text-xl border-4 border-black">2</div>
+                    <div className="mb-6 relative group/avatar">
+                      <ProAvatar url={leaderboardData[1].avatar_url} username={leaderboardData[1].username} frameUrl={leaderboardData[1].active_frame_url} size="w-24 h-24" className="shadow-2xl" />
+                      <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-slate-400 text-black flex items-center justify-center font-black text-xl border-4 border-black z-[110] shadow-lg">2</div>
                     </div>
                     <div className="text-2xl font-black text-white mb-2">{leaderboardData[1].username}</div>
                     <div className="flex gap-4">
@@ -524,10 +524,10 @@ const App: React.FC = () => {
                     <div className="absolute -top-10 animate-float opacity-30">
                       <Crown size={120} className="text-yellow-500 blur-sm" />
                     </div>
-                    <div className="mb-8 relative z-10">
+                    <div className="mb-8 relative z-10 group/avatar">
                       <div className="absolute -inset-4 bg-yellow-500/20 blur-2xl rounded-full animate-pulse" />
-                      <ProAvatar url={leaderboardData[0].avatar_url} username={leaderboardData[0].username} frameUrl={leaderboardData[0].active_frame_url} size="w-32 h-32" />
-                      <div className="absolute -bottom-2 -right-2 w-12 h-12 rounded-full bg-yellow-500 text-black flex items-center justify-center font-black text-2xl border-4 border-black animate-bounce">1</div>
+                      <ProAvatar url={leaderboardData[0].avatar_url} username={leaderboardData[0].username} frameUrl={leaderboardData[0].active_frame_url} size="w-32 h-32" className="shadow-[0_0_30px_rgba(234,179,8,0.3)]" />
+                      <div className="absolute -bottom-2 -right-2 w-12 h-12 rounded-full bg-yellow-500 text-black flex items-center justify-center font-black text-2xl border-4 border-black animate-bounce z-[110] shadow-lg">1</div>
                     </div>
                     <div className="text-4xl font-black text-white italic mb-3 drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]">{leaderboardData[0].username}</div>
                     <div className="flex gap-6 relative z-10 bg-black/40 px-6 py-2 rounded-full border border-yellow-500/20">
@@ -544,9 +544,9 @@ const App: React.FC = () => {
                     <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
                       <Medal size={60} className="text-orange-700" />
                     </div>
-                    <div className="mb-6 relative">
-                      <ProAvatar url={leaderboardData[2].avatar_url} username={leaderboardData[2].username} frameUrl={leaderboardData[2].active_frame_url} size="w-20 h-20" />
-                      <div className="absolute -bottom-2 -right-2 w-9 h-9 rounded-full bg-orange-700 text-white flex items-center justify-center font-black text-lg border-4 border-black">3</div>
+                    <div className="mb-6 relative group/avatar">
+                      <ProAvatar url={leaderboardData[2].avatar_url} username={leaderboardData[2].username} frameUrl={leaderboardData[2].active_frame_url} size="w-20 h-20" className="shadow-xl" />
+                      <div className="absolute -bottom-2 -right-2 w-9 h-9 rounded-full bg-orange-700 text-white flex items-center justify-center font-black text-lg border-4 border-black z-[110] shadow-md">3</div>
                     </div>
                     <div className="text-xl font-black text-white mb-2">{leaderboardData[2].username}</div>
                     <div className="flex gap-4">

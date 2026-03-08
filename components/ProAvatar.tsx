@@ -35,10 +35,14 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
         const fetchAvatar = async () => {
             if (!uLower) return;
 
-            // Direct Prop
+            // Direct Prop - check if it looks like a stale Kick URL
             if (url && url.length > 5) {
-                setSrc(url);
-                return;
+                const isStaleKick = url.includes('kick.com/api/') || (url.includes('kick.com/storage') && !url.includes('files.kick.com'));
+                if (!isStaleKick) {
+                    setSrc(url);
+                    return;
+                }
+                // If it's a stale Kick URL, we continue to check cache then database then fetch
             }
 
             // Memory Cache
@@ -155,17 +159,33 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
     const handleAvatarError = async () => {
         if (isRefreshing || !uLower) return;
         setIsRefreshing(true);
+        console.warn(`[ProAvatar] Avatar load error for ${uLower}, attempting recovery...`);
         try {
+            // First check if we have a cached alternative that isn't the current one
+            const stored = localStorage.getItem(`av_${uLower}`);
+            if (stored && stored !== src) {
+                setSrc(stored);
+                setIsRefreshing(false);
+                return;
+            }
+
             const fresh = await chatService.fetchKickAvatar(uLower);
             if (fresh) {
+                console.log(`[ProAvatar] Successfully recovered avatar for ${uLower}: ${fresh}`);
                 setSrc(fresh);
                 localStorage.setItem(`av_${uLower}`, fresh);
                 avatarCache[uLower] = fresh;
-                await supabase.from('profiles').update({ avatar_url: fresh }).ilike('username', uLower);
+                // Try to update DB, but don't fail if permissions are missing
+                try {
+                    await supabase.from('profiles').update({ avatar_url: fresh }).ilike('username', uLower);
+                } catch (dbErr) {
+                    console.warn(`[ProAvatar] Could not persist new avatar to DB (probably permissions): ${dbErr}`);
+                }
             } else {
                 setSrc(undefined); // Clear to show fallback
             }
         } catch (e) {
+            console.error(`[ProAvatar] Recovery failed for ${uLower}:`, e);
             setSrc(undefined);
         } finally {
             setIsRefreshing(false);
@@ -190,8 +210,12 @@ export const ProAvatar: React.FC<ProAvatarProps> = ({
                         referrerPolicy="no-referrer"
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center font-black text-white/10 text-3xl bg-white/5 uppercase select-none">
-                        {uLower ? uLower[0] : '?'}
+                    <div className="w-full h-full flex items-center justify-center font-black text-white/20 text-3xl bg-white/5 uppercase select-none">
+                        <img
+                            src={`https://ui-avatars.com/api/?name=${uLower || '?'}&background=random&color=fff&bold=true`}
+                            className="w-full h-full object-cover opacity-60"
+                            alt={uLower}
+                        />
                     </div>
                 )}
                 {isRefreshing && (

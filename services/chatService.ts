@@ -217,11 +217,13 @@ class ChatService {
           `https://decapi.me/kick/avatar/${slug}`,
           `https://api.allorigins.win/get?url=${encodeURIComponent(`https://kick.com/api/v2/channels/${slug}`)}&disableCache=true`,
           `https://corsproxy.io/?${encodeURIComponent(`https://kick.com/api/v2/channels/${slug}`)}`,
-          `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(`https://kick.com/api/v2/channels/${slug}`)}`
+          `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(`https://kick.com/api/v2/channels/${slug}`)}`,
+          `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(`https://kick.com/api/v1/channels/${slug}`)}`
         ];
 
         for (const proxyUrl of proxies) {
           try {
+            console.log(`[ChatService] Trying proxy for ${slug}: ${proxyUrl}`);
             const response = await fetch(proxyUrl, {
               cache: 'no-store',
               headers: { 'Accept': 'application/json, text/plain' }
@@ -248,15 +250,25 @@ class ChatService {
                 data = rawData;
               }
 
+              // Try multiple possible paths for the avatar URL
               avatar = data.user?.profile_pic ||
                 data.user?.profilepic ||
                 data.profile_pic ||
-                data.user?.avatar?.url || '';
+                data.user?.avatar?.url ||
+                data.user?.avatar ||
+                data.chatroom?.sender?.profile_pic || '';
             }
 
-            if (avatar && avatar.includes('http')) {
-              // Ensure files.kick.com is used
-              const finalAvatar = avatar.replace('https://kick.com/', 'https://files.kick.com/');
+            if (avatar && avatar.length > 5) {
+              // Ensure it's a full URL
+              let finalAvatar = avatar;
+              if (finalAvatar.startsWith('//')) finalAvatar = 'https:' + finalAvatar;
+              if (finalAvatar.startsWith('/')) finalAvatar = 'https://kick.com' + finalAvatar;
+
+              // Ensure files.kick.com is used for kick.com domain images to bypass some blocks
+              finalAvatar = finalAvatar.replace('https://kick.com/', 'https://files.kick.com/');
+
+              console.log(`[ChatService] ✅ Found avatar for ${slug}: ${finalAvatar}`);
               this.avatarCache[slug] = finalAvatar;
               return finalAvatar;
             }

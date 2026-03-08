@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { leaderboardService, adminService, supabase } from '../services/supabase';
 import { chatService } from '../services/chatService';
+import { ProAvatar } from './ProAvatar';
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -318,8 +319,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     {profiles.slice(0, 5).map(p => (
                       <div key={p.id} className="bg-black/40 p-5 rounded-2xl flex items-center justify-between border border-white/[0.03]">
                         <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-xl bg-zinc-900 overflow-hidden">
-                            {p.avatar_url ? <img src={p.avatar_url} className="w-full h-full object-cover" referrerPolicy="no-referrer" /> : <Users2 size={20} className="w-full h-full p-2 text-white/10" />}
+                          <div className="shrink-0">
+                            <ProAvatar url={p.avatar_url} username={p.username} size="w-10 h-10" />
                           </div>
                           <span className="font-black italic">{p.username}</span>
                         </div>
@@ -378,8 +379,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                       <tr key={p.id} className="hover:bg-white/[0.03] transition-all group">
                         <td className="p-6">
                           <div className="flex items-center gap-6">
-                            <div className="w-16 h-16 rounded-[1.5rem] bg-zinc-950 border border-white/10 overflow-hidden shrink-0 group-hover:scale-110 transition-transform">
-                              {p.avatar_url ? <img src={p.avatar_url} className="w-full h-full object-cover" referrerPolicy="no-referrer" /> : <Users2 className="w-full h-full p-4 text-white/5" />}
+                            <div className="shrink-0 group-hover:scale-110 transition-transform">
+                              <ProAvatar url={p.avatar_url} username={p.username} size="w-16 h-16" />
                             </div>
                             <div>
                               <div className={`text-xl font-black italic ${p.is_banned ? 'text-zinc-700 line-through' : 'text-white'}`}>{p.username}</div>
@@ -505,9 +506,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                 {profiles.filter(p => p.is_banned).map(p => (
                   <div key={p.id} className="glass-card p-8 rounded-3xl border border-red-900/40 bg-red-950/5 flex items-center justify-between group hover:border-red-500/40 transition-all">
                     <div className="flex items-center gap-8">
-                      <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-red-600/20 flex items-center justify-center relative overflow-hidden">
-                        {p.avatar_url ? <img src={p.avatar_url} className="w-full h-full object-cover opacity-30 blur-[2px]" referrerPolicy="no-referrer" /> : <Ban size={32} className="text-red-900" />}
-                        <Ban size={24} className="absolute text-red-600 drop-shadow-xl" />
+                      <div className="relative group-hover:scale-110 transition-transform">
+                        <ProAvatar url={p.avatar_url} username={p.username} size="w-16 h-16" className="opacity-40 grayscale" />
+                        <Ban size={24} className="absolute inset-0 m-auto text-red-600 drop-shadow-xl z-20" />
                       </div>
                       <div>
                         <div className="text-2xl font-black text-white italic">{p.username}</div>
