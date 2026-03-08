@@ -478,49 +478,92 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                 </table>
               </div>
 
-              {/* Stats Injector Overlay (Always present at bottom or side) */}
+              {/* Full-Screen Stats Edit Mode (Dedicated Page UI) */}
               {targetUser && (
-                <div className="fixed bottom-10 right-10 z-[100] animate-in slide-in-from-right-20 duration-500">
-                  <div className="glass-card p-10 rounded-[3.5rem] border border-blue-500/30 bg-black/95 shadow-[0_30px_100px_rgba(0,0,0,1)] w-[420px] relative overflow-hidden">
-                    <div className={`absolute top-0 left-0 w-full h-1.5 shadow-[0_0_20px_rgba(37,99,235,0.5)] ${statType === 'points' ? 'bg-blue-600' : statType === 'wins' ? 'bg-yellow-500' : 'bg-kick-green'}`}></div>
-                    <button onClick={() => setTargetUser('')} className="absolute top-8 left-8 text-zinc-500 hover:text-white p-2 hover:bg-white/5 rounded-full transition-all"><X size={20} /></button>
+                <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 md:p-10 animate-in fade-in duration-300">
+                  {/* Glass Backdrop */}
+                  <div className="absolute inset-0 bg-black/60 backdrop-blur-2xl" onClick={() => setTargetUser('')}></div>
 
-                    <div className="flex items-center gap-6 mb-8 mt-2">
-                      <ProAvatar url={profiles.find(p => p.username === targetUser)?.avatar_url} username={targetUser} size="w-16 h-16" />
-                      <div className="flex-1 overflow-hidden">
-                        <h3 className="text-2xl font-black italic text-white truncate">{targetUser}</h3>
-                        <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest leading-none mt-1">Player Injection Mode</p>
-                      </div>
-                    </div>
+                  {/* Modal Page Container */}
+                  <div className="relative w-full max-w-3xl bg-[#0a0a0a] rounded-[4rem] border border-white/10 shadow-[0_50px_200px_rgba(0,0,0,1)] overflow-hidden animate-in zoom-in-95 duration-500">
+                    {/* Dynamic Glow bar */}
+                    <div className={`h-2 w-full transition-all duration-500 ${statType === 'points' ? 'bg-blue-600 shadow-[0_0_40px_rgba(37,99,235,0.8)]' : statType === 'wins' ? 'bg-yellow-500 shadow-[0_0_40px_rgba(234,179,8,0.8)]' : 'bg-kick-green shadow-[0_0_40px_rgba(83,252,24,0.8)]'}`}></div>
 
-                    <div className="space-y-8">
-                      <div className="space-y-4">
-                        <div className="flex gap-2 p-1 bg-white/5 rounded-2xl border border-white/10">
-                          <button onClick={() => setStatType('points')} className={`flex-1 py-3 text-[10px] font-black rounded-xl transition-all ${statType === 'points' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-zinc-500 hover:text-white'}`}>POINTS</button>
-                          <button onClick={() => setStatType('wins')} className={`flex-1 py-3 text-[10px] font-black rounded-xl transition-all ${statType === 'wins' ? 'bg-yellow-500 text-black shadow-lg shadow-yellow-500/20' : 'text-zinc-500 hover:text-white'}`}>WINS</button>
-                          <button onClick={() => setStatType('credits')} className={`flex-1 py-3 text-[10px] font-black rounded-xl transition-all ${statType === 'credits' ? 'bg-kick-green text-black shadow-lg shadow-green-500/20' : 'text-zinc-500 hover:text-white'}`}>CREDITS</button>
+                    <div className="p-12 md:p-16 space-y-12">
+                      {/* Header Section */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-8">
+                          <div className="relative group">
+                            <div className={`absolute inset-0 blur-3xl opacity-40 rounded-full transition-opacity ${statType === 'points' ? 'bg-blue-600' : statType === 'wins' ? 'bg-yellow-500' : 'bg-kick-green'}`}></div>
+                            <ProAvatar url={profiles.find(p => p.username === targetUser)?.avatar_url} username={targetUser} size="w-24 h-24" className="relative z-10 border-2 border-white/10 shadow-2xl" />
+                          </div>
+                          <div>
+                            <h2 className="text-4xl md:text-5xl font-black italic text-white tracking-tighter mb-2">{targetUser}</h2>
+                            <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.6em] flex items-center gap-3 italic">
+                              <Fingerprint size={16} className="text-red-600 animate-pulse" /> Admin Control Protocol
+                            </p>
+                          </div>
                         </div>
-
-                        <div className="flex items-center gap-4 bg-black border border-white/5 rounded-2xl p-4">
-                          <button onClick={() => setPointDelta(Math.max(1, pointDelta - 10))} className="w-12 h-12 flex items-center justify-center bg-white/5 rounded-xl hover:bg-white/10 transition-all font-black">-</button>
-                          <input type="number" value={pointDelta} onChange={(e) => setPointDelta(Number(e.target.value))} className="flex-1 bg-transparent text-center text-3xl text-white font-black outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-                          <button onClick={() => setPointDelta(pointDelta + 10)} className="w-12 h-12 flex items-center justify-center bg-white/5 rounded-xl hover:bg-white/10 transition-all font-black">+</button>
-                        </div>
-
-                        <div className="grid grid-cols-4 gap-2">
-                          {[1, 5, 20, 100].map(val => (
-                            <button key={val} onClick={() => handleAdjustStats(true, val)} className="py-3 bg-white/[0.03] border border-white/5 rounded-xl text-[10px] font-black hover:bg-white/10 transition-all">+{val}</button>
-                          ))}
-                        </div>
+                        <button onClick={() => setTargetUser('')} className="w-16 h-16 bg-white/5 hover:bg-red-600 hover:text-white rounded-[2rem] flex items-center justify-center transition-all shadow-xl active:scale-95"><X size={32} /></button>
                       </div>
 
-                      <div className="flex gap-4">
-                        <button onClick={() => handleAdjustStats(true)} className={`flex-2 py-6 font-black rounded-3xl shadow-xl active:scale-95 transition-all text-xl italic uppercase tracking-wider flex-1 ${statType === 'points' ? 'bg-blue-600 text-white' : statType === 'wins' ? 'bg-yellow-500 text-black' : 'bg-kick-green text-black'}`}>
-                          Apply Update
-                        </button>
-                        <button onClick={() => handleAdjustStats(false)} className="w-20 py-6 bg-red-600/10 text-red-500 border border-red-500/20 rounded-3xl flex items-center justify-center hover:bg-red-600 hover:text-white transition-all group" title="Subtract Value">
-                          <UserMinus size={24} className="group-hover:scale-110 transition-transform" />
-                        </button>
+                      {/* Control Modules (Tabs) */}
+                      <div className="grid grid-cols-3 gap-6 p-2 bg-white/[0.02] border border-white/5 rounded-[3rem]">
+                        {[
+                          { id: 'points', label: 'النقاط', icon: Trophy, activeColor: 'bg-blue-600' },
+                          { id: 'wins', label: 'الفوز', icon: Star, activeColor: 'bg-yellow-500' },
+                          { id: 'credits', label: 'الرصيد', icon: Zap, activeColor: 'bg-kick-green' }
+                        ].map(tab => (
+                          <button
+                            key={tab.id}
+                            onClick={() => setStatType(tab.id as any)}
+                            className={`flex flex-col items-center gap-3 py-7 rounded-[2.5rem] transition-all duration-300 ${statType === tab.id ? `${tab.activeColor} ${tab.id === 'points' ? 'text-white' : 'text-black'} shadow-2xl scale-105` : 'text-zinc-500 hover:text-white hover:bg-white/5'}`}
+                          >
+                            <tab.icon size={28} />
+                            <span className="text-[10px] font-black uppercase tracking-widest">{tab.label}</span>
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className="space-y-12">
+                        {/* Precision Input Module */}
+                        <div className="bg-black border border-white/5 rounded-[4.5rem] p-12 flex flex-col items-center gap-10 shadow-inner md:relative">
+                          <span className="text-[9px] font-black text-zinc-700 uppercase tracking-[0.8em]">Adjusting Value Interface</span>
+                          <div className="flex items-center gap-14">
+                            <button onClick={() => setPointDelta(Math.max(1, pointDelta - 10))} className="w-24 h-24 flex items-center justify-center bg-white/5 border border-white/5 rounded-[2rem] hover:bg-white/10 transition-all text-4xl font-black shadow-xl">-</button>
+                            <input
+                              type="number"
+                              value={pointDelta}
+                              onChange={(e) => setPointDelta(Number(e.target.value))}
+                              className={`w-56 bg-transparent text-center text-7xl md:text-9xl font-black outline-none tracking-tighter [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none transition-colors duration-500 ${statType === 'points' ? 'text-blue-500' : statType === 'wins' ? 'text-yellow-500' : 'text-kick-green'}`}
+                            />
+                            <button onClick={() => setPointDelta(pointDelta + 10)} className="w-24 h-24 flex items-center justify-center bg-white/5 border border-white/5 rounded-[2rem] hover:bg-white/10 transition-all text-4xl font-black shadow-xl">+</button>
+                          </div>
+
+                          {/* Fast Injection Buttons */}
+                          <div className="flex flex-wrap justify-center gap-3 w-full max-w-xl">
+                            {[1, 5, 20, 50, 100, 500, 1000].map(val => (
+                              <button key={val} onClick={() => handleAdjustStats(true, val)} className="px-10 py-5 bg-white/[0.03] border border-white/5 rounded-2xl text-xs font-black hover:bg-white/10 hover:border-white/20 transition-all shadow-md">+{val}</button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Primary Actions Footer */}
+                        <div className="flex gap-8">
+                          <button
+                            onClick={() => handleAdjustStats(true)}
+                            className={`flex-[3] py-11 rounded-[3.5rem] font-black text-3xl italic uppercase tracking-widest transition-all active:scale-95 shadow-[0_25px_80px_rgba(0,0,0,0.4)] ${statType === 'points' ? 'bg-blue-600 text-white shadow-blue-500/20' : statType === 'wins' ? 'bg-yellow-500 text-black shadow-yellow-500/20' : 'bg-kick-green text-black shadow-green-500/20'}`}
+                          >
+                            تأكيد الإضافة
+                          </button>
+                          <button
+                            onClick={() => handleAdjustStats(false)}
+                            className="flex-1 py-11 bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white border-2 border-red-500/20 rounded-[3.5rem] font-black flex items-center justify-center gap-5 transition-all active:scale-95 shadow-xl group"
+                          >
+                            <UserMinus size={40} className="group-hover:scale-110 transition-transform" />
+                            <span className="hidden lg:inline text-xl italic font-black uppercase tracking-wider">خصم</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
