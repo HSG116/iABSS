@@ -276,17 +276,23 @@ const App: React.FC = () => {
   // Security Check for Admin Panel
   useEffect(() => {
     if (currentView === 'ADMIN_PANEL') {
+      if (userRole === 'admin') {
+        const adminAuth = localStorage.getItem('admin_access_granted');
+        if (!adminAuth) {
+          const siteAuth = localStorage.getItem('site_access_granted');
+          if (siteAuth) localStorage.setItem('admin_access_granted', siteAuth);
+        }
+        return;
+      }
       try {
         const stored = localStorage.getItem('admin_access_granted');
         const parsed = stored ? JSON.parse(stored) : null;
-        if (!parsed || !parsed.valid) {
-          setCurrentView('ADMIN_LOGIN');
-        }
+        if (!parsed || !parsed.valid) setCurrentView('ADMIN_LOGIN');
       } catch (e) {
         setCurrentView('ADMIN_LOGIN');
       }
     }
-  }, [currentView]);
+  }, [currentView, userRole]);
 
   // PROTECTION: Prevent regular users from accessing the HOME page
   useEffect(() => {
@@ -324,6 +330,7 @@ const App: React.FC = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('site_access_granted');
+    localStorage.removeItem('admin_access_granted');
     localStorage.removeItem('iabs_user');
     setIsAuthorized(false);
     setUserRole('admin');
@@ -838,7 +845,20 @@ const App: React.FC = () => {
                 لوحة الصدارة
               </button>
 
-              <button onClick={() => setCurrentView('ADMIN_LOGIN')} className="flex items-center gap-4 text-white/10 hover:text-white/40 font-black text-2xl tracking-[0.2em] transition-all hover:scale-105 group border-l-4 border-white/5 pl-10 md:pl-20 italic">
+              <button
+                onClick={() => {
+                  if (userRole === 'admin') {
+                    const siteAuth = localStorage.getItem('site_access_granted');
+                    if (siteAuth) {
+                      localStorage.setItem('admin_access_granted', siteAuth);
+                      setCurrentView('ADMIN_PANEL');
+                      return;
+                    }
+                  }
+                  setCurrentView('ADMIN_LOGIN');
+                }}
+                className="flex items-center gap-4 text-white/10 hover:text-white/40 font-black text-2xl tracking-[0.2em] transition-all hover:scale-105 group border-l-4 border-white/5 pl-10 md:pl-20 italic"
+              >
                 <ShieldCheck size={28} className="group-hover:text-blue-500 transition-colors" />
                 الإدارة
               </button>

@@ -47,7 +47,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
   useEffect(() => {
     const validateSession = async () => {
-      const raw = localStorage.getItem('admin_access_granted');
+      let raw = localStorage.getItem('admin_access_granted');
+
+      // Fallback: Check if we can sync from site_access_granted
+      if (!raw) {
+        const siteAuth = localStorage.getItem('site_access_granted');
+        if (siteAuth) {
+          const parsedSite = JSON.parse(siteAuth);
+          if (parsedSite.role === 'admin') {
+            localStorage.setItem('admin_access_granted', siteAuth);
+            raw = siteAuth;
+          }
+        }
+      }
+
       let token: string | null = null;
       if (raw) {
         try {
@@ -55,14 +68,33 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
           token = parsed?.token || null;
         } catch { }
       }
-      const { data } = await supabase
+
+      const { data, error } = await supabase
         .from('app_config')
         .select('value')
         .eq('key', 'admin_password')
-        .single();
-      if (!data || !token || token !== data.value) {
-        localStorage.removeItem('admin_access_granted');
-        onLogout();
+        .maybeSingle();
+
+      if (error) {
+        console.warn("[AdminAuth] Supabase check failed, skipping validation to prevent kick.");
+        return;
+      }
+
+      if (data && token) {
+        const dbPass = String(data.value).trim();
+        const sessionPass = String(token).trim();
+
+        console.log("[AdminAuth] Validating Session:", { sessionPass: "***", dbPass: "***", match: sessionPass === dbPass });
+
+        if (sessionPass !== dbPass) {
+          console.error("[AdminAuth] Password mismatch detected. Revoking access.");
+          localStorage.removeItem('admin_access_granted');
+          onLogout();
+        } else {
+          console.log("[AdminAuth] Session validated successfully.");
+        }
+      } else {
+        console.log("[AdminAuth] Validation skipped: data or token missing (syncing...)");
       }
     };
     validateSession();
