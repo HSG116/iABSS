@@ -6,7 +6,7 @@ import {
   Megaphone, Activity, History, Settings, Users,
   Zap, Palette, Eye, EyeOff, RotateCw, Trophy,
   Music, Sparkles, Wind, Flame, Ticket, Fingerprint,
-  Users2, Gavel, Radio, LayoutDashboard, Terminal, X
+  Users2, Gavel, Radio, LayoutDashboard, Terminal, X, Clock
 } from 'lucide-react';
 import { leaderboardService, adminService, supabase } from '../services/supabase';
 import { chatService } from '../services/chatService';
@@ -565,20 +565,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         </div>
 
                         {/* Primary Actions Footer */}
-                        <div className="flex gap-8">
-                          <button
-                            onClick={() => handleAdjustStats(true)}
-                            className={`flex-[3] py-11 rounded-[3.5rem] font-black text-3xl italic uppercase tracking-widest transition-all active:scale-95 shadow-[0_25px_80px_rgba(0,0,0,0.4)] ${statType === 'points' ? 'bg-blue-600 text-white shadow-blue-500/20' : statType === 'wins' ? 'bg-yellow-500 text-black shadow-yellow-500/20' : 'bg-kick-green text-black shadow-green-500/20'}`}
-                          >
-                            تأكيد الإضافة
-                          </button>
-                          <button
-                            onClick={() => handleAdjustStats(false)}
-                            className="flex-1 py-11 bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white border-2 border-red-500/20 rounded-[3.5rem] font-black flex items-center justify-center gap-5 transition-all active:scale-95 shadow-xl group"
-                          >
-                            <UserMinus size={40} className="group-hover:scale-110 transition-transform" />
-                            <span className="hidden lg:inline text-xl italic font-black uppercase tracking-wider">خصم</span>
-                          </button>
+                        <div className="flex flex-col gap-6">
+                          <div className="flex gap-8">
+                            <button
+                              onClick={() => handleAdjustStats(true)}
+                              className={`flex-[3] py-11 rounded-[3.5rem] font-black text-3xl italic uppercase tracking-widest transition-all active:scale-95 shadow-[0_25px_80px_rgba(0,0,0,0.4)] ${statType === 'points' ? 'bg-blue-600 text-white shadow-blue-500/20' : statType === 'wins' ? 'bg-yellow-500 text-black shadow-yellow-500/20' : 'bg-kick-green text-black shadow-green-500/20'}`}
+                            >
+                              تأكيد الإضافة
+                            </button>
+                            <button
+                              onClick={() => handleAdjustStats(false)}
+                              className="flex-1 py-11 bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white border-2 border-red-500/20 rounded-[3.5rem] font-black flex items-center justify-center gap-5 transition-all active:scale-95 shadow-xl group"
+                            >
+                              <UserMinus size={40} className="group-hover:scale-110 transition-transform" />
+                              <span className="hidden lg:inline text-xl italic font-black uppercase tracking-wider">خصم</span>
+                            </button>
+                          </div>
+
+                          {/* Sync Notice */}
+                          <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-5 flex items-center justify-center gap-4 animate-pulse">
+                            <Clock size={20} className="text-zinc-600" />
+                            <p className="text-sm font-black text-zinc-500 tracking-tighter italic">سوف يتم تحديث النقاط بعد 6 ثواني</p>
+                          </div>
                         </div>
                       </div>
                     </div>
