@@ -8,46 +8,61 @@ import { ProAvatar } from './ProAvatar';
 import fawazirTxt from '../fawazir.txt?raw';
 
 const parseFawazir = (txt: string): Question[] => {
-  const lines = txt.split('\n');
   const questions: Question[] = [];
   let currentQuestion: any = null;
   const optionLetterToIndex: Record<string, number> = { 'A': 0, 'B': 1, 'C': 2, 'D': 3 };
+
+  // Split by question indicators (Numbers followed by dot or dash at start of line)
+  const lines = txt.split('\n');
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
     if (!line) continue;
 
+    // Start of a new question
     if (/^\d+[\.-]/.test(line)) {
-      if (currentQuestion && currentQuestion.options && currentQuestion.options.length >= 2 && currentQuestion.correctIndex !== undefined) {
+      if (currentQuestion && currentQuestion.options.length >= 2 && currentQuestion.correctIndex !== undefined) {
         questions.push(currentQuestion as Question);
       }
       currentQuestion = {
         id: questions.length + 1,
-        day: Math.floor(questions.length / 33) + 1,
+        // Calculate day: 30 questions per day for 10 days
+        day: Math.floor(questions.length / 30) + 1,
         category: 'ramadan',
-        text: line.replace(/^\d+[\.-]\s*(?:فزورة:)?\s*/i, '').trim(),
+        text: line.replace(/^\d+[\.-]\s*/, '').trim(),
         options: [],
         correctIndex: undefined
       };
-      if (currentQuestion.day > 30) currentQuestion.day = 30;
-    } else if (currentQuestion && line.includes('A)') && line.includes('B)')) {
-      const optsArgs = line.split('|').map(o => o.trim());
-      optsArgs.forEach(o => {
-        const match = o.match(/^([A-D])\)\s*(.*)/);
-        if (match) {
-          currentQuestion.options.push(match[2].trim());
-        } else {
-          currentQuestion.options.push(o.replace(/^[A-D]\)\s*/, '').trim());
+      if (currentQuestion.day > 10) currentQuestion.day = 10;
+    }
+    else if (currentQuestion) {
+      // Check for options (A), B), C), D))
+      const optMatch = line.match(/^([A-D])\)\s*(.*)/i);
+      if (optMatch) {
+        const idx = optionLetterToIndex[optMatch[1].toUpperCase()];
+        currentQuestion.options[idx] = optMatch[2].trim();
+      }
+      // Check for multiple options on same line (old format fallback/compatibility)
+      else if (line.includes('A)') && line.includes('B)')) {
+        const parts = line.split('|').map(p => p.trim());
+        parts.forEach(p => {
+          const m = p.match(/^([A-D])\)\s*(.*)/i);
+          if (m) {
+            currentQuestion.options[optionLetterToIndex[m[1].toUpperCase()]] = m[2].trim();
+          }
+        });
+      }
+      // Check for answer
+      else if (line.includes('الإجابة:')) {
+        const ansMatch = line.match(/الإجابة:\s*([A-D])/i);
+        if (ansMatch) {
+          currentQuestion.correctIndex = optionLetterToIndex[ansMatch[1].toUpperCase()];
         }
-      });
-    } else if (currentQuestion && line.includes('الإجابة:')) {
-      const ansMatch = line.match(/الإجابة:\s*([A-D])/i);
-      if (ansMatch) {
-        currentQuestion.correctIndex = optionLetterToIndex[ansMatch[1].toUpperCase()];
       }
     }
   }
-  if (currentQuestion && currentQuestion.options && currentQuestion.options.length >= 2 && currentQuestion.correctIndex !== undefined) {
+
+  if (currentQuestion && currentQuestion.options.length >= 2 && currentQuestion.correctIndex !== undefined) {
     questions.push(currentQuestion as Question);
   }
   return questions;
@@ -510,7 +525,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                         value={settings.ramadanDay}
                         onChange={(e) => setSettings({ ...settings, ramadanDay: parseInt(e.target.value) })}
                       >
-                        {Array.from({ length: 30 }, (_, i) => i + 1).map(day => (
+                        {Array.from({ length: 10 }, (_, i) => i + 1).map(day => (
                           <option key={day} value={day} className="bg-gray-900 text-white">ألغاز اليوم {day}</option>
                         ))}
                       </select>
