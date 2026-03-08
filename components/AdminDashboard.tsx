@@ -224,7 +224,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       showStatus('حدث خطأ: ' + (typeof error === 'string' ? error : (error.message || 'فشلت العملية')), true);
     } else {
       showStatus(`تم تحديث بيانات ${targetUser}`);
-      fetchData();
+      await fetchData();
     }
   };
 

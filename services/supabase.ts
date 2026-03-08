@@ -222,37 +222,30 @@ export const leaderboardService = {
       await supabase.from('profiles').insert([{ username, avatar_url: avatarUrl }]);
     } else if (profile.is_banned) return;
 
+    // Use upsert to avoid race conditions and duplicate key errors
     const { data: existing } = await supabase.from('leaderboard').select('*').ilike('username', username).maybeSingle();
-    if (existing) {
-      await supabase.from('leaderboard').update({ wins: (existing.wins || 0) + 1, score: (existing.score || 0) + points, last_win_at: new Date().toISOString() }).eq('id', existing.id);
-    } else {
-      await supabase.from('leaderboard').insert([{ username, wins: 1, score: points }]);
-    }
+
+    await supabase.from('leaderboard').upsert({
+      username: existing?.username || username,
+      wins: (existing?.wins || 0) + 1,
+      score: (existing?.score || 0) + points,
+      last_win_at: new Date().toISOString()
+    }, { onConflict: 'username' });
   },
   async adjustPlayerStats(username: string, scoreDelta: number, winsDelta: number) {
     if (!isConfigured) return { error: null };
+
+    // First get existing to calculate deltas correctly (if we want to cap at 0)
     const { data: existing } = await supabase.from('leaderboard').select('*').ilike('username', username).maybeSingle();
 
-    let finalScore = 0;
-    let finalWins = 0;
-    let res;
+    const finalScore = Math.max(0, (existing?.score || 0) + scoreDelta);
+    const finalWins = Math.max(0, (existing?.wins || 0) + winsDelta);
 
-    if (existing) {
-      finalScore = Math.max(0, (existing.score || 0) + scoreDelta);
-      finalWins = Math.max(0, (existing.wins || 0) + winsDelta);
-      res = await supabase.from('leaderboard').update({
-        score: finalScore,
-        wins: finalWins
-      }).eq('id', existing.id);
-    } else {
-      finalScore = Math.max(0, scoreDelta);
-      finalWins = Math.max(0, winsDelta);
-      res = await supabase.from('leaderboard').insert([{
-        username,
-        score: finalScore,
-        wins: finalWins
-      }]);
-    }
+    const res = await supabase.from('leaderboard').upsert({
+      username: existing?.username || username,
+      score: finalScore,
+      wins: finalWins
+    }, { onConflict: 'username' }).select().single();
 
     if (!res.error) {
       await adminService.logAction('CORE_ADMIN', 'STATS_ADJUST', {
