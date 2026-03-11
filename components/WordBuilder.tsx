@@ -651,7 +651,8 @@ export const WordBuilder: React.FC<WordBuilderProps> = ({ onHome, isOBS }) => {
                                     <ProAvatar
                                         url={p.avatar}
                                         username={p.username}
-                                        size="w-14 h-14"
+                                        size="w-20 h-20"
+                                        className="overflow-visible"
                                     />
                                     <span className="font-black text-white text-base">{p.username}</span>
                                 </div>
@@ -708,7 +709,7 @@ export const WordBuilder: React.FC<WordBuilderProps> = ({ onHome, isOBS }) => {
                         <div className="flex flex-wrap justify-center gap-3 mb-8 max-w-3xl min-h-[80px]">
                             {recentWords.map((w, i) => (
                                 <div key={`${w.word}-${i}`} className="word-pop bg-emerald-500/20 border border-emerald-500/40 px-5 py-3 rounded-[2rem] flex items-center gap-4 shadow-lg min-w-[200px]">
-                                    <ProAvatar username={w.username} size="w-12 h-12" />
+                                    <ProAvatar username={w.username} size="w-16 h-16" className="overflow-visible" />
                                     <div className="flex flex-col flex-1">
                                         <div className="flex items-center gap-2">
                                             <span className="text-white font-black text-xl">{w.word}</span>
@@ -731,7 +732,8 @@ export const WordBuilder: React.FC<WordBuilderProps> = ({ onHome, isOBS }) => {
                                             <ProAvatar
                                                 url={p.user.avatar}
                                                 username={p.user.username}
-                                                size="w-10 h-10"
+                                                size="w-12 h-12"
+                                                className="overflow-visible"
                                             />
                                             <span className="text-sm font-bold text-gray-300">{p.user.username}</span>
                                         </div>
@@ -763,7 +765,8 @@ export const WordBuilder: React.FC<WordBuilderProps> = ({ onHome, isOBS }) => {
                                         <ProAvatar
                                             url={p.user.avatar}
                                             username={p.user.username}
-                                            size="w-14 h-14"
+                                            size="w-20 h-20"
+                                            className="overflow-visible"
                                         />
                                         <span className="text-lg font-black text-white">{p.user.username}</span>
                                     </div>
@@ -797,7 +800,8 @@ export const WordBuilder: React.FC<WordBuilderProps> = ({ onHome, isOBS }) => {
                                         <ProAvatar
                                             url={p.user.avatar}
                                             username={p.user.username}
-                                            size={i === 0 ? "w-20 h-20" : "w-14 h-14"}
+                                            size={i === 0 ? "w-32 h-32" : "w-20 h-20"}
+                                            className="overflow-visible"
                                         />
                                         <div>
                                             <span className={`${i === 0 ? 'text-xl' : 'text-lg'} font-black text-white`}>{p.user.username}</span>

@@ -1008,11 +1008,12 @@ export const MusicalChairsGame: React.FC<MusicalChairsGameProps> = ({ onHome, is
                            const sizes = getDynamicSize(participants.length);
                            return (
                               <div key={p.id} className="animate-in zoom-in duration-500 flex flex-col items-center gap-2 group">
-                                 <div className={`${sizes.box} rounded-[2rem] border-2 p-1 transition-all duration-300 shadow-2xl relative flex items-center justify-center bg-black/40 backdrop-blur-xl group-hover:border-red-600`} style={{ borderColor: p.color || 'rgba(255,255,255,0.1)' }}>
+                                 <div className={`${sizes.box} rounded-[2rem] border-2 p-1 transition-all duration-300 shadow-2xl relative flex items-center justify-center bg-black/40 backdrop-blur-xl group-hover:border-red-600 overflow-visible`} style={{ borderColor: p.color || 'rgba(255,255,255,0.1)' }}>
                                     <ProAvatar
                                        url={p.avatar}
                                        username={p.username}
                                        size="w-full h-full"
+                                       className="overflow-visible"
                                     />
                                  </div>
                                  <span className={`${sizes.text} font-black uppercase drop-shadow-md transition-colors group-hover:text-white`} style={{ color: p.color || '#9ca3af' }}>{p.username}</span>
@@ -1245,6 +1246,7 @@ export const MusicalChairsGame: React.FC<MusicalChairsGameProps> = ({ onHome, is
                                              url={occupant?.avatar}
                                              username={occupant?.username || ''}
                                              size="w-full h-full"
+                                             className="overflow-visible"
                                           />
                                           {/* Chair Badge (Small top-right) */}
                                           {!config.hideNumbers && !isOccupied && (
@@ -1340,6 +1342,7 @@ export const MusicalChairsGame: React.FC<MusicalChairsGameProps> = ({ onHome, is
                                     url={p.avatar}
                                     username={p.username}
                                     size="w-full h-full"
+                                    className="overflow-visible"
                                  />
                               </div>
                               <span className={`
@@ -1465,13 +1468,13 @@ export const MusicalChairsGame: React.FC<MusicalChairsGameProps> = ({ onHome, is
                                                    </div>
 
                                                    {/* Avatar Container */}
-                                                   <div className="w-28 h-28 mx-auto relative group-hover:scale-105 transition-transform duration-500">
+                                                   <div className="w-32 h-32 mx-auto relative group-hover:scale-105 transition-transform duration-500 overflow-visible">
                                                       <div className="absolute inset-0 bg-gradient-to-br from-red-600/40 via-red-900/30 to-black/50 z-10 mix-blend-multiply rounded-[2rem]" />
                                                       <ProAvatar
                                                          url={p.avatar}
                                                          username={p.username}
                                                          size="w-full h-full"
-                                                         className="grayscale brightness-75 contrast-125 group-hover:grayscale-0 group-hover:brightness-90 transition-all duration-500"
+                                                         className="grayscale brightness-75 contrast-125 group-hover:grayscale-0 group-hover:brightness-90 transition-all duration-500 overflow-visible"
                                                       />
                                                       {/* X mark overlay */}
                                                       <div className="absolute inset-0 flex items-center justify-center z-20">
@@ -1655,7 +1658,7 @@ export const MusicalChairsGame: React.FC<MusicalChairsGameProps> = ({ onHome, is
                            <div className="absolute -inset-12 border-4 border-dotted border-amber-500/20 rounded-full animate-rotate-reverse" />
 
                            {/* Avatar Container */}
-                           <div className="relative w-64 h-64 flex items-center justify-center transform group-hover:rotate-3 group-hover:scale-105 transition-all duration-700"
+                           <div className="relative w-72 h-72 flex items-center justify-center transform group-hover:rotate-3 group-hover:scale-105 transition-all duration-700 overflow-visible"
                               style={{
                                  filter: 'drop-shadow(0 0 50px rgba(251, 191, 36, 0.6))'
                               }}
@@ -1668,7 +1671,7 @@ export const MusicalChairsGame: React.FC<MusicalChairsGameProps> = ({ onHome, is
                                  url={winner.avatar}
                                  username={winner.username}
                                  size="w-full h-full"
-                                 className="relative z-10"
+                                 className="relative z-10 overflow-visible"
                               />
                            </div>
                         </div>

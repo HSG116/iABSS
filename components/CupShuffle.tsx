@@ -243,7 +243,7 @@ export const CupShuffle: React.FC<CupShuffleProps> = ({ channelConnected, onHome
                 <div key={i} className="flex justify-between items-center py-2 border-b border-white/5 last:border-0 group">
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-black text-gray-600 w-4">{i + 1}.</span>
-                    <ProAvatar username={name} size="w-7 h-7" />
+                    <ProAvatar username={name} size="w-7 h-7" className="overflow-visible" />
                     <span className="text-xs text-gray-300 font-bold group-hover:text-white transition-colors">{name}</span>
                   </div>
                   <span className="text-xs text-red-500 font-mono font-black italic">{score}</span>

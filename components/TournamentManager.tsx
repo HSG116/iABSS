@@ -15,7 +15,8 @@ import { SpinWheel } from './SpinWheel';
 import { TerritoryWar } from './TerritoryWar';
 import { TeamBattle } from './TeamBattle';
 import { WordBomb } from './WordBomb';
-import { MasaqilWar } from './MasaqilWar'; // Added Import
+import { MasaqilWar } from './MasaqilWar';
+import { ProAvatar } from './ProAvatar';
 
 interface TournamentManagerProps {
   channelConnected: boolean;
@@ -246,10 +247,12 @@ export const TournamentManager: React.FC<TournamentManagerProps> = ({ channelCon
                  <Trophy size={100} className="text-yellow-500 mb-6 drop-shadow-[0_0_30px_rgba(234,179,8,0.5)]" />
                  <h1 className="text-6xl font-black text-white mb-4">مسابقة هبلو الكبرى</h1>
                  <p className="text-2xl text-gray-400 mb-8">سجل الآن! اكتب <span className="text-yellow-400 font-bold bg-yellow-400/10 px-3 py-1 rounded mx-1">!دخول</span></p>
-                 
+
                  <div className="flex flex-wrap justify-center gap-3 max-w-3xl mb-12">
                      {participants.map((p, i) => (
                          <div key={i} className="animate-in scale-0 duration-300 fill-mode-forwards" style={{ animationDelay: `${i*50}ms` }}>
+                             <ProAvatar username={p.username} size="w-12 h-12" className="overflow-visible" />
+                             {/* The original div below is kept as it seems to be a name tag, not the avatar itself */}
                              <div className="bg-white/10 px-4 py-2 rounded-full text-sm font-bold border border-white/5 flex items-center gap-2">
                                 <div className="w-2 h-2 rounded-full bg-green-500"></div>
                                 {p.username}
@@ -258,7 +261,7 @@ export const TournamentManager: React.FC<TournamentManagerProps> = ({ channelCon
                      ))}
                  </div>
 
-                 <button 
+                 <button
                     onClick={() => setPhase('DRAFT')}
                     disabled={participants.length < 1}
                     className="px-10 py-4 bg-yellow-500 text-black font-black text-xl rounded-2xl hover:bg-yellow-400 hover:scale-105 transition-all shadow-[0_0_40px_rgba(234,179,8,0.4)] disabled:opacity-50 disabled:scale-100"
@@ -272,7 +275,7 @@ export const TournamentManager: React.FC<TournamentManagerProps> = ({ channelCon
          {phase === 'DRAFT' && (
              <div className="flex-1 flex flex-col items-center p-8 animate-in slide-in-from-right">
                  <h2 className="text-3xl font-black text-white mb-8">اختر ألعاب المسابقة</h2>
-                 
+
                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full max-w-5xl mb-10">
                      {TOURNAMENT_GAMES_LIST.map((game) => {
                          const isSelected = selectedGames.includes(game.id);
@@ -289,7 +292,7 @@ export const TournamentManager: React.FC<TournamentManagerProps> = ({ channelCon
                      })}
                  </div>
 
-                 <button 
+                 <button
                     onClick={startTournament}
                     className="px-12 py-4 bg-green-600 text-white font-black text-xl rounded-2xl hover:bg-green-500 transition-all shadow-lg"
                  >
@@ -308,7 +311,7 @@ export const TournamentManager: React.FC<TournamentManagerProps> = ({ channelCon
                          <span>{activeGameLabel}</span>
                      </div>
                  </div>
-                 
+
                  {/* Render Sub-Game */}
                  <div className="flex-1 relative">
                      {renderActiveGame()}
@@ -321,7 +324,7 @@ export const TournamentManager: React.FC<TournamentManagerProps> = ({ channelCon
              <div className="flex-1 flex flex-col items-center justify-center p-6 text-center animate-in zoom-in duration-700 relative overflow-hidden">
                  {/* Background Particles */}
                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-yellow-900/40 via-[#0b0e0f] to-[#0b0e0f]"></div>
-                 
+
                  <h1 className="text-6xl font-black text-white mb-16 relative z-10 neon-text-gold">أبطال المسابقة</h1>
 
                  <div className="flex items-end justify-center gap-4 md:gap-12 relative z-10">
@@ -329,9 +332,7 @@ export const TournamentManager: React.FC<TournamentManagerProps> = ({ channelCon
                      {sortedScores[1] && (
                          <div className="flex flex-col items-center animate-in slide-in-from-bottom-20 duration-1000 delay-300">
                              <div className="text-2xl font-black text-gray-400 mb-2">المركز الثاني</div>
-                             <div className="w-32 h-32 rounded-full border-4 border-gray-400 bg-gray-800 flex items-center justify-center text-4xl font-black text-white shadow-2xl mb-4">
-                                 {sortedScores[1][0].charAt(0).toUpperCase()}
-                             </div>
+                              <ProAvatar username={sortedScores[1][0]} size="w-32 h-32" className="mb-4 overflow-visible" />
                              <div className="text-3xl font-bold text-white">{sortedScores[1][0]}</div>
                              <div className="text-xl text-gray-400 font-mono">{sortedScores[1][1]} pts</div>
                              <div className="h-32 w-24 bg-gray-700/50 mt-4 rounded-t-lg border-t-4 border-gray-400"></div>
@@ -343,10 +344,7 @@ export const TournamentManager: React.FC<TournamentManagerProps> = ({ channelCon
                          <div className="flex flex-col items-center animate-in slide-in-from-bottom-32 duration-1000">
                              <Crown size={64} className="text-yellow-400 mb-2 animate-bounce" />
                              <div className="text-3xl font-black text-yellow-500 mb-2">البطل</div>
-                             <div className="w-48 h-48 rounded-full border-4 border-yellow-400 bg-yellow-900/50 flex items-center justify-center text-7xl font-black text-white shadow-[0_0_50px_rgba(250,204,21,0.6)] mb-4 relative">
-                                 {sortedScores[0][0].charAt(0).toUpperCase()}
-                                 <div className="absolute -top-2 -right-2 bg-yellow-500 text-black text-xs font-bold px-2 py-1 rounded-full">WINNER</div>
-                             </div>
+                              <ProAvatar username={sortedScores[0][0]} size="w-48 h-48" className="mb-4 overflow-visible" />
                              <div className="text-5xl font-black text-white mb-1">{sortedScores[0][0]}</div>
                              <div className="text-2xl text-yellow-400 font-mono font-bold">{sortedScores[0][1]} pts</div>
                              <div className="h-48 w-32 bg-yellow-600/30 mt-4 rounded-t-lg border-t-4 border-yellow-500 relative overflow-hidden">
@@ -354,14 +352,12 @@ export const TournamentManager: React.FC<TournamentManagerProps> = ({ channelCon
                              </div>
                          </div>
                      )}
-                     
+
                      {/* 3rd Place (Optional if we have one) */}
                      {sortedScores[2] && (
                          <div className="flex flex-col items-center animate-in slide-in-from-bottom-16 duration-1000 delay-500 opacity-80">
                              <div className="text-xl font-black text-orange-700 mb-2">المركز الثالث</div>
-                             <div className="w-24 h-24 rounded-full border-4 border-orange-700 bg-gray-800 flex items-center justify-center text-2xl font-black text-white shadow-xl mb-4">
-                                 {sortedScores[2][0].charAt(0).toUpperCase()}
-                             </div>
+                              <ProAvatar username={sortedScores[2][0]} size="w-24 h-24" className="mb-4 overflow-visible" />
                              <div className="text-2xl font-bold text-white">{sortedScores[2][0]}</div>
                              <div className="text-lg text-gray-500 font-mono">{sortedScores[2][1]} pts</div>
                              <div className="h-20 w-20 bg-orange-900/30 mt-4 rounded-t-lg border-t-4 border-orange-700"></div>

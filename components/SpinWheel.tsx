@@ -372,11 +372,12 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({ channelConnected, onHome }
                         ) : (
                            [...participants].reverse().map((p, i) => (
                               <div key={i} className="flex items-center gap-3 p-2.5 rounded-2xl transition-all border border-white/5 bg-black/20 hover:bg-white/5 group animate-in slide-in-from-right duration-300">
-                                 <ProAvatar
-                                    url={p.avatar || ''}
-                                    username={p.username}
-                                    size="w-10 h-10"
-                                 />
+                                  <ProAvatar
+                                     url={p.avatar || ''}
+                                     username={p.username}
+                                     size="w-12 h-12"
+                                     className="overflow-visible"
+                                  />
                                  <span className="text-[11px] font-black text-white truncate">{p.username}</span>
                               </div>
                            ))
@@ -393,11 +394,12 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({ channelConnected, onHome }
                         <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-1">
                            {history.map((h, i) => (
                               <div key={i} className="w-12 h-12 rounded-xl border border-amber-500/30 shrink-0 shadow-lg flex items-center justify-center bg-black/40 overflow-visible" title={h.username}>
-                                 <ProAvatar
-                                    url={h.avatar || ''}
-                                    username={h.username}
-                                    size="w-12 h-12"
-                                 />
+                                  <ProAvatar
+                                     url={h.avatar || ''}
+                                     username={h.username}
+                                     size="w-14 h-14"
+                                     className="overflow-visible"
+                                  />
                               </div>
                            ))}
                         </div>
@@ -526,6 +528,7 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({ channelConnected, onHome }
                                  url={winner.avatar || ''}
                                  username={winner.username}
                                  size="w-full h-full"
+                                 className="overflow-visible"
                               />
                               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                            </div>

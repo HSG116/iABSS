@@ -156,7 +156,7 @@ export const RussianRoulette: React.FC<RussianRouletteProps> = ({ channelConnect
                               <ProAvatar
                                  url={p.avatar}
                                  username={p.username}
-                                 size="w-12 h-12"
+                                 size="w-14 h-14"
                               />
                               <span className="text-sm font-black text-white truncate w-24">{p.username}</span>
                            </div>
@@ -189,12 +189,13 @@ export const RussianRoulette: React.FC<RussianRouletteProps> = ({ channelConnect
                   </h2>
                   <div className="flex items-center justify-center gap-4 mt-8">
                      {Array.from({ length: 6 }).map((_, i) => (
-                        <div key={i} className={`w-24 h-24 rounded-2xl border-2 transition-all duration-500 flex items-center justify-center rotate-${i * 10} ${participants[i] ? 'bg-red-600 border-red-400 shadow-[0_0_30px_rgba(220,38,38,0.5)] scale-110' : 'bg-transparent border-white/10 opacity-20'}`}>
+                        <div key={i} className={`w-28 h-28 rounded-2xl border-2 transition-all duration-500 flex items-center justify-center rotate-${i * 10} ${participants[i] ? 'bg-red-600 border-red-400 shadow-[0_0_30px_rgba(220,38,38,0.5)] scale-110' : 'bg-transparent border-white/10 opacity-20'} overflow-visible`}>
                            {participants[i] ? (
                               <ProAvatar
                                  url={participants[i].avatar}
                                  username={participants[i].username}
-                                 size="w-24 h-24"
+                                 size="w-28 h-28"
+                                 className="overflow-visible"
                               />
                            ) : (
                               <Target size={24} className="text-white/20" />
@@ -216,7 +217,8 @@ export const RussianRoulette: React.FC<RussianRouletteProps> = ({ channelConnect
                      <ProAvatar
                         url={participants[currentTurnIndex].avatar}
                         username={participants[currentTurnIndex].username}
-                        size="w-40 h-40"
+                        size="w-48 h-48"
+                        className="overflow-visible"
                      />
                      <div className="absolute -bottom-4 -right-4 bg-red-600 text-white px-4 py-1 rounded-lg font-black text-xs shadow-lg">Target #{(currentTurnIndex + 1)}</div>
                   </div>
@@ -281,8 +283,8 @@ export const RussianRoulette: React.FC<RussianRouletteProps> = ({ channelConnect
                      <ProAvatar
                         url={participants[0].avatar}
                         username={participants[0].username}
-                        size="w-48 h-48"
-                        className="shadow-[0_0_80px_rgba(234,179,8,0.4)] relative z-10"
+                        size="w-64 h-64"
+                        className="shadow-[0_0_80px_rgba(234,179,8,0.4)] relative z-10 overflow-visible"
                      />
                      <div className="absolute -top-10 -right-10 z-20 animate-bounce">
                         <Trophy size={100} className="text-yellow-500 drop-shadow-[0_0_30px_rgba(234,179,8,0.8)]" />

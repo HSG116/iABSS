@@ -155,7 +155,7 @@ export const WordBomb: React.FC<WordBombProps> = ({ channelConnected }) => {
              <div className="overflow-y-auto flex-1 p-2 space-y-2 custom-scrollbar">
                 {participants.map(p => (
                     <div key={p.username} className="flex items-center gap-3 p-2 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-colors overflow-visible">
-                       <ProAvatar username={p.username} size="w-12 h-12" />
+                       <ProAvatar username={p.username} size="w-14 h-14" className="overflow-visible" />
                        <span className="text-xs text-gray-300 font-bold truncate">{p.username}</span>
                     </div>
                 ))}
@@ -175,7 +175,7 @@ export const WordBomb: React.FC<WordBombProps> = ({ channelConnected }) => {
           {gameState === 'PLAYING' && holder && (
             <div className="text-center w-full max-w-lg flex flex-col items-center">
                 <div className="flex flex-col items-center mb-8 gap-4 animate-in slide-in-from-top duration-500 overflow-visible">
-                   <ProAvatar username={holder.username} size="w-64 h-64" className="overflow-visible" />
+                   <ProAvatar username={holder.username} size="w-72 h-72" className="overflow-visible" />
                    <div className="text-6xl font-black text-white neon-text">{holder.username}</div>
                 </div>
                

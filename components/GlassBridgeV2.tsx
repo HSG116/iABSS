@@ -312,7 +312,7 @@ export const GlassBridgeV2: React.FC<GlassBridgeV2Props> = ({ onHome, isOBS }) =
                                     <ProAvatar
                                         url={p.avatar}
                                         username={p.username}
-                                        size="w-12 h-12"
+                                        size="w-14 h-14"
                                     />
                                     <span className="font-black text-white text-xs">{p.username}</span>
                                 </div>
@@ -460,11 +460,14 @@ export const GlassBridgeV2: React.FC<GlassBridgeV2Props> = ({ onHome, isOBS }) =
                         <div className="flex flex-wrap justify-center gap-4 mb-10 max-w-3xl">
                             {survivors.map(p => (
                                 <div key={p.id} className="flex flex-col items-center gap-2 animate-in zoom-in">
-                                    <ProAvatar
-                                        url={p.avatar}
-                                        username={p.username}
-                                        size="w-20 h-20"
-                                    />
+                                    <div className="overflow-visible">
+                                        <ProAvatar
+                                            url={p.avatar}
+                                            username={p.username}
+                                            size="w-32 h-32"
+                                            className="transition-transform hover:scale-110"
+                                        />
+                                    </div>
                                     <span className="text-xs font-black text-yellow-400">{p.username}</span>
                                 </div>
                             ))}

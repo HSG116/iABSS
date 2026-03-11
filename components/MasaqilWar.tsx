@@ -1124,12 +1124,13 @@ export const MasaqilWar: React.FC<MasaqilWarProps> = ({ channelConnected, onHome
                 {(gameState === 'LOBBY' ? queue : playersRef.current).map((p, i) => {
                   const isDead = (p as Player).isDead;
                   return (
-                    <div key={i} className={`flex justify-between items-center p-2 rounded-2xl text-[10px] font-bold transition-all border ${isDead ? 'opacity-20 grayscale bg-red-900/10 border-transparent' : 'bg-white/5 border-white/5 hover:border-white/10 group'}`}>
+                    <div key={i} className={`flex justify-between items-center p-2 rounded-2xl text-[10px] font-bold transition-all border ${isDead ? 'opacity-20 grayscale bg-red-900/10 border-transparent' : 'bg-white/5 border-white/5 hover:border-white/10 group'} overflow-visible`}>
                       <div className="flex items-center gap-2">
                         <ProAvatar
                           url={imagesCacheRef.current[p.username] ? imagesCacheRef.current[p.username].src : (p.avatar || '')}
                           username={p.username}
-                          size="w-10 h-10"
+                          size="w-12 h-12"
+                          className="overflow-visible"
                         />
                         <span className="text-gray-300 truncate max-w-[90px]">{p.username}</span>
                       </div>
@@ -1257,8 +1258,8 @@ export const MasaqilWar: React.FC<MasaqilWarProps> = ({ channelConnected, onHome
                         <ProAvatar
                           url={p.avatar}
                           username={p.username}
-                          size="w-20 h-20"
-                          className="border-2 border-white/10 shadow-xl"
+                          size="w-24 h-24"
+                          className="border-2 border-white/10 shadow-xl overflow-visible"
                         />
                         <span className="text-xs font-bold text-gray-400 truncate w-24">{p.username}</span>
                       </div>
@@ -1314,6 +1315,7 @@ export const MasaqilWar: React.FC<MasaqilWarProps> = ({ channelConnected, onHome
                           url={imagesCacheRef.current[winner.username] ? imagesCacheRef.current[winner.username].src : (winner.avatar || '')}
                           username={winner.username}
                           size="w-full h-full"
+                          className="overflow-visible"
                         />
                       </div>
 

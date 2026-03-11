@@ -326,7 +326,7 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                <div className="grid grid-cols-4 md:grid-cols-6 gap-3 justify-center max-h-[200px] overflow-y-auto custom-scrollbar pr-2">
                   {joinedPlayers.map((p, i) => (
                      <div key={i} className="animate-in zoom-in p-1" style={{ animationDelay: `${i * 30}ms` }}>
-                        <ProAvatar url={p.avatar} username={p.name} size="w-20 h-20" className="mx-auto" />
+                         <ProAvatar url={p.avatar} username={p.name} size="w-24 h-24" className="mx-auto overflow-visible" />
                      </div>
                   ))}
                </div>
@@ -352,7 +352,7 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                      {scoreBoard.sort((a, b) => b.attempts - a.attempts).map((p, i) => (
                         <div key={i} className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/5">
                            <div className="flex items-center gap-3">
-                              <ProAvatar url={p.avatar} username={p.name} size="w-12 h-12" />
+                              <ProAvatar url={p.avatar} username={p.name} size="w-14 h-14" className="overflow-visible" />
                               <span className="text-[9px] font-bold text-gray-400 truncate max-w-[100px]">{p.name}</span>
                            </div>
                            <div className={`text-[9px] font-mono font-black border px-2 py-0.5 rounded-lg ${p.attempts >= settings.maxAttempts ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-white/5 text-gray-600'}`}>{p.attempts}/{settings.maxAttempts || '∞'}</div>
@@ -502,7 +502,7 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                                            {cell.type === 'TREASURE' && (
                                               <div className="relative w-full h-full flex items-center justify-center">
                                                  <div className="absolute inset-0 z-0">
-                                                    <ProAvatar username={cell.finder || ''} size="w-full h-full" />
+                                                    <ProAvatar username={cell.finder || ''} size="w-full h-full" className="overflow-visible" />
                                                  </div>
                                                  <div className="w-10/12 h-6/12 bg-zinc-900/80 border border-white/20 rounded-sm shadow-inner relative z-10 overflow-hidden group/m">
                                                     <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-blue-900/40"></div>
@@ -515,7 +515,7 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                                            {cell.type === 'BOMB' && (
                                               <div className="relative w-full h-full flex items-center justify-center">
                                                  <div className="absolute inset-0 z-0 opacity-60">
-                                                    <ProAvatar username={cell.finder || ''} size="w-full h-full" />
+                                                    <ProAvatar username={cell.finder || ''} size="w-full h-full" className="overflow-visible" />
                                                  </div>
                                                  <Skull size={14} className="text-white relative z-10 drop-shadow-md" />
                                               </div>
@@ -583,7 +583,7 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                   </div>
 
                   <div className="flex flex-col items-center gap-4 bg-white/5 p-12 px-16 rounded-[4rem] border border-white/10 shadow-2xl animate-in slide-in-from-bottom duration-1000">
-                     <ProAvatar username={winner.name} size="w-40 h-40" className="shadow-2xl" />
+                      <ProAvatar username={winner.name} size="w-56 h-56" className="shadow-2xl overflow-visible hover:scale-105 transition-transform" />
                      <div className="text-4xl font-black text-white italic tracking-tighter">{winner.name}</div>
                      <div className="px-8 py-2 bg-red-600 text-white text-xs font-black rounded-full italic shadow-lg uppercase tracking-widest">Authorized Winner</div>
                   </div>

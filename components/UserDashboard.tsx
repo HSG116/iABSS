@@ -86,6 +86,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ userData, onLogout
                         username={userData.kick_username || (userData as any).kickUsername}
                         size="w-14 h-14"
                         frameUrl={activeFrame || undefined}
+                        className="overflow-visible"
                     />
                     <div className="overflow-hidden">
                         <div className="text-white font-black text-sm truncate">{userData.display_name}</div>
@@ -613,8 +614,9 @@ const Rankings = () => {
                                         <ProAvatar
                                             url={player.avatar_url}
                                             username={player.username}
-                                            size="w-10 h-10"
+                                            size="w-12 h-12"
                                             frameUrl={player.active_frame_url || undefined}
+                                            className="overflow-visible"
                                         />
                                         <span className="text-white font-black group-hover:text-red-500 transition-colors">{player.username}</span>
                                     </div>

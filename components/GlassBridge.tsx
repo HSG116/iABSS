@@ -282,7 +282,7 @@ export const GlassBridge: React.FC<GlassBridgeProps> = ({ channelConnected }) =>
                                  <ProAvatar
                                     url={p.avatar}
                                     username={p.username}
-                                    size="w-10 h-10"
+                                    size="w-12 h-12"
                                  />
                                  <span className={isActive ? 'text-cyan-400 font-bold' : 'text-gray-300'}>{p.username}</span>
                               </div>
@@ -342,15 +342,15 @@ export const GlassBridge: React.FC<GlassBridgeProps> = ({ channelConnected }) =>
                         <div className="text-sm text-gray-400 font-bold uppercase tracking-widest">الدور الحالي</div>
                         <div className="text-xs bg-cyan-900 text-cyan-200 px-2 py-1 rounded">الخطوة {currentStep + 1} / {BRIDGE_LENGTH}</div>
                      </div>
-                     <div className="text-5xl font-black text-white mb-6 flex items-center justify-center gap-6">
-                        <ProAvatar
-                           url={queue[activePlayerIndex].avatar}
-                           username={queue[activePlayerIndex].username}
-                           size="w-24 h-24"
-                           className="shadow-2xl"
-                        />
-                        {queue[activePlayerIndex].username}
-                     </div>
+                      <div className="text-5xl font-black text-white mb-6 flex items-center justify-center gap-6 overflow-visible">
+                         <ProAvatar
+                            url={queue[activePlayerIndex].avatar}
+                            username={queue[activePlayerIndex].username}
+                            size="w-32 h-32"
+                            className="shadow-2xl transition-transform hover:scale-110"
+                         />
+                         {queue[activePlayerIndex].username}
+                      </div>
 
                      <div className="flex items-center justify-center gap-8 mb-6">
                         <div className="text-center group">
@@ -423,15 +423,15 @@ export const GlassBridge: React.FC<GlassBridgeProps> = ({ channelConnected }) =>
                         <div className="w-24 h-24 bg-cyan-500/10 border-4 border-cyan-500/50 rounded-lg flex items-center justify-center text-4xl font-black text-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.2)]">L</div>
                         <div className="w-24 h-24 bg-cyan-500/10 border-4 border-cyan-500/50 rounded-lg flex items-center justify-center text-4xl font-black text-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.2)]">R</div>
                         {/* Player Avatar */}
-                        {!isProcessing && lastResult !== 'BROKEN' && (
-                           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-white rounded-full border-4 border-cyan-500 flex items-center justify-center text-black font-black z-20 shadow-xl animate-bounce overflow-visible">
-                              <ProAvatar
-                                 url={queue[activeIndexRef.current]?.avatar}
-                                 username={queue[activeIndexRef.current]?.username || ''}
-                                 size="w-full h-full"
-                              />
-                           </div>
-                        )}
+                         {!isProcessing && lastResult !== 'BROKEN' && (
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 flex items-center justify-center z-20 shadow-xl animate-bounce overflow-visible">
+                               <ProAvatar
+                                  url={queue[activeIndexRef.current]?.avatar}
+                                  username={queue[activeIndexRef.current]?.username || ''}
+                                  size="w-24 h-24"
+                               />
+                            </div>
+                         )}
                      </div>
 
                      {/* Next Steps */}

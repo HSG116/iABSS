@@ -159,8 +159,8 @@ export const ZombieEscape: React.FC<ZombieEscapeProps> = ({ channelConnected, is
                                         <ProAvatar
                                             url={p.user.avatar}
                                             username={p.user.username}
-                                            size="w-12 h-12"
-                                            className={p.status === 'ZOMBIE' ? 'grayscale opacity-50' : ''}
+                                            size="w-14 h-14"
+                                            className={`overflow-visible ${p.status === 'ZOMBIE' ? 'grayscale opacity-50' : ''}`}
                                         />
                                         <span className="text-xs font-black truncate w-24">{p.user.username}</span>
                                     </div>
@@ -272,7 +272,7 @@ export const ZombieEscape: React.FC<ZombieEscapeProps> = ({ channelConnected, is
                         <div key={`alive-${i}`} className="flex flex-col items-center animate-bounce" style={{ animationDuration: `${0.8 + Math.random() * 0.4}s`, animationDelay: `${i * 0.1}s` }}>
                             <div className="px-2 py-1 bg-black/40 backdrop-blur-md rounded text-[8px] font-black text-white/60 mb-2 border border-white/5">{p.user.username}</div>
                             <div className="relative group overflow-visible">
-                                <ProAvatar url={p.user.avatar} username={p.user.username} size="w-14 h-14" />
+                                <ProAvatar url={p.user.avatar} username={p.user.username} size="w-16 h-16" className="overflow-visible" />
                                 <div className="absolute -bottom-2 -right-2 text-2xl drop-shadow-lg">🏃</div>
                             </div>
                         </div>
@@ -281,7 +281,7 @@ export const ZombieEscape: React.FC<ZombieEscapeProps> = ({ channelConnected, is
                         <div key={`zombie-${i}`} className="flex flex-col items-center animate-pulse opacity-60" style={{ animationDelay: `${i * 0.2}s` }}>
                             <div className="px-2 py-1 bg-red-950/40 backdrop-blur-md rounded text-[8px] font-black text-red-400/60 mb-2 border border-red-500/10">{p.user.username}</div>
                             <div className="relative group overflow-visible grayscale-[0.5]">
-                                <ProAvatar url={p.user.avatar} username={p.user.username} size="w-14 h-14" />
+                                <ProAvatar url={p.user.avatar} username={p.user.username} size="w-16 h-16" className="overflow-visible" />
                                 <div className="absolute -bottom-2 -right-2 text-2xl drop-shadow-lg">🧟</div>
                             </div>
                         </div>

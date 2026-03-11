@@ -949,8 +949,8 @@ export const ForbiddenWords: React.FC<ForbiddenWordsProps> = ({ onHome, isOBS })
                                 <div className="grid grid-cols-6 gap-4 w-full max-w-[1200px] px-6 max-h-[500px] overflow-y-auto custom-scrollbar p-4">
                                     {participants.map((p, i) => (
                                         <div key={p.username} className="glass-card p-3 rounded-2xl bg-white/5 border border-white/10 flex flex-col items-center gap-2 animate-in fade-in zoom-in hover:border-red-500/50 transition-colors">
-                                            <div className="w-20 h-20 flex items-center justify-center">
-                                                <ProAvatar username={p.username} size="w-20 h-20" />
+                                            <div className="w-28 h-28 flex items-center justify-center">
+                                                <ProAvatar username={p.username} size="w-28 h-28" className="overflow-visible" />
                                             </div>
                                             <span className="text-white font-bold truncate w-full text-center text-sm">{p.username}</span>
                                         </div>
@@ -1038,9 +1038,9 @@ export const ForbiddenWords: React.FC<ForbiddenWordsProps> = ({ onHome, isOBS })
 
                                     {roundWinner ? (
                                         <div className="flex flex-col items-center relative z-10 p-6">
-                                            <div className="w-60 h-60 flex items-center justify-center mb-6 relative"
+                                            <div className="w-80 h-80 flex items-center justify-center mb-6 relative"
                                                 style={{ animation: 'pulse-glow 2s infinite' }}>
-                                                <ProAvatar username={roundWinner.username} size="w-60 h-60" />
+                                                <ProAvatar username={roundWinner.username} size="w-80 h-80" className="overflow-visible" />
                                                 <div className="absolute inset-0 border-2 border-red-500/20 rounded-full animate-ping opacity-20"></div>
                                             </div>
                                             <h2 className="text-6xl font-black text-white mb-4 drop-shadow-2xl italic tracking-tighter bg-gradient-to-b from-white to-gray-300 bg-clip-text text-transparent">{roundWinner.username}</h2>
@@ -1078,8 +1078,8 @@ export const ForbiddenWords: React.FC<ForbiddenWordsProps> = ({ onHome, isOBS })
                                     {(phase === 'PRE_ROUND' || phase === 'SELECT_WORD') ? (
                                         participants.map((p, i) => (
                                             <div key={p.username} className="flex items-center gap-3 bg-white/5 rounded-xl p-3 border border-white/5 hover:bg-white/10 transition-colors">
-                                                <div className="w-14 h-14 flex items-center justify-center shrink-0">
-                                                    <ProAvatar username={p.username} size="w-14 h-14" />
+                                                <div className="w-16 h-16 flex items-center justify-center shrink-0">
+                                                    <ProAvatar username={p.username} size="w-16 h-16" className="overflow-visible" />
                                                 </div>
                                                 <span className="text-lg font-bold text-white truncate">{p.username}</span>
                                             </div>
@@ -1242,8 +1242,8 @@ export const ForbiddenWords: React.FC<ForbiddenWordsProps> = ({ onHome, isOBS })
                     <div className="w-full grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 px-10 mb-20 overflow-y-auto max-h-[500px] custom-scrollbar">
                         {participants.map((p, i) => (
                             <div key={p.username} className="glass-card p-6 rounded-[3rem] border border-white/5 flex flex-col items-center gap-4 animate-in zoom-in group hover:border-amber-500/30 transition-all bg-white/5" style={{ animationDelay: `${(i as number) * 30}ms` }}>
-                                <div className="w-28 h-28 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                    <ProAvatar username={p.username} size="w-28 h-28" />
+                                <div className="w-32 h-32 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <ProAvatar username={p.username} size="w-32 h-32" className="overflow-visible" />
                                 </div>
                                 <span className="font-black text-white text-base truncate w-full text-center">{p.username}</span>
                             </div>
@@ -1381,8 +1381,8 @@ export const ForbiddenWords: React.FC<ForbiddenWordsProps> = ({ onHome, isOBS })
                                 {roundWinner ? (
                                     <div className="flex flex-col items-center gap-8 bg-amber-500/10 p-10 rounded-[4rem] border-4 border-amber-500/30 backdrop-blur-2xl">
                                         <div className="flex items-center gap-8">
-                                            <div className="w-40 h-40 flex items-center justify-center">
-                                                <ProAvatar username={roundWinner.username} size="w-40 h-40" />
+                                            <div className="w-56 h-56 flex items-center justify-center">
+                                                <ProAvatar username={roundWinner.username} size="w-56 h-56" className="overflow-visible" />
                                             </div>
                                             <div className="text-right">
                                                 <div className="text-6xl font-black text-white mb-2 italic tracking-tighter">{roundWinner.username}</div>
@@ -1419,7 +1419,7 @@ export const ForbiddenWords: React.FC<ForbiddenWordsProps> = ({ onHome, isOBS })
                         return (
                             <div className="flex flex-col items-center gap-8 mb-20 animate-in zoom-in duration-700 delay-300">
                                 <div className="w-96 h-96 flex items-center justify-center relative mb-8">
-                                    <ProAvatar username={topPlayer[0]} size="w-96 h-96" />
+                                    <ProAvatar username={topPlayer[0]} size="w-96 h-96" className="overflow-visible" />
                                 </div>
                                 <div className="text-center">
                                     <div className="text-8xl font-black text-white mb-6 italic tracking-tighter">{topPlayer[0]}</div>

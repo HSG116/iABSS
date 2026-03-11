@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Settings, Play, Users, Trophy, Clock, Volume2, ChevronLeft, User, Trash2, Sparkles, CheckCircle2, Loader2, Gauge, Zap, Star, LogOut, Home, Search, Globe, Target, ShieldCheck, Eye, Layers, Palette, Monitor } from 'lucide-react';
+import { ProAvatar } from './ProAvatar';
 import { ChatUser } from '../types';
 import { chatService } from '../services/chatService';
 import { leaderboardService } from '../services/supabase';
@@ -1027,12 +1028,8 @@ export const LogoRound: React.FC<LogoRoundProps> = ({ onHome, isOBS }) => {
                     <div className="w-full grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 px-10 mb-20 overflow-y-auto max-h-[500px] custom-scrollbar">
                         {participants.map((p, i) => (
                             <div key={p.username} className="glass-card p-5 rounded-[2.5rem] border border-white/5 flex flex-col items-center gap-4 animate-in zoom-in group hover:border-blue-500/30 transition-all bg-white/5" style={{ animationDelay: `${i * 30}ms` }}>
-                                <div className="w-24 h-24 rounded-[2rem] overflow-hidden border-4 border-white/10 shadow-xl group-hover:scale-105 transition-transform bg-zinc-900 flex items-center justify-center">
-                                    {p.avatar ? (
-                                        <img src={p.avatar} className="w-full h-full object-cover" alt="" />
-                                    ) : (
-                                        <User className="text-white/20" size={48} />
-                                    )}
+                                <div className="w-24 h-24 rounded-[2rem] border-4 border-white/10 shadow-xl group-hover:scale-105 transition-transform bg-zinc-900 flex items-center justify-center overflow-visible">
+                                    <ProAvatar username={p.username} url={p.avatar} size="w-24 h-24" className="overflow-visible" />
                                 </div>
                                 <span className="font-black text-white text-base truncate w-full text-center">{p.username}</span>
                             </div>
@@ -1132,12 +1129,8 @@ export const LogoRound: React.FC<LogoRoundProps> = ({ onHome, isOBS }) => {
                                     <div className="flex flex-col items-center gap-6 bg-green-500/10 p-8 rounded-[3rem] border-4 border-green-500/30 backdrop-blur-xl">
                                         <div className="text-green-500 font-black text-2xl uppercase tracking-[0.5em] mb-2">إجـابـة مـذهـلـة</div>
                                         <div className="flex items-center gap-8">
-                                            <div className="w-32 h-32 rounded-[2.5rem] overflow-hidden border-4 border-green-500 shadow-xl bg-zinc-900 flex items-center justify-center">
-                                                {roundWinner.avatar ? (
-                                                    <img src={roundWinner.avatar} className="w-full h-full object-cover" alt="" />
-                                                ) : (
-                                                    <User className="text-white/20" size={64} />
-                                                )}
+                                            <div className="w-32 h-32 rounded-[2.5rem] border-4 border-green-500 shadow-xl bg-zinc-900 flex items-center justify-center overflow-visible">
+                                                <ProAvatar username={roundWinner.username} url={roundWinner.avatar} size="w-32 h-32" className="overflow-visible" />
                                             </div>
                                             <div className="text-right">
                                                 <div className="text-6xl font-black text-white italic tracking-tighter mb-2">{roundWinner.username}</div>
@@ -1168,12 +1161,13 @@ export const LogoRound: React.FC<LogoRoundProps> = ({ onHome, isOBS }) => {
 
                     {Object.entries(scores).sort((a, b) => (b[1] as number) - (a[1] as number))[0] && (
                         <div className="flex flex-col items-center gap-8 mb-20 animate-in zoom-in duration-700 delay-300">
-                            <div className="w-72 h-72 rounded-[4rem] overflow-hidden border-8 border-blue-500 shadow-[0_0_120px_rgba(59,130,246,0.4)] relative bg-black/40 backdrop-blur-xl flex items-center justify-center">
-                                {participants.find(p => p.username === Object.entries(scores).sort((a, b) => (b[1] as number) - (a[1] as number))[0][0])?.avatar ? (
-                                    <img src={participants.find(p => p.username === Object.entries(scores).sort((a, b) => (b[1] as number) - (a[1] as number))[0][0])?.avatar} className="w-full h-full object-cover" alt="" />
-                                ) : (
-                                    <User className="text-white/20" size={120} />
-                                )}
+                            <div className="w-72 h-72 rounded-[4rem] border-8 border-blue-500 shadow-[0_0_120px_rgba(59,130,246,0.4)] relative bg-black/40 backdrop-blur-xl flex items-center justify-center overflow-visible">
+                                <ProAvatar 
+                                    username={Object.entries(scores).sort((a, b) => (b[1] as number) - (a[1] as number))[0][0]} 
+                                    url={participants.find(p => p.username === Object.entries(scores).sort((a, b) => (b[1] as number) - (a[1] as number))[0][0])?.avatar}
+                                    size="w-72 h-72" 
+                                    className="overflow-visible" 
+                                />
                             </div>
                             <div className="text-center">
                                 <div className="text-8xl font-black text-white mb-6 italic tracking-tighter">{Object.entries(scores).sort((a, b) => (b[1] as number) - (a[1] as number))[0][0]}</div>

@@ -8,6 +8,7 @@ import {
     Minimize2, Monitor, Layout, Crown, PaintBucket, Square, Circle,
     Triangle, Pentagon, Star
 } from 'lucide-react';
+import { ProAvatar } from './ProAvatar';
 import { ChatUser } from '../types';
 import { chatService } from '../services/chatService';
 import { supabase } from '../services/supabase';
@@ -527,9 +528,7 @@ export const DrawingChallenge: React.FC<DrawingChallengeProps> = ({ onHome, isOB
                 <div className="w-full grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 px-12 mb-24 overflow-y-auto max-h-[550px] custom-scrollbar">
                     {participants.map((p, i) => (
                         <div key={p.username} className="p-6 rounded-[2.5rem] border border-white/5 flex flex-col items-center gap-5 animate-in zoom-in bg-white/5 backdrop-blur-2xl hover:bg-white/10 transition-all group" style={{ animationDelay: `${i * 30}ms` }}>
-                            <div className="w-28 h-28 rounded-[2.5rem] overflow-hidden border-4 border-white/10 bg-zinc-900 flex items-center justify-center group-hover:border-violet-500 transition-all shadow-xl">
-                                {p.avatar ? <img src={p.avatar} className="w-full h-full object-cover" alt="" referrerPolicy="no-referrer" /> : <User className="text-white/10" size={56} />}
-                            </div>
+                            <ProAvatar url={p.avatar} username={p.username} size="w-28 h-28" className="overflow-visible" />
                             <span className="font-black text-white text-lg truncate w-full text-center">{p.username}</span>
                         </div>
                     ))}
@@ -561,10 +560,7 @@ export const DrawingChallenge: React.FC<DrawingChallengeProps> = ({ onHome, isOB
                     </div>
                     <h1 className="text-7xl font-black text-white italic tracking-tighter leading-none mb-6 drop-shadow-2xl">تـخمـين صحـيـح!</h1>
                     <div className="flex flex-col items-center gap-6 bg-white/5 p-10 rounded-[3rem] border-2 border-white/10 backdrop-blur-3xl shadow-[0_20px_80px_rgba(0,0,0,0.5)]">
-                        <div className="w-32 h-32 rounded-[2.5rem] overflow-hidden border-4 border-yellow-500 bg-zinc-900 flex items-center justify-center shadow-2xl relative">
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                            {winner.avatar ? <img src={winner.avatar} className="w-full h-full object-cover" alt="" /> : <User className="text-white/10" size={64} />}
-                        </div>
+                        <ProAvatar url={winner.avatar} username={winner.username} size="w-48 h-48" className="overflow-visible" />
                         <div className="text-4xl font-black text-white italic">{winner.username}</div>
                         <div className="text-xl font-black text-white/40 uppercase tracking-[0.3em] mt-2">
                             الكلمة: <span className="text-yellow-400 text-5xl mx-4 tracking-normal">{targetWord}</span>

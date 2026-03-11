@@ -725,6 +725,7 @@ export const TruthOrLie: React.FC<TruthOrLieProps> = ({ onHome, isOBS = false })
                                                 url={v.avatar_url}
                                                 username={v.username}
                                                 size="w-8 h-8"
+                                                className="overflow-visible"
                                             />
                                             <span className="text-zinc-300 text-xs font-medium truncate max-w-[80px]">{v.username}</span>
                                         </div>

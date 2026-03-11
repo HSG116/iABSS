@@ -161,8 +161,8 @@ export const TeamBattle: React.FC<TeamBattleProps> = ({ channelConnected, onHome
                                     <ProAvatar
                                        url={data.avatar}
                                        username={u}
-                                       size="w-16 h-16"
-                                       className={`border-2 ${winner === 'RED' ? 'border-red-500' : 'border-green-500'}`}
+                                       size="w-20 h-20"
+                                       className={`border-2 overflow-visible ${winner === 'RED' ? 'border-red-500' : 'border-green-500'}`}
                                     />
                                     <span className="text-white text-xs font-bold">{u}</span>
                                     <span className="text-gray-500 text-[10px] font-mono">{data.points} pts</span>

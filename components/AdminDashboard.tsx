@@ -375,7 +375,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                       <div key={p.id} className="bg-black/40 p-5 rounded-2xl flex items-center justify-between border border-white/[0.03]">
                         <div className="flex items-center gap-4">
                           <div className="shrink-0">
-                            <ProAvatar url={p.avatar_url} username={p.username} size="w-10 h-10" />
+                            <ProAvatar url={p.avatar_url} username={p.username} size="w-12 h-12" className="overflow-visible" />
                           </div>
                           <span className="font-black italic">{p.username}</span>
                         </div>
@@ -435,7 +435,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         <td className="p-6">
                           <div className="flex items-center gap-6">
                             <div className="shrink-0 group-hover:scale-110 transition-transform">
-                              <ProAvatar url={p.avatar_url} username={p.username} size="w-16 h-16" />
+                              <ProAvatar url={p.avatar_url} username={p.username} size="w-16 h-16" className="overflow-visible" />
                             </div>
                             <div>
                               <div className={`text-xl font-black italic ${p.is_banned ? 'text-zinc-700 line-through' : 'text-white'}`}>{p.username}</div>
@@ -497,7 +497,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         <div className="flex items-center gap-8">
                           <div className="relative group">
                             <div className={`absolute inset-0 blur-3xl opacity-40 rounded-full transition-opacity ${statType === 'points' ? 'bg-blue-600' : statType === 'wins' ? 'bg-yellow-500' : 'bg-kick-green'}`}></div>
-                            <ProAvatar url={profiles.find(p => p.username === targetUser)?.avatar_url} username={targetUser} size="w-24 h-24" className="relative z-10 border-2 border-white/10 shadow-2xl" />
+                            <ProAvatar url={profiles.find(p => p.username === targetUser)?.avatar_url} username={targetUser} size="w-28 h-28" className="relative z-10 border-2 border-white/10 shadow-2xl overflow-visible" />
                           </div>
                           <div>
                             <h2 className="text-4xl md:text-5xl font-black italic text-white tracking-tighter mb-2">{targetUser}</h2>
@@ -653,7 +653,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                   <div key={p.id} className="glass-card p-8 rounded-3xl border border-red-900/40 bg-red-950/5 flex items-center justify-between group hover:border-red-500/40 transition-all">
                     <div className="flex items-center gap-8">
                       <div className="relative group-hover:scale-110 transition-transform">
-                        <ProAvatar url={p.avatar_url} username={p.username} size="w-16 h-16" className="opacity-40 grayscale" />
+                        <ProAvatar url={p.avatar_url} username={p.username} size="w-16 h-16" className="opacity-40 grayscale overflow-visible" />
                         <Ban size={24} className="absolute inset-0 m-auto text-red-600 drop-shadow-xl z-20" />
                       </div>
                       <div>

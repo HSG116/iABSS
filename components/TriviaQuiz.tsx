@@ -288,7 +288,7 @@ export const TriviaQuiz: React.FC<TriviaQuizProps> = ({ channelConnected }) => {
                       <div key={user} className="flex justify-between p-2 bg-white/5 rounded-xl border border-white/5 items-center">
                          <div className="flex items-center gap-2">
                             <span className={`w-4 text-center font-bold ${i === 0 ? 'text-yellow-500' : 'text-gray-400'}`}>{i + 1}</span>
-                            <ProAvatar username={user} size="w-10 h-10" />
+                             <ProAvatar username={user} size="w-12 h-12" />
                             <span className="text-gray-200 font-bold truncate max-w-[80px]">{user}</span>
                          </div>
                          <span className="font-mono text-kick-green font-black">{score}</span>
@@ -397,18 +397,19 @@ export const TriviaQuiz: React.FC<TriviaQuizProps> = ({ channelConnected }) => {
                      <div className="flex flex-col items-center gap-4 animate-in slide-in-from-bottom-4">
                          <div className="flex -space-x-3">
                             {Object.entries(roundWinnerAvatars).slice(0, 6).map(([u, av], i) => (
-                               <ProAvatar
-                                  key={i}
-                                  url={av}
-                                  username={u}
-                                  size="w-16 h-16"
-                               />
+                                <ProAvatar
+                                   key={i}
+                                   url={av}
+                                   username={u}
+                                   size="w-20 h-20"
+                                   className="overflow-visible"
+                                />
                             ))}
-                            {Object.keys(roundWinnerAvatars).length > 6 && (
-                               <div className="w-16 h-16 rounded-full border-2 border-indigo-500 bg-indigo-900 text-white flex items-center justify-center font-bold text-xs shadow-lg relative z-10">
-                                  +{Object.keys(roundWinnerAvatars).length - 6}
-                               </div>
-                            )}
+                             {Object.keys(roundWinnerAvatars).length > 6 && (
+                                <div className="w-20 h-20 rounded-full border-2 border-indigo-500 bg-indigo-900 text-white flex items-center justify-center font-bold text-xs shadow-lg relative z-10">
+                                   +{Object.keys(roundWinnerAvatars).length - 6}
+                                </div>
+                             )}
                          </div>
                         <span className="text-green-400 font-bold text-sm bg-green-900/20 px-4 py-2 rounded-full border border-green-500/20">
                            {Object.keys(roundWinnerAvatars).length} لاعبين أجابوا بشكل صحيح!
@@ -427,8 +428,8 @@ export const TriviaQuiz: React.FC<TriviaQuizProps> = ({ channelConnected }) => {
                       {sortedScores.slice(0, 3).map((p, i) => (
                          <div key={i} className={`flex items-center justify-between p-4 rounded-2xl border ${i === 0 ? 'bg-yellow-500/10 border-yellow-500 text-yellow-500 shadow-[0_0_30px_rgba(234,179,8,0.2)]' : 'bg-[#141619] border-white/10 text-gray-300'}`}>
                             <div className="flex items-center gap-4">
-                               <div className="text-2xl font-black">#{i + 1}</div>
-                               <ProAvatar username={p[0]} size={i === 0 ? "w-20 h-20" : "w-14 h-14"} />
+                                <div className="text-2xl font-black">#{i + 1}</div>
+                                <ProAvatar username={p[0]} size={i === 0 ? "w-32 h-32" : "w-20 h-20"} className="overflow-visible" />
                                <div className="text-xl font-bold">{p[0]}</div>
                             </div>
                             <div className="text-xl font-mono font-black">{p[1]} pts</div>

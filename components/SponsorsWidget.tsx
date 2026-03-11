@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { User, Plus, X, Trash2, Loader2, Star, Minus, ExternalLink } from 'lucide-react';
 import { supabase } from '../services/supabase';
 import { chatService } from '../services/chatService';
+import { ProAvatar } from './ProAvatar';
 
 interface Sponsor {
     id: string;
@@ -255,42 +256,14 @@ export const SponsorsWidget: React.FC = () => {
                                                     background: '#dc2626', opacity: hov ? 1 : 0.3, transition: 'opacity 0.3s'
                                                 }} />
 
-                                                <div style={{ position: 'relative', flexShrink: 0 }}>
-                                                    <div style={{
-                                                        width: '30px', height: '30px', borderRadius: '10px', overflow: 'hidden',
-                                                        border: hov ? '1.5px solid #dc2626' : '1.5px solid rgba(255,255,255,0.1)',
-                                                        boxShadow: hov ? '0 0 10px rgba(220,38,38,0.4)' : 'none',
-                                                        transition: 'all 0.3s',
-                                                    }}>
-                                                        {sp.isLoading || sp.isFixing ? (
-                                                            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a' }}>
-                                                                <Loader2 size={12} className="animate-spin" color="#dc2626" />
-                                                            </div>
-                                                        ) : sp.avatarUrl ? (
-                                                            <img
-                                                                src={sp.avatarUrl}
-                                                                alt={sp.name}
-                                                                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                                                                referrerPolicy="no-referrer"
-                                                                onError={() => fixAvatar(sp)}
-                                                            />
-                                                        ) : (
-                                                            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#111' }}>
-                                                                <User size={16} color="#444" onClick={() => fixAvatar(sp)} style={{ cursor: sp.kickUsername ? 'pointer' : 'default' }} />
-                                                            </div>
-                                                        )}
+                                                    <div className="overflow-visible" style={{ position: 'relative', flexShrink: 0 }}>
+                                                        <ProAvatar
+                                                            url={sp.avatarUrl}
+                                                            username={sp.kickUsername || sp.name}
+                                                            size="w-8 h-8"
+                                                            className="overflow-visible"
+                                                        />
                                                     </div>
-                                                    {sp.kickUsername && (
-                                                        <div style={{
-                                                            position: 'absolute', bottom: '-2px', right: '-2px',
-                                                            width: '14px', height: '14px', borderRadius: '4px',
-                                                            background: '#53fc18', border: '2px solid #050505',
-                                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                            fontSize: '7px', fontWeight: 900, color: '#000',
-                                                            boxShadow: '0 2px 5px rgba(0,0,0,0.5)'
-                                                        }}>K</div>
-                                                    )}
-                                                </div>
 
                                                 <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, maxWidth: '120px', gap: '1px' }}>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>

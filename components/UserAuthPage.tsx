@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { User, Lock, Shield, CheckCircle, Loader2, ExternalLink, MessageSquare, Fingerprint, Sparkles, ArrowRight, Eye, EyeOff, AlertTriangle, Copy, ClipboardCheck } from 'lucide-react';
 import { chatService } from '../services/chatService';
 import { supabase } from '../services/supabase';
+import { ProAvatar } from './ProAvatar';
 
 interface UserAuthPageProps {
     onSuccess: (userData: { name: string; kickUsername: string; discord?: string; avatar?: string }) => void;
@@ -357,17 +358,17 @@ export const UserAuthPage: React.FC<UserAuthPageProps> = ({ onSuccess, onBack })
                         {(kickAvatar || isLoadingAvatar) && (
                             <div className="flex justify-center -mt-2 mb-2">
                                 <div className="relative">
-                                    <div className={`w-20 h-20 rounded-2xl overflow-hidden border-2 ${kickAvatar ? 'border-green-500 shadow-[0_0_25px_rgba(34,197,94,0.3)]' : 'border-white/10'} bg-black/60 transition-all duration-500`}>
+                                    <div className={`transition-all duration-500`}>
                                         {isLoadingAvatar ? (
-                                            <div className="w-full h-full flex items-center justify-center">
+                                            <div className="w-20 h-20 rounded-2xl border-2 border-white/10 flex items-center justify-center bg-black/60">
                                                 <Loader2 size={24} className="animate-spin text-red-500" />
                                             </div>
                                         ) : kickAvatar ? (
-                                            <img src={kickAvatar} className="w-full h-full object-cover" alt="Kick Avatar" />
+                                            <ProAvatar url={kickAvatar} username={kickUsername} size="w-24 h-24" className="overflow-visible" />
                                         ) : null}
                                     </div>
                                     {kickAvatar && (
-                                        <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center border-2 border-black">
+                                        <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center border-2 border-black z-20">
                                             <CheckCircle size={12} className="text-black" />
                                         </div>
                                     )}
@@ -538,12 +539,8 @@ export const UserAuthPage: React.FC<UserAuthPageProps> = ({ onSuccess, onBack })
 
                         {/* User Info */}
                         <div className="flex items-center gap-4 bg-black/40 rounded-2xl p-4 border border-white/5">
-                            <div className="w-14 h-14 rounded-xl overflow-hidden border-2 border-green-500/30 bg-black/60">
-                                {kickAvatar ? (
-                                    <img src={kickAvatar} className="w-full h-full object-cover" alt="" />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center"><User size={20} className="text-gray-500" /></div>
-                                )}
+                            <div className="bg-black/60">
+                                <ProAvatar url={kickAvatar} username={kickUsername} size="w-16 h-16" className="overflow-visible" />
                             </div>
                             <div>
                                 <div className="text-white font-black text-lg">{kickUsername}</div>
@@ -639,10 +636,8 @@ export const UserAuthPage: React.FC<UserAuthPageProps> = ({ onSuccess, onBack })
                     </div>
                     <h2 className="text-5xl font-black text-white italic mb-3 slide-up">تم التحقق!</h2>
                     <p className="text-green-500 font-bold tracking-[0.5em] text-xl uppercase slide-up drop-shadow-[0_0_15px_rgba(34,197,94,0.5)]">VERIFIED ✓</p>
-                    <div className="mt-6 flex items-center gap-3 bg-green-500/10 border border-green-500/20 px-6 py-3 rounded-full slide-up">
-                        <div className="w-8 h-8 rounded-lg overflow-hidden border border-green-500/30">
-                            {kickAvatar ? <img src={kickAvatar} className="w-full h-full object-cover" /> : <User size={14} className="text-gray-400 m-auto mt-2" />}
-                        </div>
+                    <div className="mt-6 flex items-center gap-3 bg-green-500/10 border border-green-500/20 px-6 py-6 rounded-3xl slide-up overflow-visible">
+                        <ProAvatar url={kickAvatar} username={kickUsername} size="w-20 h-20" className="overflow-visible" />
                         <span className="text-white font-black">{kickUsername}</span>
                     </div>
                 </div>

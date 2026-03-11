@@ -271,7 +271,8 @@ export const Raffle: React.FC<RaffleProps> = ({ channelConnected, onHome }) => {
                               <ProAvatar
                                  url={p.avatar}
                                  username={p.username}
-                                 size="w-14 h-14"
+                                 size="w-16 h-16"
+                                 className="overflow-visible"
                               />
                               <div className="flex flex-col">
                                  <span className="text-sm font-black text-white group-hover:text-red-500 transition-colors">{p.username}</span>
@@ -432,7 +433,8 @@ export const Raffle: React.FC<RaffleProps> = ({ channelConnected, onHome }) => {
                                     <ProAvatar
                                        url={p.avatar}
                                        username={p.username}
-                                       size="w-56 h-56"
+                                       size="w-64 h-64"
+                                       className="overflow-visible"
                                     />
                                     <div className="text-5xl font-black text-white truncate max-w-[320px] italic drop-shadow-[0_10px_20px_black] tracking-tighter uppercase">{p.username}</div>
                                  </div>
@@ -466,7 +468,8 @@ export const Raffle: React.FC<RaffleProps> = ({ channelConnected, onHome }) => {
                         <ProAvatar
                            url={winner.avatar}
                            username={winner.username}
-                           size="w-[550px] h-[550px]"
+                           size="w-[600px] h-[600px]"
+                           className="overflow-visible"
                         />
                         <div className="text-[20rem] font-black text-white italic tracking-tighter uppercase drop-shadow-[0_60px_120px_black] leading-[0.7] mb-20 select-all">{winner.username}</div>
                      </div>

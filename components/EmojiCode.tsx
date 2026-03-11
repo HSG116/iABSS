@@ -506,7 +506,8 @@ export const EmojiCode: React.FC<EmojiCodeProps> = ({ onHome, isOBS }) => {
                                         <ProAvatar
                                             url={p.avatar}
                                             username={p.username}
-                                            size="w-12 h-12"
+                                            size="w-16 h-16"
+                                            className="overflow-visible"
                                         />
                                     </div>
                                     <span className="font-black text-white text-xs">{p.username}</span>
@@ -613,11 +614,12 @@ export const EmojiCode: React.FC<EmojiCodeProps> = ({ onHome, isOBS }) => {
                         {winner ? (
                             <div className="bg-green-500/10 border-2 border-green-500/30 rounded-[3rem] p-8 mb-6 animate-in slide-in-from-bottom">
                                 <div className="flex items-center justify-center gap-4 mb-4">
-                                    <div className="w-20 h-20">
+                                    <div className="w-28 h-28">
                                         <ProAvatar
                                             url={winner.user.avatar}
                                             username={winner.user.username}
-                                            size="w-20 h-20"
+                                            size="w-28 h-28"
+                                            className="overflow-visible"
                                         />
                                     </div>
                                     <div>
@@ -683,11 +685,12 @@ export const EmojiCode: React.FC<EmojiCodeProps> = ({ onHome, isOBS }) => {
                                 <div key={p.user.username} className={`flex justify-between items-center py-4 border-b border-white/5 last:border-0 animate-in slide-in-from-right ${i === 0 ? 'bg-yellow-500/10 rounded-2xl px-4 -mx-2' : ''}`} style={{ animationDelay: `${i * 150}ms` }}>
                                     <div className="flex items-center gap-4">
                                         <span className={`text-2xl font-black ${i === 0 ? 'text-yellow-400' : i === 1 ? 'text-gray-400' : i === 2 ? 'text-orange-700' : 'text-gray-600'}`}>#{i + 1}</span>
-                                        <div className={`${i === 0 ? 'w-20 h-20' : 'w-14 h-14'}`}>
+                                        <div className={`${i === 0 ? 'w-32 h-32' : 'w-16 h-16'}`}>
                                             <ProAvatar
                                                 url={p.user.avatar}
                                                 username={p.user.username}
-                                                size={i === 0 ? 'w-20 h-20' : 'w-14 h-14'}
+                                                size={i === 0 ? 'w-32 h-32' : 'w-16 h-16'}
+                                                className="overflow-visible"
                                             />
                                         </div>
                                         <div>

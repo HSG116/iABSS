@@ -600,7 +600,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                                 <div className="mt-6 flex flex-wrap justify-center gap-2 max-w-sm">
                                                     {women.map(p => (
                                                         <div key={p.username} className="animate-in zoom-in">
-                                                            <ProAvatar username={p.username} url={p.avatar} size="w-12 h-12" className="border-2 border-[#FF6B52]" />
+                                                            <ProAvatar username={p.username} url={p.avatar} size="w-16 h-16" className="overflow-visible" />
                                                         </div>
                                                     ))}
                                                     {women.length === 0 && <div className="w-12 h-12 rounded-full border-2 border-dashed border-white/10 flex items-center justify-center text-white/10 uppercase text-[8px] font-black">Empty</div>}
@@ -620,7 +620,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                                 <div className="mt-6 flex flex-wrap justify-center gap-2 max-w-sm">
                                                     {men.map(p => (
                                                         <div key={p.username} className="animate-in zoom-in">
-                                                            <ProAvatar username={p.username} url={p.avatar} size="w-12 h-12" className="border-2 border-[#14b8a6]" />
+                                                            <ProAvatar username={p.username} url={p.avatar} size="w-16 h-16" className="overflow-visible" />
                                                         </div>
                                                     ))}
                                                     {men.length === 0 && <div className="w-12 h-12 rounded-full border-2 border-dashed border-white/10 flex items-center justify-center text-white/10 uppercase text-[8px] font-black">Empty</div>}
@@ -933,8 +933,8 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                         {women.map(p => (
                                             <div key={p.username} className="flex flex-col items-center gap-2 animate-in zoom-in duration-500 group">
                                                 <div className="relative p-1.5 rounded-[2rem] transition-all group-hover:scale-110 shadow-2xl" style={{ background: `conic-gradient(from 0deg, ${p.color}, transparent, ${p.color})` }}>
-                                                    <ProAvatar username={p.username} url={p.avatar} size="w-24 h-24" />
-                                                    <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full border-4 border-[#0f0f1b] shadow-xl animate-pulse" style={{ backgroundColor: p.color }}></div>
+                                                    <ProAvatar username={p.username} url={p.avatar} size="w-32 h-32" className="overflow-visible" />
+                                                    <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full border-4 border-[#0f0f1b] shadow-xl animate-pulse" style={{ backgroundColor: p.color }}></div>
                                                 </div>
                                                 <span className="text-xs font-black truncate w-full text-center mt-2 group-hover:scale-110 transition-transform" style={{ color: p.color, textShadow: `0 0 10px ${p.color}44` }}>{p.username}</span>
                                             </div>
@@ -985,8 +985,8 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                         {men.map(p => (
                                             <div key={p.username} className="flex flex-col items-center gap-2 animate-in zoom-in duration-500 group">
                                                 <div className="relative p-1.5 rounded-[2rem] transition-all group-hover:scale-110 shadow-2xl" style={{ background: `conic-gradient(from 0deg, ${p.color}, transparent, ${p.color})` }}>
-                                                    <ProAvatar username={p.username} url={p.avatar} size="w-24 h-24" />
-                                                    <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full border-4 border-[#0f0f1b] shadow-xl animate-pulse" style={{ backgroundColor: p.color }}></div>
+                                                    <ProAvatar username={p.username} url={p.avatar} size="w-32 h-32" className="overflow-visible" />
+                                                    <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full border-4 border-[#0f0f1b] shadow-xl animate-pulse" style={{ backgroundColor: p.color }}></div>
                                                 </div>
                                                 <span className="text-xs font-black truncate w-full text-center mt-2 group-hover:scale-110 transition-transform" style={{ color: p.color, textShadow: `0 0 10px ${p.color}44` }}>{p.username}</span>
                                             </div>
@@ -1034,8 +1034,8 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                             <div className={`absolute z-30 flex flex-col items-center transition-all ${isOBS ? 'top-[-80px] right-10 scale-90' : 'top-10 right-10'}`}>
                                 <div className={`${isOBS ? 'bg-[#FF6B52]/90 backdrop-blur-xl border-white/30' : 'bg-[#FF6B52] border-[#5A22A3]'} border-4 rounded-[2.5rem] px-8 py-4 text-center shadow-[0_12px_24px_rgba(0,0,0,0.3)] transform -rotate-1`}>
                                     <h2 className="text-white font-black text-2xl drop-shadow-md">{team1Name}</h2>
-                                    <div className="mt-3 flex flex-wrap justify-center gap-1 max-w-[150px]">
-                                        {women.slice(0, 10).map(p => <ProAvatar key={p.username} username={p.avatar} url={p.avatar} size="w-7 h-7" />)}
+                                    <div className="mt-3 flex flex-wrap justify-center gap-1 max-w-[150px] overflow-visible">
+                                        {women.slice(0, 10).map(p => <ProAvatar key={p.username} username={p.avatar} url={p.avatar} size="w-10 h-10" className="overflow-visible" />)}
                                     </div>
                                 </div>
                             </div>
@@ -1044,8 +1044,8 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                             <div className={`absolute z-30 flex flex-col items-center transition-all ${isOBS ? 'top-[-80px] left-10 scale-90' : 'top-10 left-10'}`}>
                                 <div className={`${isOBS ? 'bg-[#14b8a6]/90 backdrop-blur-xl border-white/30' : 'bg-[#14b8a6] border-[#5A22A3]'} border-4 rounded-[2.5rem] px-8 py-4 text-center shadow-[0_12px_24px_rgba(0,0,0,0.3)] transform rotate-1`}>
                                     <h2 className="text-white font-black text-2xl drop-shadow-md">{team2Name}</h2>
-                                    <div className="mt-3 flex flex-wrap justify-center gap-1 max-w-[150px]">
-                                        {men.slice(0, 10).map(p => <ProAvatar key={p.username} username={p.avatar} url={p.avatar} size="w-7 h-7" />)}
+                                    <div className="mt-3 flex flex-wrap justify-center gap-1 max-w-[150px] overflow-visible">
+                                        {men.slice(0, 10).map(p => <ProAvatar key={p.username} username={p.avatar} url={p.avatar} size="w-10 h-10" className="overflow-visible" />)}
                                     </div>
                                 </div>
                             </div>
@@ -1201,7 +1201,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                         <div className="space-y-8 animate-in zoom-in">
                                             <div className={`p-4 rounded-2xl border-4 flex items-center justify-between gap-4 ${buzzedTeam === 'team1' ? 'border-[#FF6B52] bg-[#FF6B52]/10' : 'border-[#14b8a6] bg-[#14b8a6]/10'}`}>
                                                 <div className="flex items-center gap-4">
-                                                    {buzzedPlayer && <ProAvatar username={buzzedPlayer.username} url={buzzedPlayer.avatar} size="w-16 h-16" />}
+                                                    {buzzedPlayer && <ProAvatar username={buzzedPlayer.username} url={buzzedPlayer.avatar} size="w-24 h-24" className="overflow-visible" />}
                                                     <div className="text-right">
                                                         <div className="text-white font-black text-xl italic">{buzzedPlayer?.username}</div>
                                                         <div className={`text-sm font-black mt-1 ${buzzedTeam === 'team1' ? 'text-[#FF6B52]' : 'text-[#14b8a6]'}`}>{buzzedTeam === 'team1' ? team1Name : team2Name}</div>

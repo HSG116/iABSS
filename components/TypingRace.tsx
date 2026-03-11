@@ -297,7 +297,7 @@ export const TypingRace: React.FC<TypingRaceProps> = ({ channelConnected, onHome
                            url={winner.avatar}
                            username={winner.name}
                            size="w-32 h-32"
-                           className="transition-transform hover:scale-110"
+                           className="transition-transform hover:scale-110 overflow-visible"
                         />
                         <div>
                            <div className="text-7xl font-black text-white italic tracking-tighter uppercase drop-shadow-xl">{winner.name}</div>
