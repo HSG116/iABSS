@@ -420,10 +420,10 @@ export const FruitWar: React.FC<FruitWarProps> = ({ onHome, isOBS }) => {
 
                                         {/* Avatars Preview */}
                                         {count > 0 && (
-                                            <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 flex -space-x-2 opacity-0 group-hover:opacity-100 group-hover:bottom-2 transition-all duration-300 z-30">
+                                            <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex -space-x-4 opacity-0 group-hover:opacity-100 group-hover:bottom-2 transition-all duration-300 z-30">
                                                 {team.slice(0, 3).map(p => (
-                                                    <div key={p.username} className="w-8 h-8 rounded-full border-2 border-white bg-zinc-800 overflow-hidden">
-                                                        {p.avatar && <img src={p.avatar} className="w-full h-full object-cover" />}
+                                                    <div key={p.username} className="w-12 h-12">
+                                                        <ProAvatar url={p.avatar} username={p.username} size="w-12 h-12" />
                                                     </div>
                                                 ))}
                                             </div>
@@ -460,7 +460,7 @@ export const FruitWar: React.FC<FruitWarProps> = ({ onHome, isOBS }) => {
                                 <ProAvatar
                                     url={p.avatar}
                                     username={p.username}
-                                    size="w-20 h-20"
+                                    size="w-28 h-28"
                                     className="border-4 border-yellow-400 shadow-xl"
                                 />
                                 <span className="text-xs font-bold text-white/90 truncate w-24 text-center mt-2">{p.username}</span>
@@ -497,8 +497,8 @@ export const FruitWar: React.FC<FruitWarProps> = ({ onHome, isOBS }) => {
                                     <ProAvatar
                                         url={p.avatar}
                                         username={p.username}
-                                        size="w-16 h-16"
-                                        className="border-2 border-white/10 group-hover:border-blue-500 transition-all shadow-lg"
+                                        size="w-20 h-20"
+                                        className="group-hover:border-blue-500 transition-all shadow-lg"
                                     />
                                     <span className="text-[10px] font-bold text-gray-400 truncate w-full text-center">{p.username}</span>
                                 </div>

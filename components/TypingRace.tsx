@@ -292,12 +292,13 @@ export const TypingRace: React.FC<TypingRaceProps> = ({ channelConnected, onHome
                      </div>
 
                      <div className="flex flex-col items-center justify-center gap-6 mb-12">
+
                         <ProAvatar
                            url={winner.avatar}
                            username={winner.name}
                            size="w-32 h-32"
+                           className="transition-transform hover:scale-110"
                         />
-
                         <div>
                            <div className="text-7xl font-black text-white italic tracking-tighter uppercase drop-shadow-xl">{winner.name}</div>
                            <div className="text-4xl font-mono font-black text-red-500 mt-2">{winner.time.toFixed(3)}s</div>

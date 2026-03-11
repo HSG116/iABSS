@@ -424,8 +424,8 @@ export const BlurGuess: React.FC<BlurGuessProps> = ({ channelConnected, onHome }
                 <ProAvatar
                   url={winner.avatar}
                   username={winner.name}
-                  size="w-24 h-24"
-                  className="rounded-[2.5rem] shadow-2xl border-2 border-white/10"
+                  size="w-32 h-32"
+                  className="rounded-[2.5rem] shadow-2xl transition-transform hover:scale-110"
                 />
                 <div className="text-8xl font-black text-white italic tracking-tighter drop-shadow-lg">{winner.name}</div>
               </div>

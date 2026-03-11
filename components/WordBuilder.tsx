@@ -651,9 +651,9 @@ export const WordBuilder: React.FC<WordBuilderProps> = ({ onHome, isOBS }) => {
                                     <ProAvatar
                                         url={p.avatar}
                                         username={p.username}
-                                        size="w-10 h-10"
+                                        size="w-14 h-14"
                                     />
-                                    <span className="font-black text-white text-sm">{p.username}</span>
+                                    <span className="font-black text-white text-base">{p.username}</span>
                                 </div>
                             ))}
                         </div>
@@ -707,10 +707,15 @@ export const WordBuilder: React.FC<WordBuilderProps> = ({ onHome, isOBS }) => {
                         {/* Recent words */}
                         <div className="flex flex-wrap justify-center gap-3 mb-8 max-w-3xl min-h-[80px]">
                             {recentWords.map((w, i) => (
-                                <div key={`${w.word}-${i}`} className="word-pop bg-emerald-500/20 border border-emerald-500/40 px-5 py-3 rounded-2xl flex items-center gap-3 shadow-lg">
-                                    <span className="text-white font-black text-lg">{w.word}</span>
-                                    <span className="bg-emerald-500 text-white font-black text-xs px-2 py-0.5 rounded-lg">+{w.points}</span>
-                                    <span className="text-emerald-400 font-bold text-xs">{w.username}</span>
+                                <div key={`${w.word}-${i}`} className="word-pop bg-emerald-500/20 border border-emerald-500/40 px-5 py-3 rounded-[2rem] flex items-center gap-4 shadow-lg min-w-[200px]">
+                                    <ProAvatar username={w.username} size="w-12 h-12" />
+                                    <div className="flex flex-col flex-1">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-white font-black text-xl">{w.word}</span>
+                                            <span className="bg-emerald-500 text-white font-black text-[10px] px-2 py-0.5 rounded-lg">+{w.points}</span>
+                                        </div>
+                                        <span className="text-emerald-400 font-bold text-sm tracking-tight">{w.username}</span>
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -726,7 +731,7 @@ export const WordBuilder: React.FC<WordBuilderProps> = ({ onHome, isOBS }) => {
                                             <ProAvatar
                                                 url={p.user.avatar}
                                                 username={p.user.username}
-                                                size="w-7 h-7"
+                                                size="w-10 h-10"
                                             />
                                             <span className="text-sm font-bold text-gray-300">{p.user.username}</span>
                                         </div>
@@ -758,7 +763,7 @@ export const WordBuilder: React.FC<WordBuilderProps> = ({ onHome, isOBS }) => {
                                         <ProAvatar
                                             url={p.user.avatar}
                                             username={p.user.username}
-                                            size="w-10 h-10"
+                                            size="w-14 h-14"
                                         />
                                         <span className="text-lg font-black text-white">{p.user.username}</span>
                                     </div>
@@ -792,7 +797,7 @@ export const WordBuilder: React.FC<WordBuilderProps> = ({ onHome, isOBS }) => {
                                         <ProAvatar
                                             url={p.user.avatar}
                                             username={p.user.username}
-                                            size={i === 0 ? "w-14 h-14" : "w-10 h-10"}
+                                            size={i === 0 ? "w-20 h-20" : "w-14 h-14"}
                                         />
                                         <div>
                                             <span className={`${i === 0 ? 'text-xl' : 'text-lg'} font-black text-white`}>{p.user.username}</span>

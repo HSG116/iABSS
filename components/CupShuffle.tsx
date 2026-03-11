@@ -4,6 +4,8 @@ import { chatService } from '../services/chatService';
 import { leaderboardService } from '../services/supabase';
 import { Coffee, Play, RotateCcw, Trophy, CheckCircle2, Lock, LogOut, Home, Settings, Users, Hash } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { ProAvatar } from './ProAvatar';
+
 
 interface CupShuffleProps {
   channelConnected: boolean;
@@ -238,9 +240,13 @@ export const CupShuffle: React.FC<CupShuffleProps> = ({ channelConnected, onHome
                 <Trophy size={12} /> المتصدرين
               </div>
               {sortedScores.map(([name, score], i) => (
-                <div key={i} className="flex justify-between items-center py-2 border-b border-white/5 last:border-0">
-                  <span className="text-xs text-gray-300 font-bold">{i + 1}. {name}</span>
-                  <span className="text-xs text-red-500 font-mono font-black">{score}</span>
+                <div key={i} className="flex justify-between items-center py-2 border-b border-white/5 last:border-0 group">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black text-gray-600 w-4">{i + 1}.</span>
+                    <ProAvatar username={name} size="w-7 h-7" />
+                    <span className="text-xs text-gray-300 font-bold group-hover:text-white transition-colors">{name}</span>
+                  </div>
+                  <span className="text-xs text-red-500 font-mono font-black italic">{score}</span>
                 </div>
               ))}
             </div>

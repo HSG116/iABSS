@@ -283,17 +283,18 @@ export const TriviaQuiz: React.FC<TriviaQuizProps> = ({ channelConnected }) => {
                <div className="p-3 border-b border-white/5 bg-[#0b0e0f] text-xs font-bold text-gray-400">
                   لوحة الصدارة
                </div>
-               <div className="overflow-y-auto flex-1 p-2 space-y-1 custom-scrollbar">
-                  {sortedScores.map(([user, score], i) => (
-                     <div key={user} className="flex justify-between px-2 py-1 bg-white/5 rounded text-xs mb-1 items-center">
-                        <div className="flex gap-2">
-                           <span className={i === 0 ? 'text-yellow-500' : 'text-gray-400'}>#{i + 1}</span>
-                           <span className="text-gray-200">{user}</span>
-                        </div>
-                        <span className="font-mono text-kick-green">{score}</span>
-                     </div>
-                  ))}
-               </div>
+                <div className="overflow-y-auto flex-1 p-2 space-y-2 custom-scrollbar">
+                   {sortedScores.map(([user, score], i) => (
+                      <div key={user} className="flex justify-between p-2 bg-white/5 rounded-xl border border-white/5 items-center">
+                         <div className="flex items-center gap-2">
+                            <span className={`w-4 text-center font-bold ${i === 0 ? 'text-yellow-500' : 'text-gray-400'}`}>{i + 1}</span>
+                            <ProAvatar username={user} size="w-10 h-10" />
+                            <span className="text-gray-200 font-bold truncate max-w-[80px]">{user}</span>
+                         </div>
+                         <span className="font-mono text-kick-green font-black">{score}</span>
+                      </div>
+                   ))}
+                </div>
             </div>
          </SidebarPortal>
 
@@ -394,21 +395,21 @@ export const TriviaQuiz: React.FC<TriviaQuizProps> = ({ channelConnected }) => {
 
                   {gameState === 'REVEAL' && Object.keys(roundWinnerAvatars).length > 0 && (
                      <div className="flex flex-col items-center gap-4 animate-in slide-in-from-bottom-4">
-                        <div className="flex -space-x-4">
-                           {Object.entries(roundWinnerAvatars).slice(0, 5).map(([u, av], i) => (
-                              <ProAvatar
-                                 key={i}
-                                 url={av}
-                                 username={u}
-                                 size="w-12 h-12"
-                              />
-                           ))}
-                           {Object.keys(roundWinnerAvatars).length > 5 && (
-                              <div className="w-12 h-12 rounded-full border-2 border-indigo-500 bg-indigo-900 text-white flex items-center justify-center font-bold text-xs shadow-lg">
-                                 +{Object.keys(roundWinnerAvatars).length - 5}
-                              </div>
-                           )}
-                        </div>
+                         <div className="flex -space-x-3">
+                            {Object.entries(roundWinnerAvatars).slice(0, 6).map(([u, av], i) => (
+                               <ProAvatar
+                                  key={i}
+                                  url={av}
+                                  username={u}
+                                  size="w-16 h-16"
+                               />
+                            ))}
+                            {Object.keys(roundWinnerAvatars).length > 6 && (
+                               <div className="w-16 h-16 rounded-full border-2 border-indigo-500 bg-indigo-900 text-white flex items-center justify-center font-bold text-xs shadow-lg relative z-10">
+                                  +{Object.keys(roundWinnerAvatars).length - 6}
+                               </div>
+                            )}
+                         </div>
                         <span className="text-green-400 font-bold text-sm bg-green-900/20 px-4 py-2 rounded-full border border-green-500/20">
                            {Object.keys(roundWinnerAvatars).length} لاعبين أجابوا بشكل صحيح!
                         </span>
@@ -422,17 +423,18 @@ export const TriviaQuiz: React.FC<TriviaQuizProps> = ({ channelConnected }) => {
                   <Trophy size={100} className="mx-auto text-yellow-400 mb-6 animate-bounce" />
                   <h1 className="text-5xl font-black text-white mb-8">نتائج المسابقة</h1>
 
-                  <div className="flex flex-col gap-4 w-full max-w-md mx-auto">
-                     {sortedScores.slice(0, 3).map((p, i) => (
-                        <div key={i} className={`flex items-center justify-between p-4 rounded-xl border ${i === 0 ? 'bg-yellow-500/10 border-yellow-500 text-yellow-500' : 'bg-[#141619] border-white/10 text-gray-300'}`}>
-                           <div className="flex items-center gap-4">
-                              <div className="text-2xl font-black">#{i + 1}</div>
-                              <div className="text-xl font-bold">{p[0]}</div>
-                           </div>
-                           <div className="text-xl font-mono font-black">{p[1]} pts</div>
-                        </div>
-                     ))}
-                  </div>
+                   <div className="flex flex-col gap-4 w-full max-w-md mx-auto">
+                      {sortedScores.slice(0, 3).map((p, i) => (
+                         <div key={i} className={`flex items-center justify-between p-4 rounded-2xl border ${i === 0 ? 'bg-yellow-500/10 border-yellow-500 text-yellow-500 shadow-[0_0_30px_rgba(234,179,8,0.2)]' : 'bg-[#141619] border-white/10 text-gray-300'}`}>
+                            <div className="flex items-center gap-4">
+                               <div className="text-2xl font-black">#{i + 1}</div>
+                               <ProAvatar username={p[0]} size={i === 0 ? "w-20 h-20" : "w-14 h-14"} />
+                               <div className="text-xl font-bold">{p[0]}</div>
+                            </div>
+                            <div className="text-xl font-mono font-black">{p[1]} pts</div>
+                         </div>
+                      ))}
+                   </div>
 
                   <button onClick={resetGame} className="mt-8 px-8 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-500">
                      مسابقة جديدة

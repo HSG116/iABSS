@@ -63,6 +63,8 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
    const [scoreBoard, setScoreBoard] = useState<{ name: string, score: number, avatar?: string, attempts: number }[]>([]);
    const [lastAction, setLastAction] = useState<{ text: string, type: 'good' | 'bad' | 'neutral' } | null>(null);
    const [hoveredCell, setHoveredCell] = useState<{ r: number, c: number } | null>(null);
+   const [bookingNumber, setBookingNumber] = useState<string>('');
+   const [showBookingNumber, setShowBookingNumber] = useState(false);
 
    const phaseRef = useRef(phase);
    const gridRef = useRef(grid);
@@ -80,11 +82,19 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
       const winnerIdx = Math.floor(Math.random() * totalCells);
       newGrid[winnerIdx] = { type: 'TREASURE', revealed: false };
 
+      const COL_LABELS = Array.from({ length: settings.cols }, (_, i) => String.fromCharCode(65 + i));
+      const ROW_LABELS = Array.from({ length: settings.rows }, (_, i) => i + 1);
+
+      const col = COL_LABELS[winnerIdx % settings.cols];
+      const row = ROW_LABELS[Math.floor(winnerIdx / settings.cols)];
+
       setGrid(newGrid);
       setWinner(null);
       setScoreBoard([]);
       setJoinedPlayers([]);
       setLastAction(null);
+      setBookingNumber(`${col}${row}`);
+      setShowBookingNumber(false);
       setPhase('RULES');
    };
 
@@ -315,8 +325,8 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                </div>
                <div className="grid grid-cols-4 md:grid-cols-6 gap-3 justify-center max-h-[200px] overflow-y-auto custom-scrollbar pr-2">
                   {joinedPlayers.map((p, i) => (
-                     <div key={i} className="animate-in zoom-in" style={{ animationDelay: `${i * 30}ms` }}>
-                        <ProAvatar url={p.avatar} username={p.name} size="w-12 h-12" className="mx-auto" />
+                     <div key={i} className="animate-in zoom-in p-1" style={{ animationDelay: `${i * 30}ms` }}>
+                        <ProAvatar url={p.avatar} username={p.name} size="w-20 h-20" className="mx-auto" />
                      </div>
                   ))}
                </div>
@@ -333,7 +343,7 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                {lastAction && (
                   <div className={`p-4 rounded-xl text-[10px] font-black text-center border shadow-xl animate-in slide-in-from-top duration-300 ${lastAction.type === 'good' ? 'bg-blue-600/10 border-blue-500/30 text-blue-400' : 'bg-red-600/10 border-red-500/30 text-red-400'}`}>{lastAction.text}</div>
                )}
-               <div className="bg-black/30 rounded-[2rem] border border-white/5 flex flex-col flex-1 overflow-hidden shadow-2xl">
+               <div className="bg-black/30 rounded-[2rem] border border-white/5 flex flex-col flex-1 shadow-2xl">
                   <div className="p-4 border-b border-white/5 bg-white/5 flex justify-between items-center text-[9px] font-black italic uppercase tracking-widest text-white/40">
                      <span className="flex items-center gap-2"><BarChart3 size={12} className="text-red-500" /> نشاط الفريق</span>
                      <span>LIVE RADAR</span>
@@ -342,7 +352,7 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                      {scoreBoard.sort((a, b) => b.attempts - a.attempts).map((p, i) => (
                         <div key={i} className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/5">
                            <div className="flex items-center gap-3">
-                              <ProAvatar url={p.avatar} username={p.name} size="w-7 h-7" />
+                              <ProAvatar url={p.avatar} username={p.name} size="w-12 h-12" />
                               <span className="text-[9px] font-bold text-gray-400 truncate max-w-[100px]">{p.name}</span>
                            </div>
                            <div className={`text-[9px] font-mono font-black border px-2 py-0.5 rounded-lg ${p.attempts >= settings.maxAttempts ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-white/5 text-gray-600'}`}>{p.attempts}/{settings.maxAttempts || '∞'}</div>
@@ -355,6 +365,28 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
          </SidebarPortal>
 
          <div className="w-full h-full flex flex-col items-center justify-center p-2 relative select-none animate-in fade-in duration-500 overflow-hidden">
+            {/* Booking Number Display */}
+            {phase !== 'SETTINGS' && (
+               <div className="absolute top-6 left-6 z-50 flex flex-col items-start gap-2 animate-in slide-in-from-left duration-700">
+                  <div className="bg-zinc-900/80 backdrop-blur-3xl border-2 border-white/10 p-5 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col items-center gap-2 min-w-[140px] group hover:border-white/20 transition-all duration-500">
+                     <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></div>
+                        <span className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em] italic">رقم الحجز</span>
+                     </div>
+                     <div className={`text-3xl font-black italic tracking-tighter text-white transition-all duration-700 ease-out ${!showBookingNumber ? 'blur-[18px] scale-95 opacity-50 select-none pointer-events-none' : 'blur-0 scale-100 opacity-100'}`}>
+                        {bookingNumber || '------'}
+                     </div>
+                     <button 
+                        onClick={() => setShowBookingNumber(!showBookingNumber)}
+                        className="mt-2 w-full px-4 py-2 bg-white/5 hover:bg-red-600 rounded-xl text-[10px] font-black text-white transition-all duration-300 border border-white/5 flex items-center justify-center gap-2 shadow-lg"
+                     >
+                        {showBookingNumber ? <EyeOff size={14} /> : <Eye size={14} />}
+                        {showBookingNumber ? 'إخفاء' : 'رؤية الرقم'}
+                     </button>
+                  </div>
+               </div>
+            )}
+
             {/* Radar Effect */}
             <div className="absolute inset-0 pointer-events-none opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
 
@@ -452,7 +484,7 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                                     onMouseEnter={() => setHoveredCell({ r: rIdx, c: cIdx })}
                                     onMouseLeave={() => setHoveredCell(null)}
                                     className={`
-                           rounded-lg border-[1px] md:border-2 flex items-center justify-center transition-all duration-500 relative overflow-hidden group z-10
+                           rounded-lg border-[1px] md:border-2 flex items-center justify-center transition-all duration-500 relative overflow-visible group z-10
                            ${!isRevealed ? 'bg-[#05070a] border-white/5 hover:border-red-500 hover:bg-zinc-900 cursor-crosshair' : 'border-transparent'}
                            ${isRevealed && cell.type === 'TREASURE' ? 'bg-gradient-to-br from-blue-700/80 to-blue-950 shadow-lg' : ''}
                            ${isRevealed && cell.type === 'BOMB' ? 'bg-gradient-to-br from-red-600 to-red-950 opacity-80' : ''}
@@ -466,18 +498,30 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                                        )
                                     )}
                                     {isRevealed && (
-                                       <div className="animate-in zoom-in spin-in-180 duration-500 p-1 md:p-2 w-full h-full flex items-center justify-center">
-                                          {cell.type === 'TREASURE' && (
-                                             <div className="w-10/12 h-6/12 bg-zinc-900 border border-white/20 rounded-sm shadow-inner relative overflow-hidden group/m">
-                                                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-blue-900/40"></div>
-                                                <div className="absolute bottom-0.5 right-0.5 w-3 h-3 md:w-4 md:h-4 group-hover/m:scale-110 transition-transform">
-                                                   <img src={tecshLogo} className="w-full h-full object-contain opacity-70" alt="logo" />
-                                                </div>
-                                             </div>
-                                          )}
-                                          {cell.type === 'BOMB' && <Skull size={20} className="text-white opacity-50" />}
-                                       </div>
-                                    )}
+                                        <div className="animate-in zoom-in spin-in-180 duration-500 p-1 md:p-2 w-full h-full flex items-center justify-center">
+                                           {cell.type === 'TREASURE' && (
+                                              <div className="relative w-full h-full flex items-center justify-center">
+                                                 <div className="absolute inset-0 z-0">
+                                                    <ProAvatar username={cell.finder || ''} size="w-full h-full" />
+                                                 </div>
+                                                 <div className="w-10/12 h-6/12 bg-zinc-900/80 border border-white/20 rounded-sm shadow-inner relative z-10 overflow-hidden group/m">
+                                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-blue-900/40"></div>
+                                                    <div className="absolute bottom-0.5 right-0.5 w-3 h-3 md:w-4 md:h-4 group-hover/m:scale-110 transition-transform">
+                                                       <img src={tecshLogo} className="w-full h-full object-contain opacity-70" alt="logo" />
+                                                    </div>
+                                                 </div>
+                                              </div>
+                                           )}
+                                           {cell.type === 'BOMB' && (
+                                              <div className="relative w-full h-full flex items-center justify-center">
+                                                 <div className="absolute inset-0 z-0 opacity-60">
+                                                    <ProAvatar username={cell.finder || ''} size="w-full h-full" />
+                                                 </div>
+                                                 <Skull size={14} className="text-white relative z-10 drop-shadow-md" />
+                                              </div>
+                                           )}
+                                        </div>
+                                     )}
                                     {isRevealed && cell.finder && cell.type === 'TREASURE' && (
                                        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-end justify-center pb-0.5">
                                           <span className="text-[6px] font-black text-white truncate px-1 uppercase italic tracking-tighter">{cell.finder}</span>
@@ -538,9 +582,9 @@ export const GridHunt: React.FC<GridHuntProps> = ({ channelConnected, onHome, is
                      </div>
                   </div>
 
-                  <div className="flex flex-col items-center gap-4 bg-white/5 p-8 px-12 rounded-[4rem] border border-white/10 shadow-2xl animate-in slide-in-from-bottom duration-1000">
-                     <ProAvatar url={winner.avatar} username={winner.name} size="w-24 h-24" className="shadow-2xl" />
-                     <div className="text-3xl font-black text-white italic tracking-tighter">{winner.name}</div>
+                  <div className="flex flex-col items-center gap-4 bg-white/5 p-12 px-16 rounded-[4rem] border border-white/10 shadow-2xl animate-in slide-in-from-bottom duration-1000">
+                     <ProAvatar username={winner.name} size="w-40 h-40" className="shadow-2xl" />
+                     <div className="text-4xl font-black text-white italic tracking-tighter">{winner.name}</div>
                      <div className="px-8 py-2 bg-red-600 text-white text-xs font-black rounded-full italic shadow-lg uppercase tracking-widest">Authorized Winner</div>
                   </div>
 

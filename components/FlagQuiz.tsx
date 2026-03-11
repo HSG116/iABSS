@@ -234,8 +234,9 @@ export const FlagQuiz: React.FC<FlagQuizProps> = ({ channelConnected, onHome }) 
                   {sortedScores.map(([name, score], i) => (
                      <div key={name} className="flex items-center justify-between p-3 rounded-[1.5rem] bg-white/5 border border-white/5 hover:bg-white/10 transition-colors group">
                         <div className="flex items-center gap-3">
-                           <span className={`w-6 h-6 flex items-center justify-center text-[10px] font-black rounded-full ${i === 0 ? 'bg-yellow-500 text-black shadow-[0_0_10px_yellow]' : 'bg-white/10 text-gray-400'}`}>#{i + 1}</span>
-                           <span className="text-[11px] font-bold text-gray-200 truncate max-w-[100px] group-hover:text-white transition-colors">{name}</span>
+                           <span className={`min-w-6 h-6 flex items-center justify-center text-[10px] font-black rounded-full ${i === 0 ? 'bg-yellow-500 text-black shadow-[0_0_10px_yellow]' : 'bg-white/10 text-gray-400'}`}>#{i + 1}</span>
+                           <ProAvatar username={name} size="w-8 h-8" />
+                           <span className="text-[11px] font-bold text-gray-200 truncate max-w-[80px] group-hover:text-white transition-colors">{name}</span>
                         </div>
                         <span className="text-red-500 font-black italic text-lg px-2">{score}</span>
                      </div>
@@ -312,11 +313,11 @@ export const FlagQuiz: React.FC<FlagQuizProps> = ({ channelConnected, onHome }) 
                               <CheckCircle2 size={18} /> Round Winner
                            </div>
 
-                           <div className="w-24 h-24 rounded-full border-4 border-green-500 mx-auto mb-4 overflow-hidden shadow-2xl flex items-center justify-center bg-black/40">
+                           <div className="w-32 h-32 mx-auto mb-6 flex items-center justify-center">
                               <ProAvatar
                                  url={lastWinner.avatar || ''}
                                  username={lastWinner.name}
-                                 size="w-24 h-24"
+                                 size="w-32 h-32"
                               />
                            </div>
 

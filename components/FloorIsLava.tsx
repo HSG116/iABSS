@@ -325,9 +325,9 @@ export const FloorIsLava: React.FC<FloorIsLavaProps> = ({ onHome, isOBS }) => {
                         <div className="flex flex-wrap justify-center gap-3 max-w-3xl mx-auto">
                             {participants.map(p => (
                                 <div key={p.id} className="animate-in zoom-in duration-300 bg-black/40 border border-white/10 rounded-2xl px-4 py-2 flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg overflow-hidden border border-white/10">
-                                        <ProAvatar url={p.avatar || ''} username={p.username} size="w-8 h-8" />
-                                    </div>
+                                    <div className="w-14 h-14 relative overflow-visible">
+                                         <ProAvatar url={p.avatar || ''} username={p.username} size="w-14 h-14" />
+                                     </div>
                                     <span className="font-black text-white text-xs">{p.username}</span>
                                 </div>
                             ))}
@@ -468,9 +468,9 @@ export const FloorIsLava: React.FC<FloorIsLavaProps> = ({ onHome, isOBS }) => {
                             <div className="flex flex-wrap justify-center gap-4 mb-10 max-w-3xl">
                                 {participants.map(p => (
                                     <div key={p.id} className="flex flex-col items-center gap-2 animate-in zoom-in">
-                                        <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-yellow-500/40 shadow-[0_0_15px_rgba(251,191,36,0.3)]">
-                                            <ProAvatar url={p.avatar || ''} username={p.username} size="w-16 h-16" />
-                                        </div>
+                                    <div className="w-32 h-32 relative overflow-visible">
+                                             <ProAvatar url={p.avatar || ''} username={p.username} size="w-32 h-32" />
+                                         </div>
                                         <span className="text-sm font-black text-yellow-400">{p.username}</span>
                                     </div>
                                 ))}

@@ -159,7 +159,7 @@ export const ZombieEscape: React.FC<ZombieEscapeProps> = ({ channelConnected, is
                                         <ProAvatar
                                             url={p.user.avatar}
                                             username={p.user.username}
-                                            size="w-8 h-8"
+                                            size="w-12 h-12"
                                             className={p.status === 'ZOMBIE' ? 'grayscale opacity-50' : ''}
                                         />
                                         <span className="text-xs font-black truncate w-24">{p.user.username}</span>
@@ -271,13 +271,19 @@ export const ZombieEscape: React.FC<ZombieEscapeProps> = ({ channelConnected, is
                     {players.filter(p => p.status === 'ALIVE').map((p, i) => (
                         <div key={`alive-${i}`} className="flex flex-col items-center animate-bounce" style={{ animationDuration: `${0.8 + Math.random() * 0.4}s`, animationDelay: `${i * 0.1}s` }}>
                             <div className="px-2 py-1 bg-black/40 backdrop-blur-md rounded text-[8px] font-black text-white/60 mb-2 border border-white/5">{p.user.username}</div>
-                            <div className="text-5xl drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">🏃</div>
+                            <div className="relative group overflow-visible">
+                                <ProAvatar url={p.user.avatar} username={p.user.username} size="w-14 h-14" />
+                                <div className="absolute -bottom-2 -right-2 text-2xl drop-shadow-lg">🏃</div>
+                            </div>
                         </div>
                     ))}
                     {players.filter(p => p.status === 'ZOMBIE').map((p, i) => (
-                        <div key={`zombie-${i}`} className="flex flex-col items-center animate-pulse opacity-60 grayscale-[0.5]" style={{ animationDelay: `${i * 0.2}s` }}>
+                        <div key={`zombie-${i}`} className="flex flex-col items-center animate-pulse opacity-60" style={{ animationDelay: `${i * 0.2}s` }}>
                             <div className="px-2 py-1 bg-red-950/40 backdrop-blur-md rounded text-[8px] font-black text-red-400/60 mb-2 border border-red-500/10">{p.user.username}</div>
-                            <div className="text-5xl drop-shadow-[0_0_20px_rgba(239,68,68,0.4)]">🧟</div>
+                            <div className="relative group overflow-visible grayscale-[0.5]">
+                                <ProAvatar url={p.user.avatar} username={p.user.username} size="w-14 h-14" />
+                                <div className="absolute -bottom-2 -right-2 text-2xl drop-shadow-lg">🧟</div>
+                            </div>
                         </div>
                     ))}
                 </div>

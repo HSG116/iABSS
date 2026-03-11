@@ -724,7 +724,7 @@ export const TruthOrLie: React.FC<TruthOrLieProps> = ({ onHome, isOBS = false })
                                             <ProAvatar
                                                 url={v.avatar_url}
                                                 username={v.username}
-                                                size="w-6 h-6"
+                                                size="w-8 h-8"
                                             />
                                             <span className="text-zinc-300 text-xs font-medium truncate max-w-[80px]">{v.username}</span>
                                         </div>

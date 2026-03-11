@@ -312,7 +312,7 @@ export const GlassBridgeV2: React.FC<GlassBridgeV2Props> = ({ onHome, isOBS }) =
                                     <ProAvatar
                                         url={p.avatar}
                                         username={p.username}
-                                        size="w-8 h-8"
+                                        size="w-12 h-12"
                                     />
                                     <span className="font-black text-white text-xs">{p.username}</span>
                                 </div>
@@ -463,7 +463,7 @@ export const GlassBridgeV2: React.FC<GlassBridgeV2Props> = ({ onHome, isOBS }) =
                                     <ProAvatar
                                         url={p.avatar}
                                         username={p.username}
-                                        size="w-16 h-16"
+                                        size="w-20 h-20"
                                     />
                                     <span className="text-xs font-black text-yellow-400">{p.username}</span>
                                 </div>

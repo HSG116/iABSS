@@ -162,7 +162,7 @@ export const BossRaid: React.FC<BossRaidProps> = ({ channelConnected, isOBS }) =
                                  <ProAvatar
                                     url={data.avatar}
                                     username={name}
-                                    size="w-10 h-10"
+                                    size="w-12 h-12"
                                  />
                                  <div className={`absolute -top-2 -left-2 w-5 h-5 rounded-lg flex items-center justify-center text-[10px] font-black shadow-lg ${i === 0 ? 'bg-yellow-500 text-black' : 'bg-zinc-800 text-white'}`}>
                                     {i + 1}
@@ -242,8 +242,8 @@ export const BossRaid: React.FC<BossRaidProps> = ({ channelConnected, isOBS }) =
                            <ProAvatar
                               url={sortedMvps[0][1].avatar}
                               username={sortedMvps[0][0]}
-                              size="w-32 h-32"
-                              className="shadow-[0_0_50px_rgba(239,68,68,0.5)]"
+                              size="w-40 h-40"
+                              className="shadow-[0_0_50px_rgba(239,68,68,0.5)] transition-transform hover:scale-110"
                            />
                            <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-yellow-500 text-black px-6 py-1 rounded-xl font-black text-sm shadow-xl italic whitespace-nowrap z-20">MVP: {sortedMvps[0][0]}</div>
                         </div>

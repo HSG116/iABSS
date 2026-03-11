@@ -777,7 +777,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                             <ProAvatar
                               url={top3[0]?.avatar}
                               username={top3[0]?.user}
-                              size="w-48 h-48"
+                              size="w-56 h-56"
                               className="z-10 transition-transform group-hover:scale-110"
                             />
                             <div className="absolute -top-10 -right-10 animate-float z-20">
@@ -851,7 +851,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                                 <ProAvatar
                                   url={player.avatar}
                                   username={player.user}
-                                  size="w-16 h-16"
+                                  size="w-20 h-20"
                                   className={`group-hover:border-red-500 transition-all shadow-xl ${isTop3 ? 'border-2 border-yellow-500' : ''}`}
                                 />
                                 {isTop3 && (
@@ -918,7 +918,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                                 <ProAvatar
                                   url={roundWinners[0].avatar}
                                   username={roundWinners[0].user}
-                                  size="w-44 h-44"
+                                  size="w-52 h-52"
                                   className="shadow-[0_0_80px_rgba(220,38,38,0.4)]"
                                 />
                                 <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-red-600 text-white px-6 py-1 rounded-xl font-black text-sm shadow-xl italic whitespace-nowrap z-20">WINNER</div>
@@ -946,7 +946,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                                     <ProAvatar
                                       url={w.avatar}
                                       username={w.user}
-                                      size="w-24 h-24"
+                                      size="w-28 h-28"
                                       className="shadow-[0_0_30px_rgba(220,38,38,0.3)] group-hover:scale-110 transition-transform duration-700"
                                     />
                                     <div className="absolute -bottom-2 -right-2 bg-red-600 text-white w-7 h-7 rounded-lg flex items-center justify-center font-black border-2 border-black text-[10px] shadow-xl z-20">#{idx + 1}</div>
@@ -981,7 +981,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                                 <ProAvatar
                                   url={player.avatar}
                                   username={player.user}
-                                  size="w-14 h-14"
+                                  size="w-16 h-16"
                                   className={idx === 0 ? 'animate-pulse' : ''}
                                 />
                                 <div className="min-w-0">
@@ -1001,7 +1001,7 @@ export const FawazirGame: React.FC<FawazirGameProps> = ({ category, onFinish, on
                                 <ProAvatar
                                   url={player.avatar}
                                   username={player.user}
-                                  size="w-10 h-10"
+                                  size="w-12 h-12"
                                 />
                                 <div className="min-w-0">
                                   <div className="text-xs font-black text-white truncate">{player.user}</div>

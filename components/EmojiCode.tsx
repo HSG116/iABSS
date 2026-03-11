@@ -4,6 +4,7 @@ import { chatService } from '../services/chatService';
 import { leaderboardService } from '../services/supabase';
 import { ChatUser } from '../types';
 import { Smile, Play, Settings, Users, Trophy, LogOut, User, Crown, ChevronRight, Sparkles, Star, Award, Zap, Eye, RotateCcw, Brain, Timer } from 'lucide-react';
+import { ProAvatar } from './ProAvatar';
 
 interface EmojiCodeProps {
     onHome: () => void;
@@ -501,8 +502,12 @@ export const EmojiCode: React.FC<EmojiCodeProps> = ({ onHome, isOBS }) => {
                         <div className="flex flex-wrap justify-center gap-3 max-w-3xl mx-auto">
                             {participants.map(p => (
                                 <div key={p.id} className="animate-in zoom-in duration-300 bg-black/40 border border-white/10 rounded-2xl px-4 py-2 flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg overflow-hidden border border-white/10">
-                                        {p.avatar ? <img src={p.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-zinc-900 flex items-center justify-center"><User size={14} /></div>}
+                                    <div className="w-12 h-12">
+                                        <ProAvatar
+                                            url={p.avatar}
+                                            username={p.username}
+                                            size="w-12 h-12"
+                                        />
                                     </div>
                                     <span className="font-black text-white text-xs">{p.username}</span>
                                 </div>
@@ -608,8 +613,12 @@ export const EmojiCode: React.FC<EmojiCodeProps> = ({ onHome, isOBS }) => {
                         {winner ? (
                             <div className="bg-green-500/10 border-2 border-green-500/30 rounded-[3rem] p-8 mb-6 animate-in slide-in-from-bottom">
                                 <div className="flex items-center justify-center gap-4 mb-4">
-                                    <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-green-500">
-                                        {winner.user.avatar ? <img src={winner.user.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-zinc-900 flex items-center justify-center"><User size={24} /></div>}
+                                    <div className="w-20 h-20">
+                                        <ProAvatar
+                                            url={winner.user.avatar}
+                                            username={winner.user.username}
+                                            size="w-20 h-20"
+                                        />
                                     </div>
                                     <div>
                                         <div className="text-3xl font-black text-green-400">{winner.user.username}</div>
@@ -674,8 +683,12 @@ export const EmojiCode: React.FC<EmojiCodeProps> = ({ onHome, isOBS }) => {
                                 <div key={p.user.username} className={`flex justify-between items-center py-4 border-b border-white/5 last:border-0 animate-in slide-in-from-right ${i === 0 ? 'bg-yellow-500/10 rounded-2xl px-4 -mx-2' : ''}`} style={{ animationDelay: `${i * 150}ms` }}>
                                     <div className="flex items-center gap-4">
                                         <span className={`text-2xl font-black ${i === 0 ? 'text-yellow-400' : i === 1 ? 'text-gray-400' : i === 2 ? 'text-orange-700' : 'text-gray-600'}`}>#{i + 1}</span>
-                                        <div className={`${i === 0 ? 'w-14 h-14' : 'w-10 h-10'} rounded-xl overflow-hidden border-2 ${i === 0 ? 'border-yellow-500' : 'border-white/10'}`}>
-                                            {p.user.avatar ? <img src={p.user.avatar} className="w-full h-full object-cover" /> : <User size={16} />}
+                                        <div className={`${i === 0 ? 'w-20 h-20' : 'w-14 h-14'}`}>
+                                            <ProAvatar
+                                                url={p.user.avatar}
+                                                username={p.user.username}
+                                                size={i === 0 ? 'w-20 h-20' : 'w-14 h-14'}
+                                            />
                                         </div>
                                         <div>
                                             <span className={`${i === 0 ? 'text-xl' : 'text-lg'} font-black text-white`}>{p.user.username}</span>

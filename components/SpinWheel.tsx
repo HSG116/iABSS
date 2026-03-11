@@ -375,7 +375,7 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({ channelConnected, onHome }
                                  <ProAvatar
                                     url={p.avatar || ''}
                                     username={p.username}
-                                    size="w-8 h-8"
+                                    size="w-10 h-10"
                                  />
                                  <span className="text-[11px] font-black text-white truncate">{p.username}</span>
                               </div>
@@ -392,11 +392,11 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({ channelConnected, onHome }
                         </h4>
                         <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-1">
                            {history.map((h, i) => (
-                              <div key={i} className="w-10 h-10 rounded-xl border border-amber-500/30 overflow-hidden shrink-0 shadow-lg flex items-center justify-center bg-black/40" title={h.username}>
+                              <div key={i} className="w-12 h-12 rounded-xl border border-amber-500/30 shrink-0 shadow-lg flex items-center justify-center bg-black/40 overflow-visible" title={h.username}>
                                  <ProAvatar
                                     url={h.avatar || ''}
                                     username={h.username}
-                                    size="w-10 h-10"
+                                    size="w-12 h-12"
                                  />
                               </div>
                            ))}

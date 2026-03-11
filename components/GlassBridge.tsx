@@ -282,8 +282,7 @@ export const GlassBridge: React.FC<GlassBridgeProps> = ({ channelConnected }) =>
                                  <ProAvatar
                                     url={p.avatar}
                                     username={p.username}
-                                    size="w-6 h-6"
-                                    className="rounded-md overflow-hidden"
+                                    size="w-10 h-10"
                                  />
                                  <span className={isActive ? 'text-cyan-400 font-bold' : 'text-gray-300'}>{p.username}</span>
                               </div>
@@ -347,8 +346,8 @@ export const GlassBridge: React.FC<GlassBridgeProps> = ({ channelConnected }) =>
                         <ProAvatar
                            url={queue[activePlayerIndex].avatar}
                            username={queue[activePlayerIndex].username}
-                           size="w-16 h-16"
-                           className="shadow-lg"
+                           size="w-24 h-24"
+                           className="shadow-2xl"
                         />
                         {queue[activePlayerIndex].username}
                      </div>
@@ -425,7 +424,7 @@ export const GlassBridge: React.FC<GlassBridgeProps> = ({ channelConnected }) =>
                         <div className="w-24 h-24 bg-cyan-500/10 border-4 border-cyan-500/50 rounded-lg flex items-center justify-center text-4xl font-black text-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.2)]">R</div>
                         {/* Player Avatar */}
                         {!isProcessing && lastResult !== 'BROKEN' && (
-                           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-white rounded-full border-4 border-cyan-500 flex items-center justify-center text-black font-black z-20 shadow-xl animate-bounce overflow-hidden">
+                           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-white rounded-full border-4 border-cyan-500 flex items-center justify-center text-black font-black z-20 shadow-xl animate-bounce overflow-visible">
                               <ProAvatar
                                  url={queue[activeIndexRef.current]?.avatar}
                                  username={queue[activeIndexRef.current]?.username || ''}

@@ -143,7 +143,7 @@ export const RussianRoulette: React.FC<RussianRouletteProps> = ({ channelConnect
                   </button>
                </div>
 
-               <div className="bg-[#0a0a0c]/90 backdrop-blur-md rounded-[2rem] border border-white/10 flex flex-col overflow-hidden h-[400px] mt-4 shadow-2xl">
+               <div className="bg-[#0a0a0c]/90 backdrop-blur-md rounded-[2rem] border border-white/10 flex flex-col h-[400px] mt-4 shadow-2xl">
                   <div className="p-4 border-b border-white/5 bg-gradient-to-r from-red-600/10 to-transparent">
                      <span className="text-[10px] font-black text-white flex items-center gap-2 uppercase tracking-widest">
                         <User size={14} className="text-gray-400" /> Chamber Players
@@ -156,7 +156,7 @@ export const RussianRoulette: React.FC<RussianRouletteProps> = ({ channelConnect
                               <ProAvatar
                                  url={p.avatar}
                                  username={p.username}
-                                 size="w-10 h-10"
+                                 size="w-12 h-12"
                               />
                               <span className="text-sm font-black text-white truncate w-24">{p.username}</span>
                            </div>
@@ -189,12 +189,12 @@ export const RussianRoulette: React.FC<RussianRouletteProps> = ({ channelConnect
                   </h2>
                   <div className="flex items-center justify-center gap-4 mt-8">
                      {Array.from({ length: 6 }).map((_, i) => (
-                        <div key={i} className={`w-16 h-16 rounded-2xl border-2 transition-all duration-500 flex items-center justify-center rotate-${i * 10} ${participants[i] ? 'bg-red-600 border-red-400 shadow-[0_0_30px_rgba(220,38,38,0.5)] scale-110' : 'bg-transparent border-white/10 opacity-20'}`}>
+                        <div key={i} className={`w-24 h-24 rounded-2xl border-2 transition-all duration-500 flex items-center justify-center rotate-${i * 10} ${participants[i] ? 'bg-red-600 border-red-400 shadow-[0_0_30px_rgba(220,38,38,0.5)] scale-110' : 'bg-transparent border-white/10 opacity-20'}`}>
                            {participants[i] ? (
                               <ProAvatar
                                  url={participants[i].avatar}
                                  username={participants[i].username}
-                                 size="w-16 h-16"
+                                 size="w-24 h-24"
                               />
                            ) : (
                               <Target size={24} className="text-white/20" />

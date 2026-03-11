@@ -487,13 +487,13 @@ export const MusicalChairsGame: React.FC<MusicalChairsGameProps> = ({ onHome, is
    };
 
    const getDynamicSize = (count: number) => {
-      if (count < 12) return { box: 'w-16 h-16', icon: 50, text: 'text-xl', chair: 'w-12 h-12', chairIcon: 65 };
-      if (count < 30) return { box: 'w-14 h-14', icon: 40, text: 'text-lg', chair: 'w-10 h-10', chairIcon: 55 };
-      if (count < 60) return { box: 'w-12 h-12', icon: 35, text: 'text-base', chair: 'w-8 h-8', chairIcon: 45 };
-      if (count < 150) return { box: 'w-10 h-10', icon: 30, text: 'text-sm', chair: 'w-6 h-6', chairIcon: 35 };
-      if (count < 300) return { box: 'w-8 h-8', icon: 20, text: 'text-[10px]', chair: 'w-5 h-5', chairIcon: 25 };
-      if (count < 600) return { box: 'w-6 h-6', icon: 16, text: 'text-[8px]', chair: 'w-4 h-4', chairIcon: 20 };
-      return { box: 'w-5 h-5', icon: 14, text: 'text-[7px]', chair: 'w-3 h-3', chairIcon: 16 };
+      if (count < 12) return { box: 'w-20 h-20', icon: 50, text: 'text-xl', chair: 'w-16 h-16', chairIcon: 65 };
+      if (count < 30) return { box: 'w-16 h-16', icon: 40, text: 'text-lg', chair: 'w-14 h-14', chairIcon: 55 };
+      if (count < 60) return { box: 'w-14 h-14', icon: 35, text: 'text-base', chair: 'w-12 h-12', chairIcon: 45 };
+      if (count < 150) return { box: 'w-12 h-12', icon: 30, text: 'text-sm', chair: 'w-10 h-10', chairIcon: 35 };
+      if (count < 300) return { box: 'w-10 h-10', icon: 20, text: 'text-[10px]', chair: 'w-8 h-8', chairIcon: 25 };
+      if (count < 600) return { box: 'w-8 h-8', icon: 16, text: 'text-[8px]', chair: 'w-6 h-6', chairIcon: 20 };
+      return { box: 'w-6 h-6', icon: 14, text: 'text-[7px]', chair: 'w-5 h-5', chairIcon: 16 };
    };
 
    // Improved coordinate math to ensure players orbit exactly around the center
@@ -1008,12 +1008,12 @@ export const MusicalChairsGame: React.FC<MusicalChairsGameProps> = ({ onHome, is
                            const sizes = getDynamicSize(participants.length);
                            return (
                               <div key={p.id} className="animate-in zoom-in duration-500 flex flex-col items-center gap-2 group">
-                                 <div className={`${sizes.box} rounded-[2rem] border-2 p-1 transition-all duration-300 shadow-2xl relative overflow-hidden bg-black/40 backdrop-blur-xl group-hover:border-red-600`} style={{ borderColor: p.color || 'rgba(255,255,255,0.1)' }}>
-                                    {p.avatar ? (
-                                       <img src={p.avatar} className="w-full h-full object-cover rounded-[1.7rem]" />
-                                    ) : (
-                                       <div className="w-full h-full bg-zinc-900 rounded-[1.7rem] flex items-center justify-center text-gray-600"><User size={sizes.icon} /></div>
-                                    )}
+                                 <div className={`${sizes.box} rounded-[2rem] border-2 p-1 transition-all duration-300 shadow-2xl relative flex items-center justify-center bg-black/40 backdrop-blur-xl group-hover:border-red-600`} style={{ borderColor: p.color || 'rgba(255,255,255,0.1)' }}>
+                                    <ProAvatar
+                                       url={p.avatar}
+                                       username={p.username}
+                                       size="w-full h-full"
+                                    />
                                  </div>
                                  <span className={`${sizes.text} font-black uppercase drop-shadow-md transition-colors group-hover:text-white`} style={{ color: p.color || '#9ca3af' }}>{p.username}</span>
                               </div>
@@ -1135,7 +1135,7 @@ export const MusicalChairsGame: React.FC<MusicalChairsGameProps> = ({ onHome, is
                           `
                            : `radial-gradient(circle at center, ${config.selectedMap.glowColor}15 0%, rgba(0,0,0,0.8) 70%)`,
                         boxShadow: `
-                           0 0 80px ${config.selectedMap.glowColor}, 
+                           0 0 80px ${config.selectedMap.glowColor},
                            0 0 120px ${config.selectedMap.glowColor},
                            inset 0 0 60px ${config.selectedMap.pulseColor},
                            0 40px 100px rgba(0,0,0,0.7)
@@ -1240,7 +1240,7 @@ export const MusicalChairsGame: React.FC<MusicalChairsGameProps> = ({ onHome, is
                                  {isOccupied && chair.occupiedBy && (() => {
                                     const occupant = participants.find(p => p.username === chair.occupiedBy);
                                     return (
-                                       <div className="relative w-full h-full rounded-full overflow-hidden">
+                                       <div className="relative w-full h-full rounded-full flex items-center justify-center">
                                           <ProAvatar
                                              url={occupant?.avatar}
                                              username={occupant?.username || ''}
@@ -1324,7 +1324,7 @@ export const MusicalChairsGame: React.FC<MusicalChairsGameProps> = ({ onHome, is
                               }}
                            >
                               <div className={`
-                             ${sizes.box} rounded-[2rem] border-2 p-1 backdrop-blur-sm shadow-2xl overflow-hidden relative transition-all duration-300
+                             ${sizes.box} rounded-[2rem] border-2 p-1 backdrop-blur-sm shadow-2xl relative transition-all duration-300 overflow-visible
                              ${phase === 'MUSIC_ON' ? 'border-white/40 bg-black/60' : 'border-white/60 bg-black/80 shadow-[0_0_30px_rgba(255,255,255,0.3)]'}
                           `}
                                  style={{
@@ -1432,7 +1432,7 @@ export const MusicalChairsGame: React.FC<MusicalChairsGameProps> = ({ onHome, is
                            {/* Eliminated Players Grid - Premium Cards */}
                            <div className="w-full mb-12 relative">
                               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-950/20 to-transparent blur-xl" />
-                              <div className="relative bg-black/60 backdrop-blur-2xl border-2 rounded-[4rem] p-12 shadow-2xl overflow-hidden"
+                              <div className="relative bg-black/60 backdrop-blur-2xl border-2 rounded-[4rem] p-12 shadow-2xl"
                                  style={{
                                     borderImage: 'linear-gradient(135deg, rgba(220, 38, 38, 0.3), rgba(153, 27, 27, 0.5), rgba(220, 38, 38, 0.3)) 1',
                                     boxShadow: '0 0 60px rgba(220, 38, 38, 0.2), inset 0 0 80px rgba(0, 0, 0, 0.5)'
@@ -1655,41 +1655,22 @@ export const MusicalChairsGame: React.FC<MusicalChairsGameProps> = ({ onHome, is
                            <div className="absolute -inset-12 border-4 border-dotted border-amber-500/20 rounded-full animate-rotate-reverse" />
 
                            {/* Avatar Container */}
-                           <div className="relative w-56 h-56 rounded-[4rem] border-[12px] overflow-hidden shadow-2xl bg-gradient-to-br from-gray-900 via-black to-gray-900 transform group-hover:rotate-3 group-hover:scale-105 transition-all duration-700"
+                           <div className="relative w-64 h-64 flex items-center justify-center transform group-hover:rotate-3 group-hover:scale-105 transition-all duration-700"
                               style={{
-                                 borderImage: 'linear-gradient(135deg, #fef3c7, #fbbf24, #f59e0b, #fbbf24, #fef3c7) 1',
-                                 boxShadow: '0 0 100px rgba(251, 191, 36, 0.8), 0 40px 80px rgba(0, 0, 0, 0.8), inset 0 0 60px rgba(251, 191, 36, 0.2)'
+                                 filter: 'drop-shadow(0 0 50px rgba(251, 191, 36, 0.6))'
                               }}
                            >
                               {/* Shimmer effect */}
-                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 z-20" />
+                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1500 z-20 pointer-events-none" />
 
                               {/* Avatar */}
                               <ProAvatar
                                  url={winner.avatar}
                                  username={winner.username}
                                  size="w-full h-full"
-                                 className="relative z-10 group-hover:scale-110 transition-transform duration-700"
+                                 className="relative z-10"
                               />
-
-                              {/* Champion Badge */}
-                              <div className="absolute bottom-0 w-full bg-gradient-to-r from-yellow-600 via-yellow-500 to-yellow-600 text-white font-black py-3 text-lg tracking-[0.5em] italic z-30 border-t-4 border-yellow-300/50 relative overflow-hidden">
-                                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
-                                 <span className="relative flex items-center justify-center gap-3">
-                                    <Trophy size={24} className="animate-bounce" />
-                                    C H A M P I O N
-                                    <Trophy size={24} className="animate-bounce" style={{ animationDelay: '0.2s' }} />
-                                 </span>
-                              </div>
-
-                              {/* Corner decorations */}
-                              <div className="absolute top-4 right-4 w-16 h-16 border-t-4 border-r-4 border-yellow-400/60 rounded-tr-3xl" />
-                              <div className="absolute bottom-20 left-4 w-16 h-16 border-b-4 border-l-4 border-yellow-400/60 rounded-bl-3xl" />
                            </div>
-
-                           {/* Floating crowns */}
-                           <div className="absolute -top-6 -right-6 text-6xl animate-bounce">👑</div>
-                           <div className="absolute -top-6 -left-6 text-6xl animate-bounce" style={{ animationDelay: '0.3s' }}>👑</div>
                         </div>
                      </div>
 

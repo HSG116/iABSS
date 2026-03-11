@@ -720,7 +720,7 @@ export const VotingGame: React.FC<VotingGameProps> = ({ onHome, isOBS }) => {
                                                         <ProAvatar
                                                             url={v.avatar}
                                                             username={v.username}
-                                                            size="w-6 h-6"
+                                                            size="w-10 h-10"
                                                         />
                                                         <span className="text-xs font-bold text-white/70">{v.username}</span>
                                                     </div>

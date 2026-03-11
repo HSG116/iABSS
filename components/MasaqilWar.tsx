@@ -1129,7 +1129,7 @@ export const MasaqilWar: React.FC<MasaqilWarProps> = ({ channelConnected, onHome
                         <ProAvatar
                           url={imagesCacheRef.current[p.username] ? imagesCacheRef.current[p.username].src : (p.avatar || '')}
                           username={p.username}
-                          size="w-6 h-6"
+                          size="w-10 h-10"
                         />
                         <span className="text-gray-300 truncate max-w-[90px]">{p.username}</span>
                       </div>
@@ -1309,13 +1309,13 @@ export const MasaqilWar: React.FC<MasaqilWarProps> = ({ channelConnected, onHome
                     <div className="absolute inset-0 bg-yellow-400/20 blur-[130px] rounded-full scale-150 animate-pulse"></div>
 
                     {/* The Winner Card */}
-                    <div className="relative w-80 h-80 md:w-[28rem] md:h-[28rem] rounded-[6rem] overflow-hidden shadow-[0_0_120px_rgba(255,215,0,0.4)] bg-zinc-900 ring-8 ring-black/50">
-                      <ProAvatar
-                        url={imagesCacheRef.current[winner.username] ? imagesCacheRef.current[winner.username].src : (winner.avatar || '')}
-                        username={winner.username}
-                        size="w-full h-full"
-                      />
-                    </div>
+                      <div className="relative w-80 h-80 md:w-[28rem] md:h-[28rem] rounded-[6rem] shadow-[0_0_120px_rgba(255,215,0,0.4)] bg-zinc-900 border-8 border-yellow-500/30 flex items-center justify-center overflow-visible">
+                        <ProAvatar
+                          url={imagesCacheRef.current[winner.username] ? imagesCacheRef.current[winner.username].src : (winner.avatar || '')}
+                          username={winner.username}
+                          size="w-full h-full"
+                        />
+                      </div>
 
                     {/* Inner Badge */}
                     <div className="absolute bottom-0 w-full py-6 bg-gradient-to-t from-black/90 to-transparent flex flex-col items-center">

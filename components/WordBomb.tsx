@@ -5,6 +5,7 @@ import { chatService } from '../services/chatService';
 import { BOMB_SYLLABLES } from '../constants';
 import { ChatUser } from '../types';
 import { Bomb, Play, RotateCcw, UserPlus } from 'lucide-react';
+import { ProAvatar } from './ProAvatar';
 
 interface WordBombProps {
   channelConnected: boolean;
@@ -151,14 +152,15 @@ export const WordBomb: React.FC<WordBombProps> = ({ channelConnected }) => {
              <div className="p-3 border-b border-white/5 bg-[#0b0e0f] text-xs font-bold text-gray-400">
                 <UserPlus size={14} className="inline mr-1" /> اللاعبين ({participants.length})
              </div>
-             <div className="overflow-y-auto flex-1 p-2 space-y-1 custom-scrollbar">
+             <div className="overflow-y-auto flex-1 p-2 space-y-2 custom-scrollbar">
                 {participants.map(p => (
-                   <div key={p.username} className="px-2 py-1 bg-white/5 rounded text-xs text-gray-300">
-                      {p.username}
-                   </div>
+                    <div key={p.username} className="flex items-center gap-3 p-2 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-colors overflow-visible">
+                       <ProAvatar username={p.username} size="w-12 h-12" />
+                       <span className="text-xs text-gray-300 font-bold truncate">{p.username}</span>
+                    </div>
                 ))}
              </div>
-         </div>
+          </div>
       </SidebarPortal>
 
       <div className="w-full h-full flex flex-col items-center justify-center p-6 relative overflow-hidden">
@@ -170,9 +172,12 @@ export const WordBomb: React.FC<WordBombProps> = ({ channelConnected }) => {
             </div>
          )}
 
-         {gameState === 'PLAYING' && holder && (
-            <div className="text-center w-full max-w-lg">
-               <div className="text-6xl font-black text-white mb-8 neon-text">{holder.username}</div>
+          {gameState === 'PLAYING' && holder && (
+            <div className="text-center w-full max-w-lg flex flex-col items-center">
+                <div className="flex flex-col items-center mb-8 gap-4 animate-in slide-in-from-top duration-500 overflow-visible">
+                   <ProAvatar username={holder.username} size="w-64 h-64" className="overflow-visible" />
+                   <div className="text-6xl font-black text-white neon-text">{holder.username}</div>
+                </div>
                
                <div className="relative inline-block animate-bounce">
                   <Bomb size={150} className="text-gray-200" />
