@@ -48,6 +48,7 @@ import { OBSLinksModal } from './components/OBSLinksModal';
 import { SponsorsWidget } from './components/SponsorsWidget';
 import { ProAvatar } from './components/ProAvatar';
 import TecshIcon from './components/TecsIcon';
+import { SiteUpdatesModal } from './components/SiteUpdatesModal';
 
 const ICON_MAP: Record<string, any> = {
   Sparkles, Armchair, TecshIcon, ImageIcon, Zap, Gift, Flag, Users2, Keyboard, Swords, Coffee, PaintBucket, AlertTriangle, Video, Sword, Globe, Brain, Vote, Bomb, Type, Footprints, Flame, Smile
@@ -918,6 +919,7 @@ const App: React.FC = () => {
     >
       <OBSLinksModal isOpen={showOBSModal} onClose={() => setShowOBSModal(false)} />
       {(currentView === 'FAWAZIR_GAME' || currentView === 'FAWAZIR_SELECT') && <SponsorsWidget />}
+      {isAuthorized && <SiteUpdatesModal />}
       {!isAuthorized && <GlobalPasswordPage onSuccess={(role) => {
         setUserRole(role);
         setIsAuthorized(true);
