@@ -3,7 +3,7 @@ import { chatService } from '../services/chatService';
 import { supabase } from '../services/supabase';
 import { LETTER_GAME_QUESTIONS, getQuestionsForLevel, getWorldForLevel } from '../data/letter_game_data';
 import { HexCellData, LetterQuestion } from '../types';
-import { Home, LogOut, Check, X, Shield, Trophy, Smartphone, AlertTriangle, Users, Play, Settings, Paintbrush, Clock, ListOrdered, BrainCircuit, PartyPopper, RefreshCw, ArrowLeft, ArrowRight, Stars, Sparkles, Crown, Heart, BellRing, Volume2, ChevronDown, Link, Video } from 'lucide-react';
+import { Home, LogOut, Check, X, Shield, Trophy, Smartphone, AlertTriangle, Users, User, Play, Settings, Paintbrush, Clock, ListOrdered, BrainCircuit, PartyPopper, RefreshCw, ArrowLeft, ArrowRight, Stars, Sparkles, Crown, Heart, BellRing, Volume2, ChevronDown, Link, Video, Vote } from 'lucide-react';
 import { ProAvatar } from './ProAvatar';
 
 interface LetterHexagonGameProps {
@@ -42,6 +42,13 @@ interface Player {
     avatar: string;
     color: string;
     team: 'team1' | 'team2';
+}
+
+interface VotingCandidate {
+    username: string;
+    avatar: string;
+    words: string[];
+    votes: number;
 }
 
 type Stage = 'settings' | 'levelSelect' | 'lobby' | 'playing' | 'ended';
@@ -110,6 +117,15 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
         return {};
     });
 
+    // Voting Feature States
+    const [showVotingPanel, setShowVotingPanel] = useState(false);
+    const [votingActive, setVotingActive] = useState(false);
+    const [votingEligibleTeam, setVotingEligibleTeam] = useState<'team1' | 'team2' | 'all'>('all');
+    const [letterVotes, setLetterVotes] = useState<Record<string, number>>({});
+    const [votedUsers, setVotedUsers] = useState<Record<string, boolean>>({}); // voter -> true
+    const [votingDuration, setVotingDuration] = useState(30);
+    const [votingTimer, setVotingTimer] = useState(0);
+
     const channelRef = useRef<any>(null);
     const broadcastRef = useRef<any>(null);
 
@@ -167,6 +183,13 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                     if (data.currentBuzzedAttempts !== undefined) setCurrentBuzzedAttempts(data.currentBuzzedAttempts);
                     if (data.transitioningToTeam !== undefined) setTransitioningToTeam(data.transitioningToTeam);
                     if (data.transitionTimer !== undefined) setTransitionTimer(data.transitionTimer);
+                    if (data.votingActive !== undefined) setVotingActive(data.votingActive);
+                    if (data.letterVotes !== undefined) setLetterVotes(data.letterVotes);
+                    if (data.votingEligibleTeam !== undefined) setVotingEligibleTeam(data.votingEligibleTeam);
+                    if (data.showVotingPanel !== undefined) setShowVotingPanel(data.showVotingPanel);
+                    if (data.votedUsers !== undefined) setVotedUsers(data.votedUsers);
+                    if (data.votingTimer !== undefined) setVotingTimer(data.votingTimer);
+                    if (data.votingDuration !== undefined) setVotingDuration(data.votingDuration);
                 })
                 .subscribe((status) => {
                     if (status === 'SUBSCRIBED') {
@@ -204,7 +227,9 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                     lastAnswer, triedTeams, winner, winningPath,
                     lobbyPlayers, team1Name, team2Name, entryKeyword, allowJoin,
                     answerDuration, difficulty, currentLevel,
-                    currentBuzzedAttempts, transitioningToTeam, transitionTimer
+                    currentBuzzedAttempts, transitioningToTeam, transitionTimer,
+                    votingActive, letterVotes, votingEligibleTeam, showVotingPanel, votedUsers,
+                    votingTimer, votingDuration
                 }
             });
         }
@@ -216,82 +241,161 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
     });
 
     useEffect(() => {
-        if (!isOBS && broadcastRef.current) {
+        if (stage === 'playing') {
             broadcastFullState();
         }
-    }, [cells, stage, activeCell, currentQuestion, buzzedTeam, buzzedPlayer, answerTimer, lastAnswer, triedTeams, winner, winningPath, lobbyPlayers, team1Name, team2Name, entryKeyword, allowJoin, isOBS, currentLevel, currentBuzzedAttempts, transitioningToTeam, transitionTimer, answerDuration]);
+    }, [cells, stage, activeCell, currentQuestion, buzzedTeam, buzzedPlayer, answerTimer, lastAnswer, triedTeams, winner, winningPath, lobbyPlayers, team1Name, team2Name, entryKeyword, allowJoin, isOBS, currentLevel, currentBuzzedAttempts, transitioningToTeam, transitionTimer, answerDuration, votingActive, letterVotes, votingEligibleTeam, showVotingPanel, votedUsers, votingTimer, votingDuration]);
 
     // Chat listener (Main Bell Game logic)
     useEffect(() => {
         const cleanup = chatService.onMessage(async (msg) => {
-            if (stage === 'lobby' && allowJoin && msg.content.trim() === entryKeyword) {
-                const u = msg.user.username;
-                const c = msg.user.color || '#ffffff';
-                setLobbyPlayers(prev => {
-                    if (prev.find(p => p.username === u)) return prev;
-                    const team = getTeamByColor(c);
-                    return [...prev, { username: u, color: c, team, avatar: '' }];
-                });
-                chatService.fetchKickAvatar(u).then(avatar => {
-                    setLobbyPlayers(prev => prev.map(p => p.username === u ? { ...p, avatar } : p));
-                });
-            }
-
-            if (stage === 'playing' && activeCell) {
-                const content = msg.content.trim();
-                const u = msg.user.username;
-                const player = lobbyPlayers.find(p => p.username === u) || {
-                    username: u,
-                    team: getTeamByColor(msg.user.color || '#ffffff'),
-                    avatar: msg.user.avatar || '',
-                    color: msg.user.color || '#ffffff'
-                };
-
-                // Phase 1: Wait for "جرس"
-                if (!buzzedTeam && !transitioningToTeam) {
-                    const isBell = content === 'جرس' || content.toLowerCase() === 'jaras';
-                    if (isBell) {
-                        // FIX: Ensure team hasn't already tried
-                        if (triedTeams.includes(player.team)) return;
-                        
-                        setBuzzedTeam(player.team);
-                        setBuzzedPlayer(player);
-                        setAnswerTimer(answerDuration);
-                        setLastAnswer({ text: '', correct: null });
-                        setCurrentBuzzedAttempts(0);
-                        playSfx('buzz');
-                        return;
-                    }
+            try {
+                if (stage === 'lobby' && allowJoin && msg.content.trim() === entryKeyword) {
+                    const u = msg.user.username;
+                    const c = msg.user.color || '#ffffff';
+                    setLobbyPlayers(prev => {
+                        if (prev.find(p => p.username === u)) return prev;
+                        const team = getTeamByColor(c);
+                        return [...prev, { username: u, color: c, team, avatar: '' }];
+                    });
+                    chatService.fetchKickAvatar(u).then(avatar => {
+                        setLobbyPlayers(prev => prev.map(p => p.username === u ? { ...p, avatar } : p));
+                    });
                 }
 
-                // Phase 2: Wait for answer from EXACTLY the buzzed player
-                // NEW LOGIC: Accept any answer that starts with the cell's letter
-                if (buzzedTeam && player.username === buzzedPlayer?.username && !transitioningToTeam) {
-                    const normAns = normalize(content);
-                    const targetLetter = normalize(activeCell.letter)[0];
+                if (stage === 'playing') {
+                    const content = msg.content.trim();
+                    const u = msg.user.username;
+                    
+                    // Identify the player
+                    const player = lobbyPlayers.find(p => p.username.toLowerCase() === u.toLowerCase()) || {
+                        username: u,
+                        team: getTeamByColor(msg.user.color || '#ffffff'),
+                        avatar: msg.user.avatar || '',
+                        color: msg.user.color || '#ffffff'
+                    };
 
-                    if (normAns.length > 0 && normAns[0] === targetLetter) {
-                        // Correct! Any word starting with the letter
-                        setLastAnswer({ text: content, correct: true });
-                        playSfx('correct');
-                        setTimeout(() => finalizeRound(true, buzzedTeam), 1500);
-                    } else if (content !== 'جرس') {
-                        // Wrong! (And ignore accidental double-bells)
-                        const nextAttempts = currentBuzzedAttempts + 1;
-                        setLastAnswer({ text: content, correct: false });
-                        playSfx('wrong');
-                        
-                        if (nextAttempts >= 2) {
-                            setTimeout(() => handleWrongAnswer(true), 1500);
-                        } else {
-                            setCurrentBuzzedAttempts(nextAttempts);
+                    // Voting logic - works regardless of activeCell
+                    if (votingActive) {
+                        // Check eligibility
+                        let isEligible = true;
+                        if (votingEligibleTeam !== 'all' && player.team !== votingEligibleTeam) {
+                            isEligible = false;
+                        }
+
+                        if (isEligible && !votedUsers[u.toLowerCase()]) {
+                            const availableCells = cells.filter(c => c.owner === 'none');
+                            let foundLetter: string | null = null;
+
+                            // Strategy 1: Exact match with optional trailing punctuation/space
+                            const exactMatch = content.match(/^([\u0621-\u064A](?:ـ)?)[.،!؟\s]*$/);
+                            if (exactMatch) {
+                                const raw = exactMatch[1];
+                                const cell = availableCells.find(c => c.letter === raw || normalize(c.letter) === normalize(raw));
+                                if (cell) foundLetter = cell.letter;
+                            }
+
+                            // Strategy 2: "حرف <letter>" pattern
+                            if (!foundLetter) {
+                                const wordMatch = content.match(/(?:حرف|صوت|بدي|نختار|ابي|ابغى)\s+([\u0621-\u064A](?:ـ)?)/);
+                                if (wordMatch) {
+                                    const raw = wordMatch[1];
+                                    const cell = availableCells.find(c => c.letter === raw || normalize(c.letter) === normalize(raw));
+                                    if (cell) foundLetter = cell.letter;
+                                }
+                            }
+
+                            // Strategy 3: Relaxed scan
+                            if (!foundLetter) {
+                                let earliestIndex = Infinity;
+                                for (const cell of availableCells) {
+                                    const idx = content.indexOf(cell.letter);
+                                    if (idx !== -1 && idx < earliestIndex) {
+                                        earliestIndex = idx;
+                                        foundLetter = cell.letter;
+                                    } else {
+                                        const normL = normalize(cell.letter);
+                                        const normC = normalize(content);
+                                        const nIdx = normC.indexOf(normL);
+                                        if (normL.length > 0 && nIdx !== -1 && nIdx < earliestIndex) {
+                                            earliestIndex = nIdx;
+                                            foundLetter = cell.letter;
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (foundLetter) {
+                                setLetterVotes(prev => ({
+                                    ...prev,
+                                    [foundLetter!]: (prev[foundLetter!] || 0) + 1
+                                }));
+                                setVotedUsers(prev => ({ ...prev, [u.toLowerCase()]: true }));
+                            }
+                        }
+                    }
+
+                    // Bell and Answer logic (only if cell is active)
+                    if (activeCell) {
+                        // Phase 1: Wait for "جرس"
+                        if (!buzzedTeam && !transitioningToTeam) {
+                            const isBell = content === 'جرس' || content.toLowerCase() === 'jaras';
+                            if (isBell) {
+                                if (triedTeams.includes(player.team)) return;
+                                setBuzzedTeam(player.team);
+                                setBuzzedPlayer(player);
+                                setAnswerTimer(answerDuration);
+                                setLastAnswer({ text: '', correct: null });
+                                setCurrentBuzzedAttempts(0);
+                                playSfx('buzz');
+                                return;
+                            }
+                        }
+
+                        // Phase 2: Wait for answer from EXACTLY the buzzed player
+                        if (buzzedTeam && player.username === buzzedPlayer?.username && !transitioningToTeam) {
+                            const normAns = normalize(content);
+                            const targetLetter = normalize(activeCell.letter)[0];
+
+                            if (normAns.length > 0 && normAns[0] === targetLetter) {
+                                setLastAnswer({ text: content, correct: true });
+                                playSfx('correct');
+                                setTimeout(() => finalizeRound(true, buzzedTeam), 1500);
+                            } else if (content !== 'جرس') {
+                                const nextAttempts = currentBuzzedAttempts + 1;
+                                setLastAnswer({ text: content, correct: false });
+                                playSfx('wrong');
+                                if (nextAttempts >= 2) {
+                                    setTimeout(() => handleWrongAnswer(true), 1500);
+                                } else {
+                                    setCurrentBuzzedAttempts(nextAttempts);
+                                }
+                            }
                         }
                     }
                 }
+            } catch (err) {
+                console.error("Chat process error:", err);
             }
         });
         return cleanup;
-    }, [stage, allowJoin, entryKeyword, activeCell, currentQuestion, buzzedTeam, buzzedPlayer, lobbyPlayers, triedTeams, answerDuration, transitioningToTeam, currentBuzzedAttempts]);
+    }, [stage, allowJoin, entryKeyword, activeCell, currentQuestion, buzzedTeam, buzzedPlayer, lobbyPlayers, triedTeams, answerDuration, transitioningToTeam, currentBuzzedAttempts, votingActive, letterVotes, votingEligibleTeam, votedUsers, cells]);
+
+    // Voting Countdown Logic (Manager Only)
+    useEffect(() => {
+        if (!isOBS && votingActive && votingTimer > 0) {
+            const t = setInterval(() => {
+                setVotingTimer(prev => {
+                    if (prev <= 1) {
+                        setVotingActive(false);
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+            return () => clearInterval(t);
+        }
+    }, [isOBS, votingActive, votingTimer]);
 
     // No longer using Supabase buzzer channel as the game is now "Direct Chat Only"
 
@@ -597,7 +701,7 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                     <div className="relative z-10 flex flex-col items-center gap-12 w-full max-w-7xl">
                         {/* THE LOGO */}
                         <div className="relative group">
-                            {!isOBS && <div className="absolute -inset-10 bg-white/5 blur-3xl rounded-full scale-150 animate-pulse"></div>}
+                            <div className="absolute -inset-10 bg-white/5 blur-3xl rounded-full scale-150 animate-pulse"></div>
                             <div className="flex items-center gap-8 mb-4 relative z-10">
                                 <span className="text-[12rem] font-black italic tracking-tighter text-yellow-400 drop-shadow-[0_15px_40px_rgba(234,179,8,0.6)] animate-bounce">حروف</span>
                                 <span className="text-6xl font-black italic tracking-tighter text-blue-400 mt-12">مع</span>
@@ -629,49 +733,75 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                     </div>
 
                                     {/* TEAMS PREVIEW */}
-                                    {!isOBS && (
-                                        <div className="grid grid-cols-2 gap-20 mt-10 w-full">
-                                            {/* Team Girls */}
-                                            <div className="flex flex-col items-center gap-6 group">
-                                                <div className="relative">
-                                                    <div className="absolute -inset-6 bg-[#FF0000]/30 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                                                    <div className="w-40 h-40 bg-[#FF0000] border-8 border-white rounded-[3rem] flex items-center justify-center text-7xl shadow-2xl relative z-10 transform -rotate-3 group-hover:rotate-0 transition-transform">🔴</div>
-                                                </div>
-                                                <div className="text-center">
-                                                    <h3 className="text-4xl font-black text-[#FF0000] italic drop-shadow-lg">{team1Name}</h3>
-                                                    <div className="text-white/40 font-bold text-xs uppercase tracking-widest mt-1">THE QUEEN WARRIORS</div>
-                                                    <div className="mt-6 flex flex-wrap justify-center gap-2 max-w-sm">
-                                                        {women.map(p => (
-                                                            <div key={p.username} className="animate-in zoom-in">
-                                                                <ProAvatar username={p.username} url={p.avatar} size="w-16 h-16" className="overflow-visible" />
-                                                            </div>
-                                                        ))}
-                                                        {women.length === 0 && <div className="w-12 h-12 rounded-full border-2 border-dashed border-white/10 flex items-center justify-center text-white/10 uppercase text-[8px] font-black">Empty</div>}
-                                                    </div>
-                                                </div>
+                                    <div className="grid grid-cols-2 gap-20 mt-10 w-full">
+                                        {/* Team Girls */}
+                                        <div className="flex flex-col items-center gap-6 group">
+                                            <div className="relative">
+                                                <div className="absolute -inset-6 bg-[#FF0000]/30 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                                <div className="w-40 h-40 bg-[#FF0000] border-8 border-white rounded-[3rem] flex items-center justify-center text-7xl shadow-2xl relative z-10 transform -rotate-3 group-hover:rotate-0 transition-transform">🔴</div>
                                             </div>
-
-                                            {/* Team Boys */}
-                                            <div className="flex flex-col items-center gap-6 group">
-                                                <div className="relative">
-                                                    <div className="absolute -inset-6 bg-[#0066FF]/30 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                                                    <div className="w-40 h-40 bg-[#0066FF] border-8 border-white rounded-[3rem] flex items-center justify-center text-7xl shadow-2xl relative z-10 transform rotate-3 group-hover:rotate-0 transition-transform">🔵</div>
-                                                </div>
-                                                <div className="text-center">
-                                                    <h3 className="text-4xl font-black text-[#0066FF] italic drop-shadow-lg">{team2Name}</h3>
-                                                    <div className="text-white/40 font-bold text-xs uppercase tracking-widest mt-1">THE TITAN KINGS</div>
-                                                    <div className="mt-6 flex flex-wrap justify-center gap-2 max-w-sm">
-                                                        {men.map(p => (
-                                                            <div key={p.username} className="animate-in zoom-in">
-                                                                <ProAvatar username={p.username} url={p.avatar} size="w-16 h-16" className="overflow-visible" />
+                                            <div className="text-center">
+                                                <h3 className="text-4xl font-black text-[#FF0000] italic drop-shadow-lg">{team1Name}</h3>
+                                                <div className="text-white/40 font-bold text-xs uppercase tracking-widest mt-1">THE QUEEN WARRIORS</div>
+                                                <div className="mt-6 flex flex-wrap justify-center gap-3 max-w-sm">
+                                                    {women.slice(0, 3).map(p => (
+                                                        <div key={p.username} className="animate-in zoom-in">
+                                                            <ProAvatar username={p.username} url={p.avatar} size="w-12 h-12" className="overflow-visible" />
+                                                        </div>
+                                                    ))}
+                                                    {women.length > 3 && (
+                                                        <div className="relative w-12 h-12 group/crowd animate-in zoom-in">
+                                                            <div className="absolute top-1 left-1 w-full h-full rounded-2xl bg-black/40 border border-white/5"></div>
+                                                            <div className="relative w-full h-full rounded-2xl border-2 border-white/20 bg-black/60 overflow-hidden shadow-2xl flex flex-col items-center justify-center">
+                                                                <div className="absolute inset-0 opacity-40">
+                                                                    <ProAvatar username={women[3].username} url={women[3].avatar} size="w-full h-full" className="scale-110" />
+                                                                </div>
+                                                                <div className="relative z-10 flex flex-col items-center leading-none">
+                                                                    <span className="text-sm font-black text-white">+{women.length - 3}</span>
+                                                                    <Users size={12} className="text-white/60 mt-0.5" />
+                                                                </div>
                                                             </div>
-                                                        ))}
-                                                        {men.length === 0 && <div className="w-12 h-12 rounded-full border-2 border-dashed border-white/10 flex items-center justify-center text-white/10 uppercase text-[8px] font-black">Empty</div>}
-                                                    </div>
+                                                        </div>
+                                                    )}
+                                                    {women.length === 0 && <div className="w-12 h-12 rounded-full border-2 border-dashed border-white/10 flex items-center justify-center text-white/10 uppercase text-[8px] font-black">Empty</div>}
                                                 </div>
                                             </div>
                                         </div>
-                                    )}
+
+                                        {/* Team Boys */}
+                                        <div className="flex flex-col items-center gap-6 group">
+                                            <div className="relative">
+                                                <div className="absolute -inset-6 bg-[#0066FF]/30 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                                <div className="w-40 h-40 bg-[#0066FF] border-8 border-white rounded-[3rem] flex items-center justify-center text-7xl shadow-2xl relative z-10 transform rotate-3 group-hover:rotate-0 transition-transform">🔵</div>
+                                            </div>
+                                            <div className="text-center">
+                                                <h3 className="text-4xl font-black text-[#0066FF] italic drop-shadow-lg">{team2Name}</h3>
+                                                <div className="text-white/40 font-bold text-xs uppercase tracking-widest mt-1">THE TITAN KINGS</div>
+                                                <div className="mt-6 flex flex-wrap justify-center gap-3 max-w-sm">
+                                                    {men.slice(0, 3).map(p => (
+                                                        <div key={p.username} className="animate-in zoom-in">
+                                                            <ProAvatar username={p.username} url={p.avatar} size="w-12 h-12" className="overflow-visible" />
+                                                        </div>
+                                                    ))}
+                                                    {men.length > 3 && (
+                                                        <div className="relative w-12 h-12 group/crowd animate-in zoom-in">
+                                                            <div className="absolute top-1 left-1 w-full h-full rounded-2xl bg-black/40 border border-white/5"></div>
+                                                            <div className="relative w-full h-full rounded-2xl border-2 border-white/20 bg-black/60 overflow-hidden shadow-2xl flex flex-col items-center justify-center">
+                                                                <div className="absolute inset-0 opacity-40">
+                                                                    <ProAvatar username={men[3].username} url={men[3].avatar} size="w-full h-full" className="scale-110" />
+                                                                </div>
+                                                                <div className="relative z-10 flex flex-col items-center leading-none">
+                                                                    <span className="text-sm font-black text-white">+{men.length - 3}</span>
+                                                                    <Users size={12} className="text-white/60 mt-0.5" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    {men.length === 0 && <div className="w-12 h-12 rounded-full border-2 border-dashed border-white/10 flex items-center justify-center text-white/10 uppercase text-[8px] font-black">Empty</div>}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -1024,17 +1154,31 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                         </div>
                                         <p className="text-[10px] font-black text-[#FF6B52]/40 text-center uppercase tracking-[0.3em] mt-2">Team Color Spectrum</p>
                                     </div>
-                                    <div className="flex-1 w-full grid grid-cols-6 gap-6 overflow-y-auto content-start custom-scrollbar-pink pr-4 pb-10">
-                                        {women.map(p => (
-                                            <div key={p.username} className="flex flex-col items-center gap-2 animate-in zoom-in duration-500 group">
-                                                <div className="relative p-1.5 rounded-[2rem] transition-all group-hover:scale-110 shadow-2xl" style={{ background: `conic-gradient(from 0deg, ${p.color}, transparent, ${p.color})` }}>
-                                                    <ProAvatar username={p.username} url={p.avatar} size="w-32 h-32" className="overflow-visible" />
-                                                    <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full border-4 border-[#0f0f1b] shadow-xl animate-pulse" style={{ backgroundColor: p.color }}></div>
+                                    <div className="flex-1 w-full grid grid-cols-8 gap-4 overflow-y-auto content-start custom-scrollbar-pink pr-2 pb-10">
+                                        {women.slice(0, 3).map(p => (
+                                            <div key={p.username} className="flex flex-col items-center gap-1 animate-in zoom-in duration-500 group">
+                                                <div className="relative p-0.5 rounded-[1rem] transition-all group-hover:scale-110 shadow-lg" style={{ background: `conic-gradient(from 0deg, ${p.color}, transparent, ${p.color})` }}>
+                                                    <ProAvatar username={p.username} url={p.avatar} size="w-10 h-10" className="overflow-visible" />
+                                                    <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border border-[#0f0f1b] shadow-xl" style={{ backgroundColor: p.color }}></div>
                                                 </div>
-                                                <span className="text-xs font-black truncate w-full text-center mt-2 group-hover:scale-110 transition-transform" style={{ color: p.color, textShadow: `0 0 10px ${p.color}44` }}>{p.username}</span>
+                                                <span className="text-[7px] font-black truncate w-full text-center mt-1 group-hover:scale-110 transition-transform" style={{ color: p.color, textShadow: `0 0 10px ${p.color}44` }}>{p.username}</span>
                                             </div>
                                         ))}
-                                        {allowJoin && <div className="w-20 h-20 rounded-[1.5rem] border-4 border-dashed border-white/10 flex items-center justify-center text-white/10 animate-pulse"><Users /></div>}
+                                        {women.length > 3 && (
+                                            <div className="flex flex-col items-center gap-1 animate-in zoom-in duration-500 group">
+                                                <div className="relative w-10 h-10 rounded-[1rem] border-2 border-white/20 bg-black/60 flex items-center justify-center overflow-hidden shadow-2xl transition-all group-hover:scale-110">
+                                                    <div className="absolute inset-0 opacity-40">
+                                                        <ProAvatar username={women[3].username} url={women[3].avatar} size="w-full h-full" className="scale-110" />
+                                                    </div>
+                                                    <div className="relative z-10 flex flex-col items-center leading-none">
+                                                        <span className="text-[10px] font-black text-white">+{women.length - 3}</span>
+                                                        <Users size={10} className="text-white/60 mt-0.5" />
+                                                    </div>
+                                                </div>
+                                                <span className="text-[7px] font-black text-white/40 uppercase tracking-widest mt-1 text-center">أخرون</span>
+                                            </div>
+                                        )}
+                                        {allowJoin && <div className="w-14 h-14 rounded-[1.2rem] border-2 border-dashed border-white/10 flex items-center justify-center text-white/10 animate-pulse"><Users size={18} /></div>}
                                     </div>
                                     <button onClick={() => setAllowJoin(!allowJoin)} className={`mt-auto w-full py-5 rounded-3xl font-black text-xl border-2 transition-all ${allowJoin ? 'bg-red-500/20 border-red-500/50 text-red-500' : 'bg-emerald-500/20 border-emerald-500/50 text-emerald-500'}`}>
                                         {allowJoin ? `إيقاف استقبال ${team1Name}` : `فتح استقبال ${team1Name}`}
@@ -1076,17 +1220,31 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                         </div>
                                         <p className="text-[10px] font-black text-[#14b8a6]/40 text-center uppercase tracking-[0.3em] mt-2">Team Color Spectrum</p>
                                     </div>
-                                    <div className="flex-1 w-full grid grid-cols-6 gap-6 overflow-y-auto content-start custom-scrollbar-blue pr-4 pb-10">
-                                        {men.map(p => (
-                                            <div key={p.username} className="flex flex-col items-center gap-2 animate-in zoom-in duration-500 group">
-                                                <div className="relative p-1.5 rounded-[2rem] transition-all group-hover:scale-110 shadow-2xl" style={{ background: `conic-gradient(from 0deg, ${p.color}, transparent, ${p.color})` }}>
-                                                    <ProAvatar username={p.username} url={p.avatar} size="w-32 h-32" className="overflow-visible" />
-                                                    <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full border-4 border-[#0f0f1b] shadow-xl animate-pulse" style={{ backgroundColor: p.color }}></div>
+                                    <div className="flex-1 w-full grid grid-cols-8 gap-4 overflow-y-auto content-start custom-scrollbar-blue pr-2 pb-10">
+                                        {men.slice(0, 3).map(p => (
+                                            <div key={p.username} className="flex flex-col items-center gap-1 animate-in zoom-in duration-500 group">
+                                                <div className="relative p-0.5 rounded-[1rem] transition-all group-hover:scale-110 shadow-lg" style={{ background: `conic-gradient(from 0deg, ${p.color}, transparent, ${p.color})` }}>
+                                                    <ProAvatar username={p.username} url={p.avatar} size="w-10 h-10" className="overflow-visible" />
+                                                    <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border border-[#0f0f1b] shadow-xl" style={{ backgroundColor: p.color }}></div>
                                                 </div>
-                                                <span className="text-xs font-black truncate w-full text-center mt-2 group-hover:scale-110 transition-transform" style={{ color: p.color, textShadow: `0 0 10px ${p.color}44` }}>{p.username}</span>
+                                                <span className="text-[7px] font-black truncate w-full text-center mt-1 group-hover:scale-110 transition-transform" style={{ color: p.color, textShadow: `0 0 10px ${p.color}44` }}>{p.username}</span>
                                             </div>
                                         ))}
-                                        {allowJoin && <div className="w-20 h-20 rounded-[1.5rem] border-4 border-dashed border-white/10 flex items-center justify-center text-white/10 animate-pulse"><Users /></div>}
+                                        {men.length > 3 && (
+                                            <div className="flex flex-col items-center gap-1 animate-in zoom-in duration-500 group">
+                                                <div className="relative w-10 h-10 rounded-[1rem] border-2 border-white/20 bg-black/60 flex items-center justify-center overflow-hidden shadow-2xl transition-all group-hover:scale-110">
+                                                    <div className="absolute inset-0 opacity-40">
+                                                        <ProAvatar username={men[3].username} url={men[3].avatar} size="w-full h-full" className="scale-110" />
+                                                    </div>
+                                                    <div className="relative z-10 flex flex-col items-center leading-none">
+                                                        <span className="text-[10px] font-black text-white">+{men.length - 3}</span>
+                                                        <Users size={10} className="text-white/60 mt-0.5" />
+                                                    </div>
+                                                </div>
+                                                <span className="text-[7px] font-black text-white/40 uppercase tracking-widest mt-1 text-center">أخرون</span>
+                                            </div>
+                                        )}
+                                        {allowJoin && <div className="w-14 h-14 rounded-[1.2rem] border-2 border-dashed border-white/10 flex items-center justify-center text-white/10 animate-pulse"><Users size={18} /></div>}
                                     </div>
                                     <button onClick={() => setAllowJoin(!allowJoin)} className={`mt-auto w-full py-5 rounded-3xl font-black text-xl border-2 transition-all ${allowJoin ? 'bg-red-500/20 border-red-500/50 text-red-500' : 'bg-emerald-500/20 border-emerald-500/50 text-emerald-500'}`}>
                                         {allowJoin ? `إيقاف استقبال ${team2Name}` : `فتح استقبال ${team2Name}`}
@@ -1130,8 +1288,22 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                 <div className={`absolute z-30 flex flex-col items-center top-10 right-10`}>
                                     <div className={`bg-[#FF6B52] border-[#5A22A3] border-4 rounded-[2.5rem] px-8 py-4 text-center shadow-[0_12px_24px_rgba(0,0,0,0.3)] transform -rotate-1`}>
                                         <h2 className="text-white font-black text-2xl drop-shadow-md">{team1Name}</h2>
-                                        <div className="mt-3 flex flex-wrap justify-center gap-1 max-w-[150px] overflow-visible">
-                                            {women.slice(0, 10).map(p => <ProAvatar key={p.username} username={p.avatar} url={p.avatar} size="w-10 h-10" className="overflow-visible" />)}
+                                        <div className="mt-3 flex flex-wrap justify-center gap-2 max-w-[150px] overflow-visible">
+                                            {women.slice(0, 3).map(p => <ProAvatar key={p.username} username={p.username} url={p.avatar} size="w-8 h-8" className="overflow-visible" />)}
+                                            {women.length > 3 && (
+                                                <div className="relative w-8 h-8 group/crowd animate-in zoom-in">
+                                                    <div className="absolute top-0.5 left-0.5 w-full h-full rounded-xl bg-black/40 border border-white/5"></div>
+                                                    <div className="relative w-full h-full rounded-xl border border-white/20 bg-black/60 overflow-hidden shadow-2xl flex flex-col items-center justify-center">
+                                                        <div className="absolute inset-0 opacity-40">
+                                                            <ProAvatar username={women[3].username} url={women[3].avatar} size="w-full h-full" className="scale-110" />
+                                                        </div>
+                                                        <div className="relative z-10 flex flex-col items-center leading-none">
+                                                            <span className="text-[8px] font-black text-white">+{women.length - 3}</span>
+                                                            <Users size={8} className="text-white/60" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -1139,15 +1311,168 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
 
                             {/* Right Panel: Boys */}
                             {!isOBS && (
-                                <div className={`absolute z-30 flex flex-col items-center top-10 left-10`}>
+                                <div className={`absolute z-30 flex flex-col items-center top-10 left-10 gap-4`}>
                                     <div className={`bg-[#14b8a6] border-[#5A22A3] border-4 rounded-[2.5rem] px-8 py-4 text-center shadow-[0_12px_24px_rgba(0,0,0,0.3)] transform rotate-1`}>
                                         <h2 className="text-white font-black text-2xl drop-shadow-md">{team2Name}</h2>
-                                        <div className="mt-3 flex flex-wrap justify-center gap-1 max-w-[150px] overflow-visible">
-                                            {men.slice(0, 10).map(p => <ProAvatar key={p.username} username={p.avatar} url={p.avatar} size="w-10 h-10" className="overflow-visible" />)}
+                                        <div className="mt-3 flex flex-wrap justify-center gap-2 max-w-[150px] overflow-visible">
+                                            {men.slice(0, 3).map(p => <ProAvatar key={p.username} username={p.username} url={p.avatar} size="w-8 h-8" className="overflow-visible" />)}
+                                            {men.length > 3 && (
+                                                <div className="relative w-8 h-8 group/crowd animate-in zoom-in">
+                                                    <div className="absolute top-0.5 left-0.5 w-full h-full rounded-xl bg-black/40 border border-white/5"></div>
+                                                    <div className="relative w-full h-full rounded-xl border border-white/20 bg-black/60 overflow-hidden shadow-2xl flex flex-col items-center justify-center">
+                                                        <div className="absolute inset-0 opacity-40">
+                                                            <ProAvatar username={men[3].username} url={men[3].avatar} size="w-full h-full" className="scale-110" />
+                                                        </div>
+                                                        <div className="relative z-10 flex flex-col items-center leading-none">
+                                                            <span className="text-[8px] font-black text-white">+{men.length - 3}</span>
+                                                            <Users size={8} className="text-white/60" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Voting Toggle Button */}
+                                    <button
+                                        onClick={() => setShowVotingPanel(!showVotingPanel)}
+                                        className={`w-20 h-20 rounded-[2rem] border-4 flex items-center justify-center transition-all shadow-2xl hover:scale-110 active:scale-90 ${showVotingPanel ? 'bg-yellow-500 border-white text-black animate-pulse' : 'bg-black/60 border-white/20 text-white'}`}
+                                    >
+                                        <Vote size={32} />
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* VOTING SIDE PANEL */}
+                            {showVotingPanel && !isOBS && (
+                                <div className={`absolute left-0 top-0 bottom-0 w-[450px] z-[400] bg-black/80 backdrop-blur-3xl border-r-4 border-yellow-500/50 flex flex-col items-center p-8 animate-in slide-in-from-left duration-500 shadow-[20px_0_60px_rgba(0,0,0,0.8)]`}>
+                                    <div className="w-full flex justify-between items-center mb-10">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-14 h-14 bg-yellow-500 rounded-2xl flex items-center justify-center text-black shadow-lg">
+                                                <Vote size={32} />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-3xl font-black italic text-white drop-shadow-md">نظام التصويت</h3>
+                                                <p className="text-[10px] font-black text-yellow-500 tracking-[0.3em] uppercase">Letter Challenge</p>
+                                            </div>
+                                        </div>
+                                        <button onClick={() => setShowVotingPanel(false)} className="p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all"><X /></button>
+                                    </div>
+
+                                    <div className="w-full space-y-8 flex-1 overflow-y-auto custom-scrollbar pr-4">
+                                        <div className="bg-white/5 rounded-3xl p-6 border border-white/10 space-y-6">
+                                            <div className="text-center">
+                                                <h4 className="text-xl font-black text-white italic tracking-tighter">إعدادات التصويت</h4>
+                                                <p className="text-[10px] text-white/40 mt-1 uppercase tracking-[0.2em]">Team Eligibility & Filters</p>
+                                            </div>
+
+                                            {/* Team Selection for Voting */}
+                                            <div className="space-y-4">
+                                                <label className="text-xs font-black text-white/40 uppercase tracking-widest flex items-center gap-2 px-2">
+                                                    <Users size={14} className="text-blue-500" /> الفريق المسموح له بالتصويت
+                                                </label>
+                                                <div className="grid grid-cols-3 gap-2">
+                                                    {[
+                                                        { id: 'all', name: 'الجميع', color: 'bg-purple-600' },
+                                                        { id: 'team1', name: 'الأحمر', color: 'bg-[#FF0000]' },
+                                                        { id: 'team2', name: 'الأزرق', color: 'bg-[#0066FF]' }
+                                                    ].map(t => (
+                                                        <button
+                                                            key={t.id}
+                                                            onClick={() => setVotingEligibleTeam(t.id as any)}
+                                                            className={`py-3 rounded-xl border-2 font-black transition-all text-sm ${votingEligibleTeam === t.id ? `${t.color} border-white text-white shadow-lg scale-105` : 'bg-black/40 border-white/10 text-white/40 hover:border-white/30'}`}
+                                                        >
+                                                            {t.name}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* Voting Duration */}
+                                            <div className="space-y-4">
+                                                <label className="text-xs font-black text-white/40 uppercase tracking-widest flex items-center gap-2 px-2">
+                                                    <Clock size={14} className="text-yellow-500" /> مدة التصويت (ثانية)
+                                                </label>
+                                                <div className="flex items-center gap-4 bg-black/40 p-4 rounded-2xl border border-white/5">
+                                                    <input 
+                                                        type="range" min="10" max="120" step="5"
+                                                        value={votingDuration}
+                                                        onChange={(e) => setVotingDuration(parseInt(e.target.value))}
+                                                        className="flex-1 accent-yellow-500 h-2 bg-white/10 rounded-lg appearance-none cursor-pointer"
+                                                    />
+                                                    <span className="text-2xl font-black text-white w-16 text-center tabular-nums">{votingDuration}s</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4 flex items-start gap-4">
+                                                <div className="mt-1"><Shield size={16} className="text-emerald-400" /></div>
+                                                <div className="text-[10px] text-emerald-400/80 font-bold leading-relaxed">تلقائياً: يتم تجاهل أي حرف نُفذ سابقاً، ويُسمح بالتصويت فقط للأحرف المتاحة حالياً.</div>
+                                            </div>
+                                        </div>
+
+                                        <button
+                                            onClick={() => {
+                                                if (!votingActive) {
+                                                    setLetterVotes({});
+                                                    setVotedUsers({});
+                                                    setVotingTimer(votingDuration);
+                                                    setShowVotingPanel(false); // Close panel when starting
+                                                }
+                                                setVotingActive(!votingActive);
+                                            }}
+                                            className={`w-full py-6 rounded-3xl font-black text-2xl italic tracking-tight transition-all shadow-2xl flex items-center justify-center gap-4 ${votingActive ? 'bg-red-600 hover:bg-red-500 animate-pulse' : 'bg-yellow-500 hover:bg-yellow-400 text-black hover:scale-[1.02]'}`}
+                                        >
+                                            {votingActive ? <><X /> إيقاف التصويت</> : <><Play fill="currentColor" /> بدء جمع الأصوات</>}
+                                        </button>
+
+                                        {/* Real-time Letter Poll List */}
+                                        <div className="space-y-4 pb-10">
+                                            <h4 className="text-xl font-black text-white italic drop-shadow-md flex items-center justify-between">
+                                                <span>الأحرف الأكثر طلباً</span>
+                                                <span className="bg-white/10 px-3 py-1 rounded-full text-xs not-italic">{Object.keys(votedUsers).length} صوت</span>
+                                            </h4>
+                                            
+                                            <div className="grid gap-3">
+                                                {Object.entries(letterVotes).sort((a,b) => Number(b[1]) - Number(a[1])).slice(0, 4).map(([letter, count], idx) => (
+                                                    <div key={idx} className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between group hover:bg-white/10 transition-all">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-black font-black text-2xl shadow-lg group-hover:scale-110 transition-transform">{letter}</div>
+                                                            <div>
+                                                                <div className="font-black text-white">الحرف: {letter}</div>
+                                                                <div className="text-[10px] text-yellow-500 font-bold">عدد الأصوات: {count}</div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="text-2xl font-black text-white/20">#{idx + 1}</div>
+                                                            <button 
+                                                                onClick={() => {
+                                                                    const cellMatch = cells.find(c => c.letter === letter && c.owner === 'none');
+                                                                    if (cellMatch) {
+                                                                        selectCell(cellMatch);
+                                                                        setShowVotingPanel(false);
+                                                                    }
+                                                                }}
+                                                                className="w-10 h-10 bg-yellow-500 text-black rounded-xl border border-white flex items-center justify-center hover:scale-110 active:scale-90 transition-all shadow-lg"
+                                                                title="تفعيل هذا الحرف"
+                                                            >
+                                                                <Check size={20} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                                {Object.keys(letterVotes).length === 0 && (
+                                                    <div className="text-center py-20 bg-white/5 rounded-3xl border-2 border-dashed border-white/10 text-white/20 font-black italic">
+                                                        {votingActive ? "أكتب أي حرف في الشات للتصويت!" : "التصويت مغلق"}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             )}
+
+
+
 
                             {/* Center Header (With Level Indicator) */}
                             <div className={`absolute ${isOBS ? 'top-[-180px]' : 'top-10'} left-1/2 transform -translate-x-1/2 z-20 text-center`}>
@@ -1256,6 +1581,57 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                                 })}
                             </div>
                         </div>
+
+                        {/* NEW INTEGRATED VOTING UI - MINI VERSION BOTTOM-LEFT */}
+                        {votingActive && !isOBS && (
+                            <div className={`fixed left-10 bottom-10 z-[400] w-[320px] pointer-events-none select-none animate-in slide-in-from-bottom duration-700`}>
+                                <div className="bg-[#0f0f1b]/90 backdrop-blur-2xl border-4 border-yellow-500/30 rounded-[3rem] p-6 shadow-[0_20px_80px_rgba(0,0,0,0.9)] relative overflow-hidden">
+                                    {/* Progress Bar Header */}
+                                    <div className="absolute top-0 left-0 h-2 bg-yellow-500 transition-all duration-1000 ease-linear" style={{ width: `${(votingTimer / votingDuration) * 100}%` }}></div>
+                                    
+                                    <div className="flex flex-col items-center gap-6">
+                                        <div className="text-center space-y-2">
+                                            <div className="flex items-center justify-center gap-3">
+                                                <div className="w-8 h-8 bg-yellow-500 rounded-xl flex items-center justify-center text-black shadow-lg">
+                                                    <Vote size={20} />
+                                                </div>
+                                                <h3 className="text-2xl font-black italic text-white">تصويت الحروف</h3>
+                                            </div>
+                                            <div className="flex items-center justify-center gap-3">
+                                                <div className="bg-white text-black px-4 py-1 rounded-xl text-3xl font-black italic tabular-nums">
+                                                    {votingTimer}s
+                                                </div>
+                                                <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-yellow-500 font-black text-[8px] uppercase tracking-widest">
+                                                    {votingEligibleTeam === 'all' ? 'EVERYONE' : (votingEligibleTeam === 'team1' ? team1Name : team2Name)}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="w-full space-y-4">
+                                            <div className="grid grid-cols-2 gap-4">
+                                                {Object.entries(letterVotes).sort((a,b) => Number(b[1]) - Number(a[1])).slice(0, 4).map(([char, count], i) => (
+                                                    <div key={i} className="relative flex flex-col items-center bg-white/5 border border-white/10 p-4 rounded-[1.5rem] animate-in zoom-in duration-500 shadow-xl" style={{ animationDelay: `${i * 100}ms` }}>
+                                                        <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center text-black font-black text-[10px] border-2 border-[#0f0f1b]">#{i+1}</div>
+                                                        <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-black text-2xl font-black shadow-lg mb-2">{char}</div>
+                                                        <div className="text-xl font-black text-yellow-500 tabular-nums">{count}</div>
+                                                    </div>
+                                                ))}
+                                                {Object.keys(letterVotes).length === 0 && (
+                                                    <div className="col-span-2 text-center py-8 text-white/10 text-xl font-black italic border-2 border-dashed border-white/5 rounded-[2rem]">
+                                                        بانتظار الأصوات..
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="flex items-center justify-center gap-3 text-white/30 font-black italic pt-4 w-full border-t border-white/5">
+                                            <Users size={16} />
+                                            <span className="text-lg">{Object.keys(votedUsers).length}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         {/* QUESTION OVERLAY (NOW PRESET-FREE) */}
                         {activeCell && (
@@ -1544,6 +1920,6 @@ export const LetterHexagonGame: React.FC<LetterHexagonGameProps> = ({ onHome, is
                 .custom-scrollbar-blue::-webkit-scrollbar-track { background: rgba(20,184,166,0.1); border-radius: 4px; }
                 .custom-scrollbar-blue::-webkit-scrollbar-thumb { background: #14b8a6; border-radius: 4px; }
             `}</style>
-        </div >
+        </div>
     );
-};
+}
