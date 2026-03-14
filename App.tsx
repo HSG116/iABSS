@@ -39,7 +39,7 @@ import {
   Maximize2, MonitorOff, CheckCircle2, AlertTriangle,
   Crown, Medal, Loader2, RefreshCw, ChevronRight, Video,
   Sword, Globe, Brain, Vote, Bomb, Type, Footprints, Flame, Smile,
-  ArrowUp, ArrowDown, Edit2, Save, Eye, EyeOff, Maximize, Minimize, Layout as LayoutIcon, X, LogIn
+  ArrowUp, ArrowDown, Edit2, Save, Eye, EyeOff, Maximize, Minimize, Layout as LayoutIcon, X, LogIn, LogOut
 } from 'lucide-react';
 import { getAssetUrl } from './utils/assets';
 import { chatService } from './services/chatService';
@@ -865,28 +865,38 @@ const App: React.FC = () => {
               </button>
             </div>
 
-            <div className="w-full flex justify-center items-center pb-20">
+            <div className="w-full flex flex-col items-center gap-4 pb-20">
               {userRole === 'admin' && (
-                !isEditMode ? (
+                <>
+                  {!isEditMode ? (
+                    <button
+                      onClick={() => {
+                        setIsEditMode(true);
+                      }}
+                      className="flex items-center gap-4 px-8 py-3 bg-white/5 hover:bg-white/10 rounded-3xl border-2 border-white/10 text-white font-black italic tracking-tighter transition-all shadow-xl hover:scale-105 active:scale-95 group"
+                    >
+                      <Edit2 size={20} className="text-red-500 group-hover:rotate-12 transition-transform" />
+                      <span>تعديل ترتيب الألعاب</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={saveGamesOrder}
+                      disabled={isSavingGames}
+                      className="flex items-center gap-4 px-8 py-3 bg-green-600 hover:bg-green-500 rounded-3xl border-2 border-white/20 text-white font-black italic tracking-tighter transition-all shadow-[0_0_40px_rgba(22,163,74,0.4)] animate-in zoom-in duration-300"
+                    >
+                      {isSavingGames ? <Loader2 size={20} className="animate-spin" /> : <Save size={20} />}
+                      <span>حفظ الترتيب الجديد</span>
+                    </button>
+                  )}
+                  
                   <button
-                    onClick={() => {
-                      setIsEditMode(true);
-                    }}
-                    className="flex items-center gap-4 px-8 py-3 bg-white/5 hover:bg-white/10 rounded-3xl border-2 border-white/10 text-white font-black italic tracking-tighter transition-all shadow-xl hover:scale-105 active:scale-95 group"
+                    onClick={handleLogout}
+                    className="flex items-center gap-4 px-8 py-2 bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white rounded-2xl border border-red-500/20 text-sm font-black italic tracking-tighter transition-all active:scale-95 group mt-2"
                   >
-                    <Edit2 size={20} className="text-red-500 group-hover:rotate-12 transition-transform" />
-                    <span>تعديل ترتيب الألعاب</span>
+                    <LogOut size={16} className="group-hover:translate-x-[-2px] transition-transform" />
+                    <span>تسجيل الخروج من الإدارة</span>
                   </button>
-                ) : (
-                  <button
-                    onClick={saveGamesOrder}
-                    disabled={isSavingGames}
-                    className="flex items-center gap-4 px-8 py-3 bg-green-600 hover:bg-green-500 rounded-3xl border-2 border-white/20 text-white font-black italic tracking-tighter transition-all shadow-[0_0_40px_rgba(22,163,74,0.4)] animate-in zoom-in duration-300"
-                  >
-                    {isSavingGames ? <Loader2 size={20} className="animate-spin" /> : <Save size={20} />}
-                    <span>حفظ الترتيب الجديد</span>
-                  </button>
-                )
+                </>
               )}
             </div>
 
